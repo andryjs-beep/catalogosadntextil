@@ -1,18 +1,28 @@
 /**
  * Modelo TenantProduct - Personalización de productos por tenant
- * Permite a cada cliente editar nombre, precio y descripción
- * SIN duplicar las imágenes del producto master
+ * Permite a cada cliente editar nombre, precio, descripción, galería y CTA
  */
 import mongoose, { Schema, Document } from 'mongoose';
+
+export type GalleryMode = 'album' | 'slider-auto' | 'slider-manual';
 
 export interface ITenantProduct extends Document {
     _id: mongoose.Types.ObjectId;
     tenantId: mongoose.Types.ObjectId;
     productId: mongoose.Types.ObjectId;
+    // Textos personalizados
+    customTitle: string; // Título destacado del producto
     customName: string;
     customPrice: string;
-    customDescription: string;
+    customDescription: string; // Descripción larga con soporte para viñetas
+    // Galería
+    galleryMode: GalleryMode;
+    sliderSpeed: number; // Segundos entre slides (solo para slider-auto)
+    // CTA / WhatsApp
     ctaText: string;
+    ctaSubtext: string; // Texto pequeño debajo del botón
+    // Footer
+    footerNote: string; // Texto de disclaimer al final
     createdAt: Date;
     updatedAt: Date;
 }
@@ -29,6 +39,12 @@ const TenantProductSchema = new Schema<ITenantProduct>(
             ref: 'Product',
             required: [true, 'El productId es requerido'],
         },
+        customTitle: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [200, 'El título no puede exceder 200 caracteres'],
+        },
         customName: {
             type: String,
             default: '',
@@ -44,12 +60,33 @@ const TenantProductSchema = new Schema<ITenantProduct>(
         customDescription: {
             type: String,
             default: '',
-            maxlength: [1000, 'La descripción no puede exceder 1000 caracteres'],
+            maxlength: [5000, 'La descripción no puede exceder 5000 caracteres'],
+        },
+        galleryMode: {
+            type: String,
+            enum: ['album', 'slider-auto', 'slider-manual'],
+            default: 'album',
+        },
+        sliderSpeed: {
+            type: Number,
+            default: 3,
+            min: 1,
+            max: 30,
         },
         ctaText: {
             type: String,
             default: '',
-            maxlength: [50, 'El texto del CTA no puede exceder 50 caracteres'],
+            maxlength: [100, 'El texto del CTA no puede exceder 100 caracteres'],
+        },
+        ctaSubtext: {
+            type: String,
+            default: '',
+            maxlength: [200, 'El subtexto no puede exceder 200 caracteres'],
+        },
+        footerNote: {
+            type: String,
+            default: '',
+            maxlength: [500, 'La nota de pie no puede exceder 500 caracteres'],
         },
     },
     {
@@ -57,7 +94,7 @@ const TenantProductSchema = new Schema<ITenantProduct>(
     }
 );
 
-// Índice compuesto único: un tenant solo puede personalizar cada producto una vez
+// Índice compuesto único
 TenantProductSchema.index({ tenantId: 1, productId: 1 }, { unique: true });
 
 export default mongoose.models.TenantProduct ||

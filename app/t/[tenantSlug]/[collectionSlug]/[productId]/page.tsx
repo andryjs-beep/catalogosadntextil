@@ -1,15 +1,16 @@
 /**
- * Detalle de Producto
+ * Detalle de Producto - Diseño tipo Landing Page
  */
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
 import dbConnect from '@/lib/db';
 import { Tenant, Collection, Product, TenantProduct, TenantCollection } from '@/lib/models';
+import { ImageGallery } from '@/components/ImageGallery';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 import type { Metadata } from 'next';
+import type { GalleryMode } from '@/lib/models/TenantProduct';
 
 // Tipos para los datos con lean()
 interface TenantData {
@@ -17,6 +18,7 @@ interface TenantData {
     slug: string;
     socialLinks: { whatsappLink: string };
     globalTexts: { ctaButtonText: string };
+    branding: { primaryColor: string; secondaryColor: string };
 }
 
 interface CollectionData {
@@ -37,10 +39,15 @@ interface TenantCollectionData {
 }
 
 interface CustomizationData {
+    customTitle?: string;
     customName?: string;
     customPrice?: string;
     customDescription?: string;
     ctaText?: string;
+    ctaSubtext?: string;
+    footerNote?: string;
+    galleryMode?: GalleryMode;
+    sliderSpeed?: number;
 }
 
 async function getProductData(
@@ -111,6 +118,17 @@ export async function generateMetadata({
     };
 }
 
+// Parsear descripción con viñetas
+function parseDescription(text: string) {
+    const lines = text.split('\n').filter((line) => line.trim());
+    return lines.map((line) => {
+        // Si empieza con - o • o ✓ o ✔, es una viñeta
+        const isBullet = /^[-•✓✔■□▪▫]\s*/.test(line);
+        const cleanLine = line.replace(/^[-•✓✔■□▪▫]\s*/, '').trim();
+        return { text: cleanLine, isBullet };
+    });
+}
+
 export default async function ProductDetailPage({
     params,
 }: {
@@ -124,13 +142,22 @@ export default async function ProductDetailPage({
     }
 
     const { tenant, collection, product, customization, tenantCollection } = data;
+
+    // Valores con fallbacks
+    const productTitle = customization?.customTitle || '';
     const productName = customization?.customName || product.name;
     const productPrice = customization?.customPrice || '';
     const productDescription = customization?.customDescription || '';
-    const ctaText = customization?.ctaText || tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText;
+    const ctaText = customization?.ctaText || tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText || 'Consultar por WhatsApp';
+    const ctaSubtext = customization?.ctaSubtext || '';
+    const footerNote = customization?.footerNote || '';
+    const galleryMode = customization?.galleryMode || 'album';
+    const sliderSpeed = customization?.sliderSpeed || 3;
+
+    const descriptionItems = productDescription ? parseDescription(productDescription) : [];
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="min-h-screen bg-slate-50">
             {/* Analytics Tracker */}
             <AnalyticsTracker
                 tenantId={tenant._id.toString()}
@@ -139,112 +166,111 @@ export default async function ProductDetailPage({
                 productId={product._id.toString()}
             />
 
-            {/* Navegación */}
-            <Link
-                href={`/t/${tenantSlug}/${collectionSlug}`}
-                className="inline-flex items-center gap-2 text-slate-600 hover:tenant-text-primary mb-6 transition-colors"
-            >
-                <ArrowLeft className="h-4 w-4" />
-                Volver a {collection.name}
-            </Link>
-
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-                {/* Galería de imágenes */}
-                <div className="space-y-4">
-                    {/* Imagen principal */}
-                    <div className="aspect-square relative rounded-2xl overflow-hidden bg-slate-100">
-                        {product.images[0] ? (
-                            <Image
-                                src={product.images[0]}
-                                alt={productName}
-                                fill
-                                className="object-cover"
-                                priority
-                                sizes="(max-width: 1024px) 100vw, 50vw"
-                            />
-                        ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Package className="h-24 w-24 text-slate-300" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Thumbnails */}
-                    {product.images.length > 1 && (
-                        <div className="grid grid-cols-4 gap-2">
-                            {product.images.slice(0, 4).map((img, index) => (
-                                <div
-                                    key={index}
-                                    className="aspect-square relative rounded-lg overflow-hidden bg-slate-100 cursor-pointer hover:opacity-80 transition-opacity"
-                                >
-                                    <Image
-                                        src={img}
-                                        alt={`${productName} ${index + 1}`}
-                                        fill
-                                        className="object-cover"
-                                        sizes="100px"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Información del producto */}
-                <div className="space-y-6">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                            {productName}
+            {/* Header con título destacado */}
+            {productTitle && (
+                <div
+                    className="text-white py-6 px-4"
+                    style={{
+                        background: `linear-gradient(135deg, ${tenant.branding.primaryColor || '#1e293b'}, ${tenant.branding.secondaryColor || '#0f172a'})`
+                    }}
+                >
+                    <div className="container mx-auto text-center">
+                        <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-wide">
+                            {productTitle}
                         </h1>
+                    </div>
+                </div>
+            )}
 
-                        {productPrice && (
-                            <div className="text-3xl font-bold tenant-gradient-text mb-6">
-                                {productPrice}
-                            </div>
-                        )}
+            <div className="container mx-auto px-4 py-6">
+                {/* Navegación */}
+                <Link
+                    href={`/t/${tenantSlug}/${collectionSlug}`}
+                    className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Volver a {collection.name}
+                </Link>
+
+                <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+                    {/* Galería de imágenes */}
+                    <div>
+                        <ImageGallery
+                            images={product.images}
+                            mode={galleryMode}
+                            sliderSpeed={sliderSpeed}
+                            productName={productName}
+                        />
                     </div>
 
-                    {/* Botón WhatsApp arriba */}
-                    {tenant.socialLinks.whatsappLink && (
-                        <WhatsAppButton
-                            href={tenant.socialLinks.whatsappLink}
-                            text={ctaText}
-                            productName={productName}
-                            tenantId={tenant._id.toString()}
-                            productId={product._id.toString()}
-                            collectionId={collection._id.toString()}
-                            className="w-full justify-center text-lg py-4"
-                        />
-                    )}
-
-                    {/* Descripción */}
-                    {productDescription && (
-                        <div className="prose prose-slate max-w-none">
-                            <h2 className="text-xl font-semibold text-slate-900 mb-3">
-                                Descripción
+                    {/* Información del producto */}
+                    <div className="space-y-6">
+                        {/* Nombre y precio */}
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+                                {productName}
                             </h2>
-                            <p className="text-slate-600 whitespace-pre-wrap">
-                                {productDescription}
-                            </p>
+                            {productPrice && (
+                                <div
+                                    className="text-2xl md:text-3xl font-bold"
+                                    style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
+                                >
+                                    {productPrice}
+                                </div>
+                            )}
                         </div>
-                    )}
 
-                    {/* Separador */}
-                    <div className="border-t border-slate-200 pt-6">
-                        <p className="text-slate-500 text-sm mb-4">
-                            ¿Tienes alguna pregunta? ¡Escríbenos!
-                        </p>
+                        {/* Descripción con viñetas */}
+                        {descriptionItems.length > 0 && (
+                            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                                <ul className="space-y-3">
+                                    {descriptionItems.map((item, index) => (
+                                        <li key={index} className="flex items-start gap-3">
+                                            {item.isBullet ? (
+                                                <CheckCircle
+                                                    className="h-5 w-5 mt-0.5 flex-shrink-0"
+                                                    style={{ color: tenant.branding.primaryColor || '#22c55e' }}
+                                                />
+                                            ) : (
+                                                <span className="w-5" />
+                                            )}
+                                            <span className="text-slate-700">{item.text}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
-                        {/* Botón WhatsApp abajo */}
+                        {/* Botón CTA principal */}
                         {tenant.socialLinks.whatsappLink && (
-                            <WhatsAppButton
-                                href={tenant.socialLinks.whatsappLink}
-                                text={ctaText}
-                                productName={productName}
-                                tenantId={tenant._id.toString()}
-                                productId={product._id.toString()}
-                                collectionId={collection._id.toString()}
-                            />
+                            <div className="space-y-2">
+                                <WhatsAppButton
+                                    href={tenant.socialLinks.whatsappLink}
+                                    text={ctaText}
+                                    productName={productName}
+                                    tenantId={tenant._id.toString()}
+                                    productId={product._id.toString()}
+                                    collectionId={collection._id.toString()}
+                                    className="w-full justify-center text-lg py-4 font-semibold"
+                                />
+                                {ctaSubtext && (
+                                    <p className="text-center text-sm text-slate-500">
+                                        {ctaSubtext}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Nota de pie */}
+                        {footerNote && (
+                            <div
+                                className="text-sm text-white p-4 rounded-xl text-center"
+                                style={{
+                                    background: `linear-gradient(135deg, ${tenant.branding.primaryColor || '#1e293b'}, ${tenant.branding.secondaryColor || '#0f172a'})`
+                                }}
+                            >
+                                {footerNote}
+                            </div>
                         )}
                     </div>
                 </div>

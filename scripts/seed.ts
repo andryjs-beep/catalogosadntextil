@@ -2,6 +2,11 @@
  * Seed Script - Crear datos iniciales
  * Ejecutar con: npm run seed
  */
+import { config } from 'dotenv';
+
+// Cargar variables de entorno
+config({ path: '.env.local' });
+
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 

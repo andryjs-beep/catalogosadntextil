@@ -95,10 +95,15 @@ export type TenantCollectionInput = z.infer<typeof tenantCollectionSchema>;
 // ============ PERSONALIZACIÓN PRODUCTOS ============
 export const tenantProductSchema = z.object({
     productId: z.string().min(1, 'El ID de producto es requerido'),
+    customTitle: z.string().max(200).default(''),
     customName: z.string().max(200).default(''),
     customPrice: z.string().max(50).default(''),
-    customDescription: z.string().max(1000).default(''),
-    ctaText: z.string().max(50).default(''),
+    customDescription: z.string().max(5000).default(''),
+    galleryMode: z.enum(['album', 'slider-auto', 'slider-manual']).default('album'),
+    sliderSpeed: z.number().int().min(1).max(30).default(3),
+    ctaText: z.string().max(100).default(''),
+    ctaSubtext: z.string().max(200).default(''),
+    footerNote: z.string().max(500).default(''),
 });
 
 export type TenantProductInput = z.infer<typeof tenantProductSchema>;
