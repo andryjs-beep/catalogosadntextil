@@ -1,0 +1,139 @@
+import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
+import { getSession } from '@/lib/auth';
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
+export async function POST(req: NextRequest) {
+    try {
+        const session = await getSession();
+        if (!session.isAuthenticated) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        const { type, productInfo, tenantInfo, section } = await req.json();
+
+        let prompt = "";
+
+        // PROMPT PARA HERO DE COLECCIÓN
+        if (type === "collection" && section === "hero") {
+            prompt = `Eres un copywriter experto en ventas. Genera contenido para la sección HERO de una página de catálogo.
+
+Negocio: ${tenantInfo.businessName}
+Nicho: ${tenantInfo.niche}
+Tono: ${tenantInfo.tone}
+
+Colección: ${productInfo.name}
+Audiencia: ${tenantInfo.niche}
+
+Responde SOLO con JSON válido:
+{
+  "headline": "Headline impactante de 6-8 palabras",
+  "subheadline": "Subheadline de 12-15 palabras con beneficio clave",
+  "ctaText": "Texto botón (3-4 palabras)"
+}`;
+        }
+
+        // PROMPT PARA BENEFITS
+        else if (section === "benefits") {
+            prompt = `Genera 4 beneficios clave en JSON para el producto/colección: ${productInfo.name}
+
+Nicho/Audiencia: ${tenantInfo.niche}
+Características clave: ${productInfo.description || 'Calidad premium'}
+
+Formato:
+[
+  {
+    "icon": "shield", 
+    "title": "Título 3-4 palabras",
+    "description": "Descripción persuasiva 15-20 palabras enfocada en resultado emocional"
+  }
+]
+Nota: Usa nombres de iconos de Lucide-react: shield, truck, star, zap, award, check-circle, heart, sparkles.
+
+Solo JSON, sin texto extra.`;
+        }
+
+        // PROMPT PARA FAQ
+        else if (section === "faq") {
+            prompt = `Genera 6 preguntas frecuentes con respuestas en JSON para eliminar objeciones de compra.
+
+Producto/Colección: ${productInfo.name}
+Nicho: ${tenantInfo.niche}
+
+Incluye preguntas sobre: tiempos de entrega, envíos, métodos de pago, garantías y calidad.
+
+Formato JSON:
+[
+  {
+    "question": "Pregunta directa",
+    "answer": "Respuesta clara y persuasiva"
+  }
+]`;
+        }
+
+        // PROMPT PARA DESCRIPCIÓN LARGA
+        else if (type === "product" && section === "longDescription") {
+            prompt = `Escribe una descripción de ventas persuasiva de 200-250 palabras para:
+
+Producto: ${productInfo.name}
+Nicho: ${tenantInfo.niche}
+Tono: ${tenantInfo.tone}
+
+Usa fórmula AIDA:
+1. ATENCIÓN: Gancho inicial
+2. INTERÉS: Problema/Deseo que resuelve
+3. DESEO: Beneficios emocionales
+4. ACCIÓN: Invitación a contactar
+
+Responde solo con el texto plano.`;
+        }
+
+        if (!prompt) {
+            return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
+        }
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: "Eres un copywriter experto en marketing digital de alta conversión. Respondes siempre en español con tono persuasivo y profesional."
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+        });
+
+        const generatedContent = completion.choices[0].message.content || "";
+
+        // Intentar parsear si es JSON
+        let result = generatedContent;
+        if (section !== "longDescription") {
+            try {
+                // Limpiar posible formato markdown de bloque de código
+                const cleanContent = generatedContent.replace(/```json\n?|```/g, '').trim();
+                result = JSON.parse(cleanContent);
+            } catch (e) {
+                console.error('Error parseando JSON de OpenAI:', e);
+            }
+        }
+
+        return NextResponse.json({
+            success: true,
+            content: result
+        });
+
+    } catch (error: any) {
+        console.error('Error OpenAI Route:', error);
+        return NextResponse.json({
+            error: 'Error al generar contenido',
+            details: error.message
+        }, { status: 500 });
+    }
+}

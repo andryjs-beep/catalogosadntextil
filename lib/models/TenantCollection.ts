@@ -4,6 +4,51 @@
  */
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface ILandingPageSections {
+    hero: {
+        headline: string;
+        subheadline: string;
+        ctaText: string;
+        heroImage: string;
+        videoUrl: string;
+    };
+    benefits: {
+        items: Array<{
+            icon: string;
+            title: string;
+            description: string;
+        }>;
+    };
+    howItWorks: {
+        steps: Array<{
+            number: number;
+            title: string;
+            description: string;
+            image: string;
+        }>;
+    };
+    socialProof: {
+        stats: Array<{ number: string; label: string }>;
+        testimonials: Array<{
+            name: string;
+            role: string;
+            text: string;
+            avatar: string;
+            rating: number;
+        }>;
+        logos: string[];
+    };
+    faq: Array<{
+        question: string;
+        answer: string;
+    }>;
+    finalCTA: {
+        headline: string;
+        description: string;
+        ctaText: string;
+    };
+}
+
 export interface ITenantCollection extends Document {
     _id: mongoose.Types.ObjectId;
     tenantId: mongoose.Types.ObjectId;
@@ -13,6 +58,8 @@ export interface ITenantCollection extends Document {
     ctaButtonText: string;
     isPublished: boolean;
     order: number;
+    landingPageSections: ILandingPageSections;
+    useLandingLayout: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -51,6 +98,62 @@ const TenantCollectionSchema = new Schema<ITenantCollection>(
         order: {
             type: Number,
             default: 0,
+        },
+        landingPageSections: {
+            hero: {
+                headline: { type: String, default: '' },
+                subheadline: { type: String, default: '' },
+                ctaText: { type: String, default: 'Ver Catálogo' },
+                heroImage: { type: String, default: '' },
+                videoUrl: { type: String, default: '' },
+            },
+            benefits: {
+                items: [
+                    {
+                        icon: String,
+                        title: String,
+                        description: String,
+                    },
+                ],
+            },
+            howItWorks: {
+                steps: [
+                    {
+                        number: Number,
+                        title: String,
+                        description: String,
+                        image: String,
+                    },
+                ],
+            },
+            socialProof: {
+                stats: [{ number: String, label: String }],
+                testimonials: [
+                    {
+                        name: String,
+                        role: String,
+                        text: String,
+                        avatar: String,
+                        rating: Number,
+                    },
+                ],
+                logos: [String],
+            },
+            faq: [
+                {
+                    question: String,
+                    answer: String,
+                },
+            ],
+            finalCTA: {
+                headline: { type: String, default: '' },
+                description: { type: String, default: '' },
+                ctaText: { type: String, default: 'Contactar Ahora' },
+            },
+        },
+        useLandingLayout: {
+            type: Boolean,
+            default: false,
         },
     },
     {

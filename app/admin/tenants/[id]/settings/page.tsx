@@ -54,17 +54,21 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
     };
 
     const handleUpdateSocial = async (e: React.FormEvent) => {
+        // ... existente
+    };
+
+    const handleUpdateBusiness = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
             const res = await fetch(`/api/admin/tenants/${id}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ socialLinks: tenant.tenant.socialLinks }),
+                body: JSON.stringify({ businessInfo: tenant.tenant.businessInfo }),
             });
             if (!res.ok) throw new Error('Error al actualizar');
-            toast.success('Redes sociales actualizadas');
+            toast.success('Información de negocio actualizada');
         } catch (error) {
-            toast.error('No se pudo actualizar');
+            toast.error('No se pudo actualizar la información de negocio');
         } finally {
             setSaving(false);
         }
@@ -111,9 +115,10 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
             </div>
 
             <Tabs defaultValue="branding" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+                <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
                     <TabsTrigger value="branding">Branding</TabsTrigger>
                     <TabsTrigger value="social">Contacto/Redes</TabsTrigger>
+                    <TabsTrigger value="business">Negocio (IA)</TabsTrigger>
                     <TabsTrigger value="acceso">Acceso Admin</TabsTrigger>
                     <TabsTrigger value="textos">Textos Globales</TabsTrigger>
                 </TabsList>
@@ -188,6 +193,51 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                             </CardContent>
                             <CardFooter>
                                 <Button type="submit" disabled={saving}>Guardar Ajustes</Button>
+                            </CardFooter>
+                        </form>
+                    </Card>
+                </TabsContent>
+
+                {/* --- Pestaña Negocio (IA) --- */}
+                <TabsContent value="business">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Información de Negocio para IA</CardTitle>
+                            <CardDescription>Esta información ayuda a la IA a generar mejores textos persuasivos.</CardDescription>
+                        </CardHeader>
+                        <form onSubmit={handleUpdateBusiness}>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Nombre Comercial</Label>
+                                    <Input value={tenant.tenant.businessInfo.businessName}
+                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, businessInfo: { ...tenant.tenant.businessInfo, businessName: e.target.value } } })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Nicho / Audiencia</Label>
+                                    <Input value={tenant.tenant.businessInfo.niche} placeholder="Ej: Gorras para jóvenes, Ropa de trabajo..."
+                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, businessInfo: { ...tenant.tenant.businessInfo, niche: e.target.value } } })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Propuesta Única (USP)</Label>
+                                    <Input value={tenant.tenant.businessInfo.usp} placeholder="Ej: Calidad premium con bordados artesanales"
+                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, businessInfo: { ...tenant.tenant.businessInfo, usp: e.target.value } } })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Tono de Voz</Label>
+                                    <select
+                                        className="w-full p-2 border rounded-md"
+                                        value={tenant.tenant.businessInfo.tone}
+                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, businessInfo: { ...tenant.tenant.businessInfo, tone: e.target.value } } })}
+                                    >
+                                        <option value="profesional">Profesional</option>
+                                        <option value="casual">Casual</option>
+                                        <option value="juvenil">Juvenil</option>
+                                        <option value="persuasivo">Persuasivo</option>
+                                    </select>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button type="submit" disabled={saving}>Guardar Info de Negocio</Button>
                             </CardFooter>
                         </form>
                     </Card>

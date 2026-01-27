@@ -4,10 +4,12 @@
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/db';
 import { Tenant, TenantCollection, Collection, Product, TenantProduct } from '@/lib/models';
+import type { ILandingPageSections } from '@/lib/models/TenantCollection';
 import { ProductCard } from '@/components/ProductCard';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 import { ArrowLeft } from 'lucide-react';
+import { LandingPageLayout } from '@/components/LandingPageLayout';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -28,6 +30,8 @@ interface TenantCollectionData {
     persuasiveTextTop: string;
     persuasiveTextBottom: string;
     ctaButtonText: string;
+    useLandingLayout: boolean;
+    landingPageSections: ILandingPageSections;
 }
 
 interface ProductWithCustom {
@@ -128,6 +132,18 @@ export default async function CollectionPage({
 
     const { tenant, collection, tenantCollection, products } = data;
     const ctaText = tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText;
+
+    if (tenantCollection.useLandingLayout) {
+        return (
+            <LandingPageLayout
+                tenant={tenant as any}
+                tenantCollection={tenantCollection}
+                products={products}
+                tenantSlug={tenantSlug}
+                collectionSlug={collectionSlug}
+            />
+        );
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">

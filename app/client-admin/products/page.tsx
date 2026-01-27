@@ -27,7 +27,8 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Pencil, Loader2, Package, Image as ImageIcon, Settings, AlignLeft, MapPin } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Pencil, Loader2, Package, Image as ImageIcon, Settings, AlignLeft, MapPin, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 interface Product {
@@ -59,6 +60,12 @@ interface FormData {
     ctaSubtext: string;
     footerNote: string;
     showLocation: boolean;
+    useLandingLayout: boolean;
+    landingContent: {
+        headline: string;
+        subheadline: string;
+        longDescription: string;
+    }
 }
 
 export default function ClientProductsPage() {
@@ -67,6 +74,7 @@ export default function ClientProductsPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [tenant, setTenant] = useState<any>(null);
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -80,6 +88,12 @@ export default function ClientProductsPage() {
             ctaSubtext: '',
             footerNote: '',
             showLocation: true,
+            useLandingLayout: false,
+            landingContent: {
+                headline: '',
+                subheadline: '',
+                longDescription: '',
+            }
         },
     });
 
@@ -89,6 +103,7 @@ export default function ClientProductsPage() {
             const data = await response.json();
             if (response.ok) {
                 setProducts(data.products);
+                setTenant(data.tenant);
             }
         } catch {
             toast.error('Error al cargar productos');
@@ -114,7 +129,13 @@ export default function ClientProductsPage() {
             ctaText: c?.ctaText || '',
             ctaSubtext: c?.ctaSubtext || '',
             footerNote: c?.footerNote || '',
-            showLocation: c?.showLocation !== false, // Por defecto true
+            showLocation: c?.showLocation !== false,
+            useLandingLayout: (c as any)?.useLandingLayout || false,
+            landingContent: {
+                headline: (c as any)?.landingContent?.headline || '',
+                subheadline: (c as any)?.landingContent?.subheadline || '',
+                longDescription: (c as any)?.landingContent?.longDescription || '',
+            }
         });
         setIsDialogOpen(true);
     };
@@ -236,156 +257,240 @@ export default function ClientProductsPage() {
                     </DialogHeader>
 
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Sección: Textos principales */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-slate-700 border-b pb-2">Textos principales</h3>
+                        <Tabs defaultValue="basic" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="basic">Ajustes Básicos</TabsTrigger>
+                                <TabsTrigger value="landing">Modo Landing ✨</TabsTrigger>
+                            </TabsList>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="customTitle">Título destacado (header oscuro)</Label>
-                                <Input
-                                    id="customTitle"
-                                    {...form.register('customTitle')}
-                                    placeholder="Ej: PACK BODY + SUDADERA SUPER CÓMODA"
-                                />
-                                <p className="text-xs text-slate-500">
-                                    Se muestra en un banner oscuro arriba del producto
-                                </p>
-                            </div>
+                            <TabsContent value="basic" className="space-y-6 pt-4">
+                                {/* Sección: Textos principales */}
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-slate-700 border-b pb-2">Textos principales</h3>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="customName">Nombre del producto</Label>
-                                <Input
-                                    id="customName"
-                                    {...form.register('customName')}
-                                    placeholder="Ej: Body + Sudadera Premium"
-                                />
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="customTitle">Título destacado (header oscuro)</Label>
+                                        <Input
+                                            id="customTitle"
+                                            {...form.register('customTitle')}
+                                            placeholder="Ej: PACK BODY + SUDADERA SUPER CÓMODA"
+                                        />
+                                        <p className="text-xs text-slate-500">
+                                            Se muestra en un banner oscuro arriba del producto
+                                        </p>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="customPrice">Precio</Label>
-                                <Input
-                                    id="customPrice"
-                                    {...form.register('customPrice')}
-                                    placeholder="Ej: $45.990 o OFERTA: $29.990"
-                                />
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="customName">Nombre del producto</Label>
+                                        <Input
+                                            id="customName"
+                                            {...form.register('customName')}
+                                            placeholder="Ej: Body + Sudadera Premium"
+                                        />
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="customDescription" className="flex items-center gap-2">
-                                    <AlignLeft className="h-4 w-4 text-slate-500" />
-                                    Descripción Organizada (Usa guiones)
-                                </Label>
-                                <Textarea
-                                    id="customDescription"
-                                    {...form.register('customDescription')}
-                                    rows={8}
-                                    className="text-base leading-relaxed"
-                                    placeholder={`Escribe beneficios o especificaciones:
+                                    <div className="space-y-2">
+                                        <Label htmlFor="customPrice">Precio</Label>
+                                        <Input
+                                            id="customPrice"
+                                            {...form.register('customPrice')}
+                                            placeholder="Ej: $45.990 o OFERTA: $29.990"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="customDescription" className="flex items-center gap-2">
+                                            <AlignLeft className="h-4 w-4 text-slate-500" />
+                                            Descripción Organizada (Usa guiones)
+                                        </Label>
+                                        <Textarea
+                                            id="customDescription"
+                                            {...form.register('customDescription')}
+                                            rows={8}
+                                            className="text-base leading-relaxed"
+                                            placeholder={`Escribe beneficios o especificaciones:
 - Calidad Premium garantizada
 - Colores vibrantes y duraderos
 - Material: Micromalla dry-fit
 - Ideal para uniformes deportivos`}
-                                />
-                                <p className="text-xs text-slate-500">
-                                    Tip: Comienza cada línea con un guion (-) para que aparezca con un check (✓).
-                                </p>
-                            </div>
+                                        />
+                                        <p className="text-xs text-slate-500">
+                                            Tip: Comienza cada línea con un guion (-) para que aparezca con un check (✓).
+                                        </p>
+                                    </div>
 
-                            <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
-                                <div className="space-y-0.5">
-                                    <Label className="text-red-900 flex items-center gap-2">
-                                        <MapPin className="h-4 w-4" />
-                                        Mostrar Ubicación
-                                    </Label>
-                                    <p className="text-xs text-red-600">
-                                        Muestra el mapa y dirección física en este producto
-                                    </p>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    {...form.register('showLocation')}
-                                    className="h-6 w-11 rounded-full border-transparent bg-slate-200 checked:bg-red-500 transition-colors"
-                                    style={{ appearance: 'none', position: 'relative', cursor: 'pointer' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Sección: Galería */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-slate-700 border-b pb-2">Configuración de galería</h3>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Modo de galería</Label>
-                                    <Select
-                                        value={form.watch('galleryMode')}
-                                        onValueChange={(v) => form.setValue('galleryMode', v as FormData['galleryMode'])}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="album">📷 Álbum (grid)</SelectItem>
-                                            <SelectItem value="slider-auto">🎠 Slider automático</SelectItem>
-                                            <SelectItem value="slider-manual">👆 Slider manual</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {form.watch('galleryMode') === 'slider-auto' && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="sliderSpeed">Velocidad (segundos)</Label>
-                                        <Input
-                                            id="sliderSpeed"
-                                            type="number"
-                                            min={1}
-                                            max={30}
-                                            {...form.register('sliderSpeed', { valueAsNumber: true })}
+                                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-red-900 flex items-center gap-2">
+                                                <MapPin className="h-4 w-4" />
+                                                Mostrar Ubicación
+                                            </Label>
+                                            <p className="text-xs text-red-600">
+                                                Muestra el mapa y dirección física en este producto
+                                            </p>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            {...form.register('showLocation')}
+                                            className="h-6 w-11 rounded-full border-transparent bg-slate-200 checked:bg-red-500 transition-colors"
+                                            style={{ appearance: 'none', position: 'relative', cursor: 'pointer' }}
                                         />
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        {/* Sección: Botón WhatsApp */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-slate-700 border-b pb-2">Botón de WhatsApp</h3>
+                                {/* Sección: Galería */}
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-slate-700 border-b pb-2">Configuración de galería</h3>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="ctaText">Texto del botón</Label>
-                                <Input
-                                    id="ctaText"
-                                    {...form.register('ctaText')}
-                                    placeholder="Ej: ¡PEDIR Y PAGAR EN CASA! 🏠"
-                                />
-                            </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Modo de galería</Label>
+                                            <Select
+                                                value={form.watch('galleryMode')}
+                                                onValueChange={(v: string) => form.setValue('galleryMode', v as FormData['galleryMode'])}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="album">📷 Álbum (grid)</SelectItem>
+                                                    <SelectItem value="slider-auto">🎠 Slider automático</SelectItem>
+                                                    <SelectItem value="slider-manual">👆 Slider manual</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="ctaSubtext">Texto debajo del botón</Label>
-                                <Input
-                                    id="ctaSubtext"
-                                    {...form.register('ctaSubtext')}
-                                    placeholder="Ej: Recuerda que el pago es contraentrega 👍"
-                                />
-                            </div>
-                        </div>
+                                        {form.watch('galleryMode') === 'slider-auto' && (
+                                            <div className="space-y-2">
+                                                <Label htmlFor="sliderSpeed">Velocidad (segundos)</Label>
+                                                <Input
+                                                    id="sliderSpeed"
+                                                    type="number"
+                                                    min={1}
+                                                    max={30}
+                                                    {...form.register('sliderSpeed', { valueAsNumber: true })}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-                        {/* Sección: Pie de página */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-slate-700 border-b pb-2">Nota de pie</h3>
+                                {/* Sección: Botón WhatsApp */}
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-slate-700 border-b pb-2">Botón de WhatsApp</h3>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="footerNote">Disclaimer / Nota final</Label>
-                                <Textarea
-                                    id="footerNote"
-                                    {...form.register('footerNote')}
-                                    rows={2}
-                                    placeholder="Ej: LA PROMOCIÓN NO INCLUYE ACCESORIOS: CADENA, GAFAS, RELOJ, ETC."
-                                />
-                            </div>
-                        </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="ctaText">Texto del botón</Label>
+                                        <Input
+                                            id="ctaText"
+                                            {...form.register('ctaText')}
+                                            placeholder="Ej: ¡PEDIR Y PAGAR EN CASA! 🏠"
+                                        />
+                                    </div>
 
-                        <DialogFooter>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="ctaSubtext">Texto debajo del botón</Label>
+                                        <Input
+                                            id="ctaSubtext"
+                                            {...form.register('ctaSubtext')}
+                                            placeholder="Ej: Recuerda que el pago es contraentrega 👍"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Sección: Pie de página */}
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-slate-700 border-b pb-2">Nota de pie</h3>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="footerNote">Disclaimer / Nota final</Label>
+                                        <Textarea
+                                            id="footerNote"
+                                            {...form.register('footerNote')}
+                                            rows={2}
+                                            placeholder="Ej: LA PROMOCIÓN NO INCLUYE ACCESORIOS: CADENA, GAFAS, RELOJ, ETC."
+                                        />
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="landing" className="space-y-6 pt-4">
+                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <Label className="text-amber-900 font-bold">Activar Diseño Landing Page</Label>
+                                        <p className="text-xs text-amber-700">Muestra este producto con secciones de alta conversión.</p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={form.watch('useLandingLayout')}
+                                        onChange={(e) => form.setValue('useLandingLayout', e.target.checked)}
+                                        className="h-6 w-6 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                                    />
+                                </div>
+
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Headline de Producto</Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-primary border-primary/20"
+                                            onClick={async () => {
+                                                const res = await fetch('/api/ai/generate-copy', {
+                                                    method: 'POST',
+                                                    body: JSON.stringify({
+                                                        type: 'product',
+                                                        section: 'hero',
+                                                        productInfo: { name: editingProduct?.name },
+                                                        tenantInfo: { ...tenant?.businessInfo }
+                                                    })
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) {
+                                                    form.setValue('landingContent.headline', data.content.headline);
+                                                    form.setValue('landingContent.subheadline', data.content.subheadline);
+                                                }
+                                            }}
+                                        >
+                                            <Sparkles className="h-4 w-4" /> Generar con IA
+                                        </Button>
+                                    </div>
+                                    <Input {...form.register('landingContent.headline')} placeholder="Ej: La prenda que transformará tu armario" />
+                                    <Textarea {...form.register('landingContent.subheadline')} placeholder="Describe el beneficio principal de forma impactante." />
+                                </div>
+
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Descripción Larga (Copywriting Pro)</Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-primary border-primary/20"
+                                            onClick={async () => {
+                                                const res = await fetch('/api/ai/generate-copy', {
+                                                    method: 'POST',
+                                                    body: JSON.stringify({
+                                                        type: 'product',
+                                                        section: 'longDescription',
+                                                        productInfo: { name: editingProduct?.name },
+                                                        tenantInfo: { ...tenant?.businessInfo }
+                                                    })
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) form.setValue('landingContent.longDescription', data.content);
+                                            }}
+                                        >
+                                            <Sparkles className="h-4 w-4" /> Escribir para mí
+                                        </Button>
+                                    </div>
+                                    <Textarea {...form.register('landingContent.longDescription')} rows={12} placeholder="Escribe una descripción completa siguiendo la fórmula AIDA..." />
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+
+                        <DialogFooter className="mt-8 border-t pt-4">
                             <Button type="button" variant="outline" onClick={closeDialog}>
                                 Cancelar
                             </Button>

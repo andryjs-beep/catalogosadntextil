@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import Link from 'next/link';
-import { Package, Palette, Share2, LogOut, LayoutDashboard } from 'lucide-react';
+import { Package, Palette, Share2, LogOut, LayoutDashboard, LayoutTemplate } from 'lucide-react';
 
 export default async function ClientAdminLayout({
     children,
@@ -46,6 +46,13 @@ export default async function ClientAdminLayout({
                         >
                             <Package className="h-5 w-5" />
                             Productos
+                        </Link>
+                        <Link
+                            href="/client-admin/collections"
+                            className="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                            <LayoutTemplate className="h-5 w-5" />
+                            Colecciones (Landings)
                         </Link>
                         <Link
                             href="/client-admin/branding"

@@ -6,6 +6,24 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export type GalleryMode = 'album' | 'slider-auto' | 'slider-manual';
 
+export interface ILandingContent {
+    headline: string;
+    subheadline: string;
+    features: Array<{
+        icon: string;
+        title: string;
+        description: string;
+    }>;
+    longDescription: string;
+    benefits: string[];
+    useCases: string[];
+    guarantees: string[];
+    faq: Array<{
+        question: string;
+        answer: string;
+    }>;
+}
+
 export interface ITenantProduct extends Document {
     _id: mongoose.Types.ObjectId;
     tenantId: mongoose.Types.ObjectId;
@@ -24,6 +42,10 @@ export interface ITenantProduct extends Document {
     // Footer
     footerNote: string; // Texto de disclaimer al final
     showLocation: boolean; // Mostrar sección "Ubícanos" en este producto
+    // Landing
+    landingContent: ILandingContent;
+    aiGenerated: boolean;
+    useLandingLayout: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -92,6 +114,35 @@ const TenantProductSchema = new Schema<ITenantProduct>(
         showLocation: {
             type: Boolean,
             default: true,
+        },
+        landingContent: {
+            headline: { type: String, default: '' },
+            subheadline: { type: String, default: '' },
+            features: [
+                {
+                    icon: String,
+                    title: String,
+                    description: String,
+                },
+            ],
+            longDescription: { type: String, default: '' },
+            benefits: [String],
+            useCases: [String],
+            guarantees: [String],
+            faq: [
+                {
+                    question: String,
+                    answer: String,
+                },
+            ],
+        },
+        aiGenerated: {
+            type: Boolean,
+            default: false,
+        },
+        useLandingLayout: {
+            type: Boolean,
+            default: false,
         },
     },
     {

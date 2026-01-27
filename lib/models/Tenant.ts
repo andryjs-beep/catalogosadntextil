@@ -29,12 +29,20 @@ export interface IGlobalTexts {
     ctaButtonText: string;
 }
 
+export interface IBusinessInfo {
+    businessName: string;
+    niche: string;
+    usp: string;
+    tone: 'profesional' | 'casual' | 'juvenil' | 'persuasivo';
+}
+
 export interface ITenant extends Document {
     _id: mongoose.Types.ObjectId;
     slug: string;
     branding: IBranding;
     socialLinks: ISocialLinks;
     globalTexts: IGlobalTexts;
+    businessInfo: IBusinessInfo;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -74,6 +82,16 @@ const TenantSchema = new Schema<ITenant>(
             headerText: { type: String, default: '' },
             footerText: { type: String, default: '' },
             ctaButtonText: { type: String, default: 'Consultar por WhatsApp' },
+        },
+        businessInfo: {
+            businessName: { type: String, default: '' },
+            niche: { type: String, default: '' },
+            usp: { type: String, default: '' },
+            tone: {
+                type: String,
+                enum: ['profesional', 'casual', 'juvenil', 'persuasivo'],
+                default: 'profesional'
+            }
         },
         isActive: {
             type: Boolean,

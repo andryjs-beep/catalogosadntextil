@@ -64,6 +64,13 @@ export const globalTextsSchema = z.object({
     ctaButtonText: z.string().max(50).default('Consultar por WhatsApp'),
 });
 
+export const businessInfoSchema = z.object({
+    businessName: z.string().default(''),
+    niche: z.string().default(''),
+    usp: z.string().default(''),
+    tone: z.enum(['profesional', 'casual', 'juvenil', 'persuasivo']).default('profesional'),
+});
+
 export const tenantSchema = z.object({
     slug: z
         .string()
@@ -76,6 +83,7 @@ export const tenantSchema = z.object({
     branding: brandingSchema.default({}),
     socialLinks: socialLinksSchema.default({}),
     globalTexts: globalTextsSchema.default({}),
+    businessInfo: businessInfoSchema.default({}),
     isActive: z.boolean().default(true),
 });
 
@@ -83,6 +91,52 @@ export type TenantInput = z.infer<typeof tenantSchema>;
 export type BrandingInput = z.infer<typeof brandingSchema>;
 export type SocialLinksInput = z.infer<typeof socialLinksSchema>;
 export type GlobalTextsInput = z.infer<typeof globalTextsSchema>;
+
+// ============ LANDING PAGE SECTIONS ============
+export const landingPageSectionsSchema = z.object({
+    hero: z.object({
+        headline: z.string().default(''),
+        subheadline: z.string().default(''),
+        ctaText: z.string().default('Ver Catálogo'),
+        heroImage: z.string().default(''),
+        videoUrl: z.string().default(''),
+    }),
+    benefits: z.object({
+        items: z.array(z.object({
+            icon: z.string(),
+            title: z.string(),
+            description: z.string(),
+        })).default([]),
+    }),
+    howItWorks: z.object({
+        steps: z.array(z.object({
+            number: z.number(),
+            title: z.string(),
+            description: z.string(),
+            image: z.string(),
+        })).default([]),
+    }),
+    socialProof: z.object({
+        stats: z.array(z.object({ number: z.string(), label: z.string() })).default([]),
+        testimonials: z.array(z.object({
+            name: z.string(),
+            role: z.string(),
+            text: z.string(),
+            avatar: z.string(),
+            rating: z.number(),
+        })).default([]),
+        logos: z.array(z.string()).default([]),
+    }),
+    faq: z.array(z.object({
+        question: z.string(),
+        answer: z.string(),
+    })).default([]),
+    finalCTA: z.object({
+        headline: z.string().default(''),
+        description: z.string().default(''),
+        ctaText: z.string().default('Contactar Ahora'),
+    }),
+});
 
 // ============ ASIGNACIÓN COLECCIONES ============
 export const tenantCollectionSchema = z.object({
@@ -92,6 +146,8 @@ export const tenantCollectionSchema = z.object({
     ctaButtonText: z.string().max(50).default(''),
     isPublished: z.boolean().default(false),
     order: z.number().int().min(0).default(0),
+    useLandingLayout: z.boolean().default(false),
+    landingPageSections: landingPageSectionsSchema.optional(),
 });
 
 export type TenantCollectionInput = z.infer<typeof tenantCollectionSchema>;

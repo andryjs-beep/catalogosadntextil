@@ -107,6 +107,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
                 ctaButtonText: a.ctaButtonText,
                 isPublished: a.isPublished,
                 order: a.order ?? index,
+                useLandingLayout: a.useLandingLayout,
+                landingPageSections: a.landingPageSections,
             }));
 
             await TenantCollection.insertMany(newAssignments);

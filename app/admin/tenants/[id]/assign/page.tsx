@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Check, FolderOpen } from 'lucide-react';
+import { Loader2, ArrowLeft, Check, FolderOpen, LayoutTemplate } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -192,14 +192,24 @@ export default function AssignCollectionsPage({
                                         )}
                                         {collection.name}
                                     </CardTitle>
-                                    <Button
-                                        variant={isAssigned ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => toggleCollection(collection._id)}
-                                    >
-                                        {isAssigned && <Check className="h-4 w-4 mr-1" />}
-                                        {isAssigned ? 'Asignada' : 'Asignar'}
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                        {isAssigned && (
+                                            <Link href={`/admin/tenants/${tenantId}/landing/${collection._id}`}>
+                                                <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5">
+                                                    <LayoutTemplate className="h-4 w-4" />
+                                                    Landing Page
+                                                </Button>
+                                            </Link>
+                                        )}
+                                        <Button
+                                            variant={isAssigned ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => toggleCollection(collection._id)}
+                                        >
+                                            {isAssigned && <Check className="h-4 w-4 mr-1" />}
+                                            {isAssigned ? 'Asignada' : 'Asignar'}
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardHeader>
 
