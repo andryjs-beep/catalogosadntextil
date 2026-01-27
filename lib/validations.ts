@@ -10,6 +10,7 @@ export const productSchema = z.object({
         .string()
         .min(1, 'El nombre es requerido')
         .max(200, 'El nombre no puede exceder 200 caracteres'),
+    description: z.string().max(2000).default(''),
     images: z.array(z.string().url('URL de imagen inválida')).default([]),
     tags: z.array(z.string()).default([]),
 });
@@ -107,6 +108,7 @@ export const tenantProductSchema = z.object({
     ctaText: z.string().max(100).default(''),
     ctaSubtext: z.string().max(200).default(''),
     footerNote: z.string().max(500).default(''),
+    showLocation: z.boolean().default(true),
 });
 
 export type TenantProductInput = z.infer<typeof tenantProductSchema>;

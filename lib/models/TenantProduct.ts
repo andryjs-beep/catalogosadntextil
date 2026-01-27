@@ -23,6 +23,7 @@ export interface ITenantProduct extends Document {
     ctaSubtext: string; // Texto pequeño debajo del botón
     // Footer
     footerNote: string; // Texto de disclaimer al final
+    showLocation: boolean; // Mostrar sección "Ubícanos" en este producto
     createdAt: Date;
     updatedAt: Date;
 }
@@ -87,6 +88,10 @@ const TenantProductSchema = new Schema<ITenantProduct>(
             type: String,
             default: '',
             maxlength: [500, 'La nota de pie no puede exceder 500 caracteres'],
+        },
+        showLocation: {
+            type: Boolean,
+            default: true,
         },
     },
     {

@@ -29,12 +29,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Package, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, Upload, X, AlignLeft } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 
 interface Product {
     _id: string;
     name: string;
+    description: string;
     images: string[];
     tags: string[];
     createdAt: string;
@@ -53,6 +55,7 @@ export default function ProductsPage() {
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: '',
+            description: '',
             images: [],
             tags: [],
         },
@@ -117,13 +120,14 @@ export default function ProductsPage() {
             setEditingProduct(product);
             form.reset({
                 name: product.name,
+                description: product.description || '',
                 images: product.images,
                 tags: product.tags,
             });
             setUploadedImages(product.images);
         } else {
             setEditingProduct(null);
-            form.reset({ name: '', images: [], tags: [] });
+            form.reset({ name: '', description: '', images: [], tags: [] });
             setUploadedImages([]);
         }
         setIsDialogOpen(true);

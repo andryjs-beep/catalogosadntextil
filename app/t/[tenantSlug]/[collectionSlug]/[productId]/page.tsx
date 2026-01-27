@@ -152,14 +152,24 @@ export default async function ProductDetailPage({
     const productTitle = customization?.customTitle || '';
     const productName = customization?.customName || product.name;
     const productPrice = customization?.customPrice || '';
-    const productDescription = customization?.customDescription || '';
-    const ctaText = customization?.ctaText || tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText || 'Consultar por WhatsApp';
+    // Descripción base del producto o personalizada
+    const baseDescription = product.description || '';
+    const finalDescription = customization?.customDescription || baseDescription;
+
+    // Procesar descripción para viñetas
+    const descriptionItems = finalDescription
+        ? finalDescription.split('\n').filter(line => line.trim()).map(line => ({
+            text: line.replace(/^-\s*/, '').trim(),
+            isBullet: line.trim().startsWith('-'),
+        }))
+        : [];
+
+    const ctaText = customization?.ctaText || tenant.globalTexts.ctaButtonText;
     const ctaSubtext = customization?.ctaSubtext || '';
     const footerNote = customization?.footerNote || '';
     const galleryMode = customization?.galleryMode || 'album';
     const sliderSpeed = customization?.sliderSpeed || 3;
-
-    const descriptionItems = productDescription ? parseDescription(productDescription) : [];
+    const showProductLocation = customization?.showLocation !== false; // Default true
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -254,7 +264,7 @@ export default async function ProductDetailPage({
                         )}
 
                         {/* Ubicación / Ubícanos */}
-                        {tenant.socialLinks.address && (
+                        {showProductLocation && tenant.socialLinks.address && (
                             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 space-y-4">
                                 <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 border-b pb-2">
                                     <MapPin className="h-5 w-5 text-red-500" />

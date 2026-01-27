@@ -7,6 +7,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IProduct extends Document {
     _id: mongoose.Types.ObjectId;
     name: string;
+    description: string;
     images: string[];
     tags: string[];
     createdAt: Date;
@@ -20,6 +21,11 @@ const ProductSchema = new Schema<IProduct>(
             required: [true, 'El nombre del producto es requerido'],
             trim: true,
             maxlength: [200, 'El nombre no puede exceder 200 caracteres'],
+        },
+        description: {
+            type: String,
+            default: '',
+            maxlength: [2000, 'La descripción no puede exceder 2000 caracteres'],
         },
         images: {
             type: [String],

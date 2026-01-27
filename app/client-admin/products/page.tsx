@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Pencil, Loader2, Package, Image as ImageIcon, Settings } from 'lucide-react';
+import { Pencil, Loader2, Package, Image as ImageIcon, Settings, AlignLeft, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 interface Product {
@@ -44,6 +44,7 @@ interface Product {
         ctaText?: string;
         ctaSubtext?: string;
         footerNote?: string;
+        showLocation?: boolean;
     } | null;
 }
 
@@ -57,6 +58,7 @@ interface FormData {
     ctaText: string;
     ctaSubtext: string;
     footerNote: string;
+    showLocation: boolean;
 }
 
 export default function ClientProductsPage() {
@@ -77,6 +79,7 @@ export default function ClientProductsPage() {
             ctaText: '',
             ctaSubtext: '',
             footerNote: '',
+            showLocation: true,
         },
     });
 
@@ -111,6 +114,7 @@ export default function ClientProductsPage() {
             ctaText: c?.ctaText || '',
             ctaSubtext: c?.ctaSubtext || '',
             footerNote: c?.footerNote || '',
+            showLocation: c?.showLocation !== false, // Por defecto true
         });
         setIsDialogOpen(true);
     };
@@ -267,22 +271,42 @@ export default function ClientProductsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="customDescription">
-                                    Descripción / Características
+                                <Label htmlFor="customDescription" className="flex items-center gap-2">
+                                    <AlignLeft className="h-4 w-4 text-slate-500" />
+                                    Descripción Organizada (Usa guiones)
                                 </Label>
                                 <Textarea
                                     id="customDescription"
                                     {...form.register('customDescription')}
-                                    rows={6}
-                                    placeholder={`Usa guiones para crear viñetas:
-- Tela de doble capa sin transparencias
-- Sudadera hasta talla L
-- Comodidad garantizada
-- Excelente calidad`}
+                                    rows={8}
+                                    className="text-base leading-relaxed"
+                                    placeholder={`Escribe beneficios o especificaciones:
+- Calidad Premium garantizada
+- Colores vibrantes y duraderos
+- Material: Micromalla dry-fit
+- Ideal para uniformes deportivos`}
                                 />
                                 <p className="text-xs text-slate-500">
-                                    Líneas que empiezan con - se convierten en viñetas con ✓
+                                    Tip: Comienza cada línea con un guion (-) para que aparezca con un check (✓).
                                 </p>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
+                                <div className="space-y-0.5">
+                                    <Label className="text-red-900 flex items-center gap-2">
+                                        <MapPin className="h-4 w-4" />
+                                        Mostrar Ubicación
+                                    </Label>
+                                    <p className="text-xs text-red-600">
+                                        Muestra el mapa y dirección física en este producto
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    {...form.register('showLocation')}
+                                    className="h-6 w-11 rounded-full border-transparent bg-slate-200 checked:bg-red-500 transition-colors"
+                                    style={{ appearance: 'none', position: 'relative', cursor: 'pointer' }}
+                                />
                             </div>
                         </div>
 

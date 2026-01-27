@@ -18,23 +18,39 @@ export async function GET() {
         await dbConnect();
 
         // Obtener colecciones asignadas
-        const tenantCollections = (await TenantCollection.find({
+        const tenantCollections = await TenantCollection.find({
             tenantId: session.tenantId,
-        }).lean()) as unknown as Array<{ collectionId: { toString(): string } }>;
+        }).lean();
 
-        const collectionIds = tenantCollections.map((tc) => tc.collectionId.toString());
+        console.log(`[API] Tenant: ${session.tenantId}, Collections Found: ${tenantCollections.length}`);
+
+        if (tenantCollections.length === 0) {
+            return NextResponse.json({ products: [] });
+        }
+
+        const collectionIds = tenantCollections.map((tc: any) => tc.collectionId.toString());
 
         // Obtener productos de esas colecciones
-        const collections = (await Collection.find({
+        const collections = await Collection.find({
             _id: { $in: collectionIds },
-        }).lean()) as any[];
+        }).lean();
 
-        const productIds = collections.flatMap((c) => c.productIds.map((id: any) => id.toString()));
+        console.log(`[API] Collections Found: ${collections.length}`);
+
+        const productIds = collections.flatMap((c: any) => c.productIds.map((id: any) => id.toString()));
         const uniqueProductIds = [...new Set(productIds)];
 
-        const products = (await Product.find({
+        console.log(`[API] Unique Products Found: ${uniqueProductIds.length}`);
+
+        if (uniqueProductIds.length === 0) {
+            return NextResponse.json({ products: [] });
+        }
+
+        const products = await Product.find({
             _id: { $in: uniqueProductIds },
-        }).lean()) as any[];
+        }).lean();
+
+        console.log(`[API] Total Products Fetched: ${products.length}`);
 
         // Obtener personalizaciones existentes
         const customizations = (await TenantProduct.find({
