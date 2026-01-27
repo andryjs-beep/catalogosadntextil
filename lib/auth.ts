@@ -129,9 +129,11 @@ export async function requireSuperAdmin(): Promise<Session> {
 }
 
 /**
- * Verifica si el usuario tiene acceso como client-admin del tenant especificado
+ * Verifica si el usuario tiene acceso como client-admin
+ * Si tenantId está vacío, solo verifica que sea client-admin autenticado
+ * Si tenantId tiene valor, verifica que coincida con el tenant del usuario
  */
-export async function requireClientAdmin(tenantId: string): Promise<Session> {
+export async function requireClientAdmin(tenantId?: string): Promise<Session> {
     const session = await getSession();
     if (!session.isAuthenticated) {
         throw new Error('Acceso denegado: no autenticado');
@@ -139,7 +141,11 @@ export async function requireClientAdmin(tenantId: string): Promise<Session> {
     if (session.role === 'super-admin') {
         return session; // Super-admin tiene acceso a todo
     }
-    if (session.role !== 'client-admin' || session.tenantId !== tenantId) {
+    if (session.role !== 'client-admin') {
+        throw new Error('Acceso denegado: se requiere rol client-admin');
+    }
+    // Si se especificó un tenantId, verificar que coincida
+    if (tenantId && session.tenantId !== tenantId) {
         throw new Error('Acceso denegado: no tienes permiso para este tenant');
     }
     return session;

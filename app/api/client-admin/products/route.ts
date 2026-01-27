@@ -10,7 +10,7 @@ import { tenantProductSchema } from '@/lib/validations';
 // GET: Listar productos personalizables
 export async function GET() {
     try {
-        const session = await requireClientAdmin('');
+        const session = await requireClientAdmin();
         if (!session.tenantId) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
@@ -62,7 +62,7 @@ export async function GET() {
 // PUT: Actualizar personalización de producto
 export async function PUT(request: NextRequest) {
     try {
-        const session = await requireClientAdmin('');
+        const session = await requireClientAdmin();
         if (!session.tenantId) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }

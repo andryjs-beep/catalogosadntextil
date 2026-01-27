@@ -10,7 +10,7 @@ import { socialLinksSchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
     try {
-        const session = await requireClientAdmin('');
+        const session = await requireClientAdmin();
         if (!session.tenantId) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
     try {
-        const session = await requireClientAdmin('');
+        const session = await requireClientAdmin();
         if (!session.tenantId) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
