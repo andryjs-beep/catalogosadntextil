@@ -13,9 +13,10 @@ interface HeroSectionProps {
     tenant: ITenant;
     tenantId: string;
     collectionId: string;
+    collectionName?: string;
 }
 
-export function HeroSection({ data, tenant, tenantId, collectionId }: HeroSectionProps) {
+export function HeroSection({ data, tenant, tenantId, collectionId, collectionName }: HeroSectionProps) {
     return (
         <section className="relative overflow-hidden py-16 lg:py-24 px-4 bg-slate-50">
             {/* Background blobs */}
@@ -38,6 +39,7 @@ export function HeroSection({ data, tenant, tenantId, collectionId }: HeroSectio
                             <WhatsAppButton
                                 href={tenant.socialLinks.whatsappLink}
                                 text={data.ctaText || 'Consultar por WhatsApp'}
+                                collectionName={collectionName}
                                 tenantId={tenantId}
                                 collectionId={collectionId}
                                 className="shadow-lg hover:shadow-xl w-full sm:w-auto"

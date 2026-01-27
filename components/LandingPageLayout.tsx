@@ -32,6 +32,7 @@ export function LandingPageLayout({
                 tenant={tenant}
                 tenantId={tenant._id.toString()}
                 collectionId={tenantCollection.collectionId._id.toString()}
+                collectionName={tenantCollection.collectionId.name}
             />
 
             {/* Benefits Section */}
@@ -84,6 +85,7 @@ export function LandingPageLayout({
                                 <WhatsAppButton
                                     href={tenant.socialLinks.whatsappLink}
                                     text={landingPageSections.finalCTA.ctaText || 'Contactar Ahora'}
+                                    collectionName={tenantCollection.collectionId.name}
                                     tenantId={tenant._id.toString()}
                                     collectionId={tenantCollection.collectionId._id.toString()}
                                     className="bg-white text-primary hover:bg-slate-100 text-xl py-6 px-10"
