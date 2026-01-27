@@ -8,9 +8,10 @@ import { requireSuperAdmin, hashPassword } from '@/lib/auth';
  */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         await requireSuperAdmin();
         await dbConnect();
 
@@ -24,7 +25,7 @@ export async function PATCH(
         }
 
         // Buscar el usuario admin del tenant
-        const user = await User.findOne({ tenantId: params.id, role: 'client-admin' });
+        const user = await User.findOne({ tenantId: id, role: 'client-admin' });
         if (!user) {
             return NextResponse.json({ error: 'Administrador no encontrado' }, { status: 404 });
         }

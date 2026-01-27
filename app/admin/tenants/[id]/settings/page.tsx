@@ -1,6 +1,4 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +9,8 @@ import { toast } from 'sonner';
 import { ArrowLeft, Loader2, Save, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
-export default function TenantSettingsPage({ params }: { params: { id: string } }) {
+export default function TenantSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const [tenant, setTenant] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -20,11 +19,11 @@ export default function TenantSettingsPage({ params }: { params: { id: string } 
 
     useEffect(() => {
         fetchTenant();
-    }, [params.id]);
+    }, [id]);
 
     const fetchTenant = async () => {
         try {
-            const res = await fetch(`/api/admin/tenants/${params.id}`);
+            const res = await fetch(`/api/admin/tenants/${id}`);
             if (!res.ok) throw new Error('Error al cargar datos');
             const data = await res.json();
             setTenant(data);
@@ -39,7 +38,7 @@ export default function TenantSettingsPage({ params }: { params: { id: string } 
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await fetch(`/api/admin/tenants/${params.id}`, {
+            const res = await fetch(`/api/admin/tenants/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ branding: tenant.tenant.branding }),
             });
@@ -56,7 +55,7 @@ export default function TenantSettingsPage({ params }: { params: { id: string } 
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await fetch(`/api/admin/tenants/${params.id}`, {
+            const res = await fetch(`/api/admin/tenants/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ socialLinks: tenant.tenant.socialLinks }),
             });
@@ -77,7 +76,7 @@ export default function TenantSettingsPage({ params }: { params: { id: string } 
         }
         setSaving(true);
         try {
-            const res = await fetch(`/api/admin/tenants/${params.id}/password`, {
+            const res = await fetch(`/api/admin/tenants/${id}/password`, {
                 method: 'PATCH',
                 body: JSON.stringify({ newPassword: password }),
             });

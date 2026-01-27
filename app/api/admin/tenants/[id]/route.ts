@@ -8,19 +8,20 @@ import { requireSuperAdmin } from '@/lib/auth';
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         await requireSuperAdmin();
         await dbConnect();
 
-        const tenant = await Tenant.findById(params.id).lean();
+        const tenant = await Tenant.findById(id).lean();
         if (!tenant) {
             return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 404 });
         }
 
         // Obtener también el email del admin asociado
-        const adminUser = await User.findOne({ tenantId: params.id, role: 'client-admin' }).lean() as any;
+        const adminUser = await User.findOne({ tenantId: id, role: 'client-admin' }).lean() as any;
 
         return NextResponse.json({
             tenant,
@@ -38,9 +39,10 @@ export async function GET(
  */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         await requireSuperAdmin();
         await dbConnect();
 
@@ -48,7 +50,7 @@ export async function PATCH(
 
         // Actualizar el tenant
         const updatedTenant = await Tenant.findByIdAndUpdate(
-            params.id,
+            id,
             { $set: body },
             { new: true, runValidators: true }
         );
