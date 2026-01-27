@@ -136,6 +136,45 @@ export const landingPageSectionsSchema = z.object({
         description: z.string().default(''),
         ctaText: z.string().default('Contactar Ahora'),
     }).optional().default({ headline: '', description: '', ctaText: 'Contactar Ahora' }),
+
+    // ===== CONFIGURACIÓN PREMIUM =====
+    countdown: z.object({
+        enabled: z.boolean().default(false),
+        durationMinutes: z.number().default(30),
+        title: z.string().default('⚡ ¡OFERTA POR TIEMPO LIMITADO!'),
+        subtitle: z.string().default('Aprovecha antes de que termine'),
+    }).optional().default({ enabled: false, durationMinutes: 30, title: '⚡ ¡OFERTA POR TIEMPO LIMITADO!', subtitle: 'Aprovecha antes de que termine' }),
+
+    sizes: z.object({
+        enabled: z.boolean().default(false),
+        items: z.array(z.object({
+            name: z.string(),
+            available: z.boolean().default(true),
+        })).default([]),
+    }).optional().default({ enabled: false, items: [] }),
+
+    buttonStyles: z.object({
+        bgColor: z.string().default('#25D366'),
+        textColor: z.string().default('#ffffff'),
+        borderRadius: z.enum(['rounded', 'square', 'pill']).default('pill'),
+        animation: z.enum(['none', 'scale', 'glow', 'shake']).default('scale'),
+    }).optional().default({ bgColor: '#25D366', textColor: '#ffffff', borderRadius: 'pill', animation: 'scale' }),
+
+    termsAndConditions: z.object({
+        enabled: z.boolean().default(false),
+        content: z.string().default(''),
+        requireAcceptance: z.boolean().default(false),
+    }).optional().default({ enabled: false, content: '', requireAcceptance: false }),
+
+    badge: z.object({
+        enabled: z.boolean().default(false),
+        type: z.enum(['bestseller', 'new', 'sale', 'limited', 'exclusive', 'custom']).default('new'),
+        customText: z.string().default(''),
+        discount: z.number().optional(),
+    }).optional().default({ enabled: false, type: 'new', customText: '' }),
+
+    showProductGallery: z.boolean().default(true),
+    showStickyCTA: z.boolean().default(true),
 }).optional();
 
 // ============ ASIGNACIÓN COLECCIONES ============
