@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { type, productInfo = {}, tenantInfo = {}, section } = body;
+        const { type, productInfo = {}, tenantInfo = {}, section, productContext = '' } = body;
 
         let prompt = "";
 
@@ -28,23 +28,28 @@ export async function POST(req: NextRequest) {
         const bNiche = tenantInfo?.niche || "Ventas";
         const bTone = tenantInfo?.tone || "profesional";
         const pName = productInfo?.name || "Colección";
+        const pContext = productContext || productInfo?.description || '';
 
-        // PROMPT PARA HERO DE COLECCIÓN
+        // PROMPT PARA HERO DE COLECCIÓN (Método AIDA)
         if (type === "collection" && section === "hero") {
-            prompt = `Eres un copywriter experto en ventas. Genera contenido para la sección HERO de una página de catálogo.
+            prompt = `Eres un copywriter experto. Genera contenido AIDA (Atención, Interés, Deseo, Acción) para el HERO de una landing.
 
-Negocio: ${bName}
-Nicho: ${bNiche}
-Tono: ${bTone}
-
-Colección: ${pName}
-Audiencia: ${bNiche}
+CONTEXTO:
+- Negocio: ${bName}
+- Nicho: ${bNiche}
+- Tono: ${bTone}
+- Producto/Colección: ${pName}
+${pContext ? `- DATOS ADICIONALES:\n${pContext}\n` : ''}
+INSTRUCCIONES:
+1. Headline: Capturar ATENCIÓN (6-10 palabras max, impactante)
+2. Subheadline: Generar INTERÉS y DESEO (15-25 palabras, beneficio emocional)
+3. CTA: Impulsar ACCIÓN (3-5 palabras)
 
 Responde SOLO con JSON válido:
 {
-  "headline": "Headline impactante de 6-8 palabras",
-  "subheadline": "Subheadline de 12-15 palabras con beneficio clave",
-  "ctaText": "Texto botón (3-4 palabras)"
+  "headline": "...",
+  "subheadline": "...",
+  "ctaText": "..."
 }`;
         }
 

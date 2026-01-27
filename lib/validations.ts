@@ -100,43 +100,43 @@ export const landingPageSectionsSchema = z.object({
         ctaText: z.string().default('Ver Catálogo'),
         heroImage: z.string().default(''),
         videoUrl: z.string().default(''),
-    }),
+    }).optional().default({ headline: '', subheadline: '', ctaText: 'Ver Catálogo', heroImage: '', videoUrl: '' }),
     benefits: z.object({
         items: z.array(z.object({
-            icon: z.string(),
-            title: z.string(),
-            description: z.string(),
+            icon: z.string().default('star'),
+            title: z.string().default(''),
+            description: z.string().default(''),
         })).default([]),
-    }),
+    }).optional().default({ items: [] }),
     howItWorks: z.object({
         steps: z.array(z.object({
-            number: z.number(),
-            title: z.string(),
-            description: z.string(),
-            image: z.string(),
+            number: z.number().default(1),
+            title: z.string().default(''),
+            description: z.string().default(''),
+            image: z.string().default(''),
         })).default([]),
-    }),
+    }).optional().default({ steps: [] }),
     socialProof: z.object({
-        stats: z.array(z.object({ number: z.string(), label: z.string() })).default([]),
+        stats: z.array(z.object({ number: z.string().default(''), label: z.string().default('') })).default([]),
         testimonials: z.array(z.object({
-            name: z.string(),
-            role: z.string(),
-            text: z.string(),
-            avatar: z.string(),
-            rating: z.number(),
+            name: z.string().default(''),
+            role: z.string().default(''),
+            text: z.string().default(''),
+            avatar: z.string().default(''),
+            rating: z.number().default(5),
         })).default([]),
         logos: z.array(z.string()).default([]),
-    }),
+    }).optional().default({ stats: [], testimonials: [], logos: [] }),
     faq: z.array(z.object({
-        question: z.string(),
-        answer: z.string(),
-    })).default([]),
+        question: z.string().default(''),
+        answer: z.string().default(''),
+    })).optional().default([]),
     finalCTA: z.object({
         headline: z.string().default(''),
         description: z.string().default(''),
         ctaText: z.string().default('Contactar Ahora'),
-    }),
-});
+    }).optional().default({ headline: '', description: '', ctaText: 'Contactar Ahora' }),
+}).optional();
 
 // ============ ASIGNACIÓN COLECCIONES ============
 export const tenantCollectionSchema = z.object({

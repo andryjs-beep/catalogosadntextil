@@ -70,7 +70,8 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                     productInfo: {
                         name: data.collectionId.name,
                     },
-                    tenantInfo: data.tenant.businessInfo
+                    tenantInfo: data.tenant.businessInfo,
+                    productContext: data.productContext || ''
                 })
             });
 
@@ -203,6 +204,32 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
 
                 {data.useLandingLayout && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* CAJA DE CONTEXTO PARA IA */}
+                        <Card className="border-amber-200 bg-amber-50">
+                            <CardHeader>
+                                <CardTitle className="text-amber-900 flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5" />
+                                    Datos para la IA (Contexto Adicional)
+                                </CardTitle>
+                                <CardDescription className="text-amber-700">
+                                    Proporciona información extra sobre tu producto: características especiales, precios, materiales, ventajas, o incluso un enlace a la competencia para inspirar el copy.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Textarea
+                                    value={data.productContext || ''}
+                                    onChange={(e) => setData({ ...data, productContext: e.target.value })}
+                                    rows={6}
+                                    placeholder="Ej: - Material: Algodón 100% peruano
+- Precio: $29.990 oferta (antes $45.990)
+- Envío gratis en pedidos +$50.000
+- Competencia: https://ejemplo.com/producto-similar
+- Beneficio clave: Durabilidad superior"
+                                    className="bg-white"
+                                />
+                            </CardContent>
+                        </Card>
+
                         {/* SECCIÓN HERO */}
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0">
