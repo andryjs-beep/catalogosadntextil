@@ -22,19 +22,19 @@ export async function GET() {
             tenantId: session.tenantId,
         }).lean()) as unknown as Array<{ collectionId: { toString(): string } }>;
 
-        const collectionIds = tenantCollections.map((tc) => tc.collectionId);
+        const collectionIds = tenantCollections.map((tc) => tc.collectionId.toString());
 
         // Obtener productos de esas colecciones
         const collections = (await Collection.find({
             _id: { $in: collectionIds },
-        }).lean()) as unknown as Array<{ productIds: Array<{ toString(): string }> }>;
+        }).lean()) as any[];
 
-        const productIds = collections.flatMap((c) => c.productIds);
-        const uniqueProductIds = [...new Set(productIds.map((id) => id.toString()))];
+        const productIds = collections.flatMap((c) => c.productIds.map((id: any) => id.toString()));
+        const uniqueProductIds = [...new Set(productIds)];
 
         const products = (await Product.find({
             _id: { $in: uniqueProductIds },
-        }).lean()) as unknown as Array<{ _id: { toString(): string }; name: string; images: string[]; tags: string[] }>;
+        }).lean()) as any[];
 
         // Obtener personalizaciones existentes
         const customizations = (await TenantProduct.find({

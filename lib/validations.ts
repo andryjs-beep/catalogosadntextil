@@ -52,6 +52,9 @@ export const socialLinksSchema = z.object({
     facebook: z.string().default(''),
     tiktok: z.string().default(''),
     whatsappLink: z.string().default(''),
+    address: z.string().default(''),
+    googleMapsLink: z.string().default(''),
+    locationImage: z.string().default(''),
 });
 
 export const globalTextsSchema = z.object({

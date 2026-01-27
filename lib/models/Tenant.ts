@@ -18,6 +18,9 @@ export interface ISocialLinks {
     facebook: string;
     tiktok: string;
     whatsappLink: string;
+    address: string;
+    googleMapsLink: string;
+    locationImage: string;
 }
 
 export interface IGlobalTexts {
@@ -63,6 +66,9 @@ const TenantSchema = new Schema<ITenant>(
             facebook: { type: String, default: '' },
             tiktok: { type: String, default: '' },
             whatsappLink: { type: String, default: '' },
+            address: { type: String, default: '' },
+            googleMapsLink: { type: String, default: '' },
+            locationImage: { type: String, default: '' },
         },
         globalTexts: {
             headerText: { type: String, default: '' },

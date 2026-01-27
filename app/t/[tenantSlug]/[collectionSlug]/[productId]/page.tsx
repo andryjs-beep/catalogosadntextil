@@ -7,7 +7,7 @@ import { Tenant, Collection, Product, TenantProduct, TenantCollection } from '@/
 import { ImageGallery } from '@/components/ImageGallery';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { GalleryMode } from '@/lib/models/TenantProduct';
@@ -16,7 +16,12 @@ import type { GalleryMode } from '@/lib/models/TenantProduct';
 interface TenantData {
     _id: { toString(): string };
     slug: string;
-    socialLinks: { whatsappLink: string };
+    socialLinks: {
+        whatsappLink: string;
+        address?: string;
+        googleMapsLink?: string;
+        locationImage?: string;
+    };
     globalTexts: { ctaButtonText: string };
     branding: { primaryColor: string; secondaryColor: string };
 }
@@ -223,27 +228,70 @@ export default async function ProductDetailPage({
                         {/* Descripción con viñetas */}
                         {descriptionItems.length > 0 && (
                             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                                <ul className="space-y-3">
+                                <h3 className="text-lg font-semibold text-slate-900 mb-4 border-b pb-2">
+                                    Especificaciones y Beneficios
+                                </h3>
+                                <ul className="space-y-4">
                                     {descriptionItems.map((item, index) => (
                                         <li key={index} className="flex items-start gap-3">
                                             {item.isBullet ? (
-                                                <CheckCircle
-                                                    className="h-5 w-5 mt-0.5 flex-shrink-0"
-                                                    style={{ color: tenant.branding.primaryColor || '#22c55e' }}
-                                                />
+                                                <div className="mt-1 flex-shrink-0">
+                                                    <CheckCircle
+                                                        className="h-5 w-5"
+                                                        style={{ color: tenant.branding.primaryColor || '#22c55e' }}
+                                                    />
+                                                </div>
                                             ) : (
                                                 <span className="w-5" />
                                             )}
-                                            <span className="text-slate-700">{item.text}</span>
+                                            <span className="text-slate-700 leading-relaxed text-base md:text-lg">
+                                                {item.text}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         )}
 
+                        {/* Ubicación / Ubícanos */}
+                        {tenant.socialLinks.address && (
+                            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 space-y-4">
+                                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 border-b pb-2">
+                                    <MapPin className="h-5 w-5 text-red-500" />
+                                    Ubícanos
+                                </h3>
+                                <div className="space-y-3">
+                                    <p className="text-slate-700 font-medium">
+                                        {tenant.socialLinks.address}
+                                    </p>
+
+                                    {tenant.socialLinks.locationImage && (
+                                        <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-200">
+                                            <img
+                                                src={tenant.socialLinks.locationImage}
+                                                alt="Mapa de ubicación"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {tenant.socialLinks.googleMapsLink && (
+                                        <a
+                                            href={tenant.socialLinks.googleMapsLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center w-full gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-xl transition-colors"
+                                        >
+                                            Ver en Google Maps <ExternalLink className="h-4 w-4" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Botón CTA principal */}
                         {tenant.socialLinks.whatsappLink && (
-                            <div className="space-y-2">
+                            <div className="space-y-3 pt-4">
                                 <WhatsAppButton
                                     href={tenant.socialLinks.whatsappLink}
                                     text={ctaText}
