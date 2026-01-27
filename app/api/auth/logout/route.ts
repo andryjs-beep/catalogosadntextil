@@ -1,6 +1,6 @@
 /**
  * API Route: Logout
- * POST /api/auth/logout
+ * POST/GET /api/auth/logout
  * Elimina la cookie de autenticación
  */
 import { NextResponse } from 'next/server';
@@ -16,5 +16,15 @@ export async function POST() {
             { error: 'Error al cerrar sesión' },
             { status: 500 }
         );
+    }
+}
+
+// GET para permitir logout desde navegador directo
+export async function GET() {
+    try {
+        await clearAuthCookie();
+        return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_BASE_DOMAIN ? `https://${process.env.NEXT_PUBLIC_BASE_DOMAIN}` : 'http://localhost:3000'));
+    } catch {
+        return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_BASE_DOMAIN ? `https://${process.env.NEXT_PUBLIC_BASE_DOMAIN}` : 'http://localhost:3000'));
     }
 }
