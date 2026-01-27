@@ -101,6 +101,44 @@ export async function POST(request: NextRequest) {
         // Crear tenant
         const tenant = await Tenant.create(tenantData);
 
+        // --- AUTOMATIZACIÓN DE DOMINIO EN VERCEL ---
+        const vercelToken = process.env.VERCEL_TOKEN;
+        const vercelProjectId = process.env.VERCEL_PROJECT_ID;
+        const vercelTeamId = process.env.VERCEL_TEAM_ID;
+        const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'catalogo.dpdns.org';
+
+        if (vercelToken && vercelProjectId) {
+            try {
+                const domainName = `${tenant.slug}.${baseDomain}`;
+                console.log(`Intentando registrar dominio en Vercel: ${domainName}`);
+
+                const response = await fetch(
+                    `https://api.vercel.com/v9/projects/${vercelProjectId}/domains${vercelTeamId ? `?teamId=${vercelTeamId}` : ''}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${vercelToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name: domainName }),
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error de API Vercel:', errorData);
+                    // No bloqueamos la creación del tenant si falla Vercel, pero lo logueamos
+                } else {
+                    console.log(`Dominio ${domainName} registrado con éxito en Vercel`);
+                }
+            } catch (vError) {
+                console.error('Error llamando a API Vercel:', vError);
+            }
+        } else {
+            console.warn('Faltan variables de entorno de Vercel para automatización de dominios');
+        }
+        // -------------------------------------------
+
         // Crear usuario admin para el tenant
         const hashedPassword = await hashPassword(adminPassword);
         const user = await User.create({
