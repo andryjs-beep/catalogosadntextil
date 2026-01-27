@@ -222,7 +222,7 @@ export default function TenantsPage() {
                                                     </Button>
                                                 </Link>
                                                 <a
-                                                    href={`http://${tenant.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}`}
+                                                    href={`https://${tenant.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'catalogo.dpdns.org'}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
@@ -262,7 +262,7 @@ export default function TenantsPage() {
                             <Label htmlFor="slug">Subdominio</Label>
                             <div className="flex items-center gap-2">
                                 <Input id="slug" {...form.register('slug')} placeholder="mi-empresa" />
-                                <span className="text-slate-500">.tudominio.com</span>
+                                <span className="text-slate-500">.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'catalogo.dpdns.org'}</span>
                             </div>
                             {form.formState.errors.slug && (
                                 <p className="text-sm text-red-500">Solo minúsculas, números y guiones</p>
