@@ -8,6 +8,7 @@ import { Tenant } from '@/lib/models';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import './tenant.css';
 
 async function getTenant(slug: string): Promise<ITenant | null> {
@@ -35,6 +36,8 @@ export default async function TenantLayout({
     return (
         <html lang="es">
             <head>
+                <title>{globalTexts.headerText || tenant.slug.toUpperCase()}</title>
+                <meta name="description" content={`Catálogo de productos de ${tenant.slug}`} />
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `
@@ -61,6 +64,12 @@ export default async function TenantLayout({
                         tenantSlug={tenantSlug}
                     />
                     <main className="flex-1">{children}</main>
+                    <WhatsAppButton
+                        href={socialLinks.whatsappLink || ''}
+                        text="Contactar"
+                        tenantId={tenant._id.toString()}
+                        variant="floating"
+                    />
                     <Footer
                         footerText={globalTexts.footerText}
                         socialLinks={socialLinks}

@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Store, Settings, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Store, Settings, ExternalLink, Boxes } from 'lucide-react';
 import Link from 'next/link';
 
 const createTenantSchema = z.object({
@@ -216,9 +216,14 @@ export default function TenantsPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <Link href={`/admin/tenants/${tenant._id}/settings`}>
+                                                    <Button size="icon" variant="ghost" title="Configurar branding y acceso">
+                                                        <Settings className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
                                                 <Link href={`/admin/tenants/${tenant._id}/assign`}>
                                                     <Button size="icon" variant="ghost" title="Asignar colecciones">
-                                                        <Settings className="h-4 w-4" />
+                                                        <Boxes className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
                                                 <a
