@@ -1,0 +1,62 @@
+/* Estilos base para páginas de tenant */
+.tenant-btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tenant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.tenant-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.tenant-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+.tenant-gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tenant-border-accent {
+  border-color: var(--accent);
+}
+
+.tenant-bg-primary {
+  background-color: var(--primary);
+}
+
+.tenant-bg-secondary {
+  background-color: var(--secondary);
+}
+
+.tenant-text-primary {
+  color: var(--primary);
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }

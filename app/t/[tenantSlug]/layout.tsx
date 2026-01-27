@@ -1,0 +1,72 @@
+/**
+ * Layout dinámico para tenant
+ * Inyecta CSS variables según branding del cliente
+ */
+import { notFound } from 'next/navigation';
+import dbConnect from '@/lib/db';
+import { Tenant } from '@/lib/models';
+import type { ITenant } from '@/lib/models/Tenant';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import './tenant.css';
+
+async function getTenant(slug: string): Promise<ITenant | null> {
+    await dbConnect();
+    const tenant = await Tenant.findOne({ slug, isActive: true }).lean();
+    return tenant as ITenant | null;
+}
+
+export default async function TenantLayout({
+    children,
+    params,
+}: {
+    children: React.ReactNode;
+    params: Promise<{ tenantSlug: string }>;
+}) {
+    const { tenantSlug } = await params;
+    const tenant = await getTenant(tenantSlug);
+
+    if (!tenant) {
+        notFound();
+    }
+
+    const { branding, socialLinks, globalTexts } = tenant;
+
+    return (
+        <html lang="es">
+            <head>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
+              :root {
+                --primary: ${branding.primaryColor};
+                --secondary: ${branding.secondaryColor};
+                --accent: ${branding.accentColor};
+              }
+            `,
+                    }}
+                />
+                {branding.favicon && <link rel="icon" href={branding.favicon} />}
+                <link
+                    href={`https://fonts.googleapis.com/css2?family=${branding.fontFamily.replace(' ', '+')}:wght@400;500;600;700&display=swap`}
+                    rel="stylesheet"
+                />
+            </head>
+            <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
+                <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+                    <Header
+                        logo={branding.logo}
+                        headerText={globalTexts.headerText}
+                        socialLinks={socialLinks}
+                        tenantSlug={tenantSlug}
+                    />
+                    <main className="flex-1">{children}</main>
+                    <Footer
+                        footerText={globalTexts.footerText}
+                        socialLinks={socialLinks}
+                    />
+                </div>
+            </body>
+        </html>
+    );
+}
