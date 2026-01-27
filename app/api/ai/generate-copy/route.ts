@@ -13,20 +13,32 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const { type, productInfo, tenantInfo, section } = await req.json();
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('OPENAI_API_KEY no configurada');
+            return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
+        }
+
+        const body = await req.json();
+        const { type, productInfo = {}, tenantInfo = {}, section } = body;
 
         let prompt = "";
+
+        // Extraer con valores por defecto para evitar fallos de lectura
+        const bName = tenantInfo?.businessName || "Negocio";
+        const bNiche = tenantInfo?.niche || "Ventas";
+        const bTone = tenantInfo?.tone || "profesional";
+        const pName = productInfo?.name || "Colección";
 
         // PROMPT PARA HERO DE COLECCIÓN
         if (type === "collection" && section === "hero") {
             prompt = `Eres un copywriter experto en ventas. Genera contenido para la sección HERO de una página de catálogo.
 
-Negocio: ${tenantInfo.businessName}
-Nicho: ${tenantInfo.niche}
-Tono: ${tenantInfo.tone}
+Negocio: ${bName}
+Nicho: ${bNiche}
+Tono: ${bTone}
 
-Colección: ${productInfo.name}
-Audiencia: ${tenantInfo.niche}
+Colección: ${pName}
+Audiencia: ${bNiche}
 
 Responde SOLO con JSON válido:
 {
@@ -38,9 +50,9 @@ Responde SOLO con JSON válido:
 
         // PROMPT PARA BENEFITS
         else if (section === "benefits") {
-            prompt = `Genera 4 beneficios clave en JSON para el producto/colección: ${productInfo.name}
+            prompt = `Genera 4 beneficios clave en JSON para el producto/colección: ${pName}
 
-Nicho/Audiencia: ${tenantInfo.niche}
+Nicho/Audiencia: ${bNiche}
 Características clave: ${productInfo.description || 'Calidad premium'}
 
 Formato:
@@ -60,8 +72,8 @@ Solo JSON, sin texto extra.`;
         else if (section === "faq") {
             prompt = `Genera 6 preguntas frecuentes con respuestas en JSON para eliminar objeciones de compra.
 
-Producto/Colección: ${productInfo.name}
-Nicho: ${tenantInfo.niche}
+Producto/Colección: ${pName}
+Nicho: ${bNiche}
 
 Incluye preguntas sobre: tiempos de entrega, envíos, métodos de pago, garantías y calidad.
 
@@ -78,9 +90,9 @@ Formato JSON:
         else if (type === "product" && section === "longDescription") {
             prompt = `Escribe una descripción de ventas persuasiva de 200-250 palabras para:
 
-Producto: ${productInfo.name}
-Nicho: ${tenantInfo.niche}
-Tono: ${tenantInfo.tone}
+Producto: ${pName}
+Nicho: ${bNiche}
+Tono: ${bTone}
 
 Usa fórmula AIDA:
 1. ATENCIÓN: Gancho inicial
