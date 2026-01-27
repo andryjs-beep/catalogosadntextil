@@ -46,22 +46,22 @@ export async function GET() {
             return NextResponse.json({ products: [] });
         }
 
-        const products = await Product.find({
+        const products = (await Product.find({
             _id: { $in: uniqueProductIds },
-        }).lean();
+        }).lean()) as any[];
 
         console.log(`[API] Total Products Fetched: ${products.length}`);
 
         // Obtener personalizaciones existentes
         const customizations = (await TenantProduct.find({
             tenantId: session.tenantId,
-        }).lean()) as unknown as Array<{ productId: { toString(): string } }>;
+        }).lean()) as any[];
 
         const customizationMap = new Map(
-            customizations.map((c) => [c.productId.toString(), c])
+            customizations.map((c: any) => [c.productId.toString(), c])
         );
 
-        const productsWithCustom = products.map((p) => ({
+        const productsWithCustom = products.map((p: any) => ({
             ...p,
             customization: customizationMap.get(p._id.toString()) || null,
         }));
