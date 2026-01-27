@@ -36,6 +36,7 @@ interface CollectionData {
 interface ProductData {
     _id: { toString(): string };
     name: string;
+    description?: string;
     images: string[];
 }
 
@@ -53,6 +54,7 @@ interface CustomizationData {
     footerNote?: string;
     galleryMode?: GalleryMode;
     sliderSpeed?: number;
+    showLocation?: boolean;
 }
 
 async function getProductData(
