@@ -781,14 +781,14 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {data.landingPageSections.faq.map((item: any, index: number) => (
+                                {(Array.isArray(data.landingPageSections?.faq) ? data.landingPageSections.faq : []).map((item: any, index: number) => (
                                     <div key={index} className="p-4 border rounded-xl relative group">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-500"
                                             onClick={() => {
-                                                const newFaq = [...data.landingPageSections.faq];
+                                                const newFaq = [...(data.landingPageSections?.faq || [])];
                                                 newFaq.splice(index, 1);
                                                 setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
                                             }}
