@@ -28,6 +28,20 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
             const res = await fetch(`/api/admin/tenants/${id}`);
             if (!res.ok) throw new Error('Error al cargar datos');
             const data = await res.json();
+
+            // Asegurar que todas las propiedades anidadas existan con defaults
+            const defaults = {
+                branding: { primaryColor: '#3b82f6', secondaryColor: '#10b981', fontFamily: 'Inter' },
+                socialLinks: { whatsappLink: '', instagram: '', address: '' },
+                businessInfo: { businessName: '', niche: '', usp: '', tone: 'profesional' }
+            };
+
+            if (data.tenant) {
+                data.tenant.branding = { ...defaults.branding, ...(data.tenant.branding || {}) };
+                data.tenant.socialLinks = { ...defaults.socialLinks, ...(data.tenant.socialLinks || {}) };
+                data.tenant.businessInfo = { ...defaults.businessInfo, ...(data.tenant.businessInfo || {}) };
+            }
+
             setTenant(data);
         } catch (error) {
             toast.error('No se pudo cargar la información del cliente');
@@ -54,7 +68,21 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
     };
 
     const handleUpdateSocial = async (e: React.FormEvent) => {
-        // ... existente
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/admin/tenants/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ socialLinks: tenant.tenant.socialLinks }),
+            });
+            if (!res.ok) throw new Error('Error al actualizar');
+            toast.success('Información de contacto actualizada');
+        } catch (error) {
+            toast.error('No se pudo actualizar la información de contacto');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleUpdateBusiness = async (e: React.FormEvent) => {
@@ -97,6 +125,16 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
     };
 
     if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+
+    // Verificar que tenant y tenant.tenant existan
+    if (!tenant || !tenant.tenant) {
+        return (
+            <div className="container mx-auto py-10 text-center">
+                <p className="text-red-500">Error al cargar la información del cliente.</p>
+                <Button className="mt-4" onClick={() => router.back()}>Volver</Button>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto py-10">

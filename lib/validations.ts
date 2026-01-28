@@ -143,39 +143,39 @@ export const landingPageSectionsSchema = z.object({
         durationMinutes: z.number().default(30),
         title: z.string().default('⚡ ¡OFERTA POR TIEMPO LIMITADO!'),
         subtitle: z.string().default('Aprovecha antes de que termine'),
-    }).optional().default({ enabled: false, durationMinutes: 30, title: '⚡ ¡OFERTA POR TIEMPO LIMITADO!', subtitle: 'Aprovecha antes de que termine' }),
+    }).passthrough().optional(),
 
     sizes: z.object({
         enabled: z.boolean().default(false),
         items: z.array(z.object({
-            name: z.string(),
+            name: z.string().default(''),
             available: z.boolean().default(true),
-        })).default([]),
-    }).optional().default({ enabled: false, items: [] }),
+        }).passthrough()).default([]),
+    }).passthrough().optional(),
 
     buttonStyles: z.object({
         bgColor: z.string().default('#25D366'),
         textColor: z.string().default('#ffffff'),
-        borderRadius: z.enum(['rounded', 'square', 'pill']).default('pill'),
-        animation: z.enum(['none', 'scale', 'glow', 'shake']).default('scale'),
-    }).optional().default({ bgColor: '#25D366', textColor: '#ffffff', borderRadius: 'pill', animation: 'scale' }),
+        borderRadius: z.string().default('pill'),
+        animation: z.string().default('scale'),
+    }).passthrough().optional(),
 
     termsAndConditions: z.object({
         enabled: z.boolean().default(false),
         content: z.string().default(''),
         requireAcceptance: z.boolean().default(false),
-    }).optional().default({ enabled: false, content: '', requireAcceptance: false }),
+    }).passthrough().optional(),
 
     badge: z.object({
         enabled: z.boolean().default(false),
-        type: z.enum(['bestseller', 'new', 'sale', 'limited', 'exclusive', 'custom']).default('new'),
+        type: z.string().default('new'),
         customText: z.string().default(''),
         discount: z.number().optional(),
-    }).optional().default({ enabled: false, type: 'new', customText: '' }),
+    }).passthrough().optional(),
 
-    showProductGallery: z.boolean().default(true),
-    showStickyCTA: z.boolean().default(true),
-}).optional();
+    showProductGallery: z.boolean().optional().default(true),
+    showStickyCTA: z.boolean().optional().default(true),
+}).passthrough().optional();
 
 // ============ ASIGNACIÓN COLECCIONES ============
 export const tenantCollectionSchema = z.object({
