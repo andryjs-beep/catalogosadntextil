@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface TickerBannerProps {
     text: string;
     bgColor?: string;
@@ -17,44 +19,36 @@ export function TickerBanner({
     direction = 'left',
     enabled = true
 }: TickerBannerProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
     if (!enabled || !text) return null;
 
-    // Velocidades de animación
+    // Velocidades en pixeles por segundo
     const speedMap = {
-        slow: '40s',
-        normal: '25s',
-        fast: '15s'
+        slow: 30,
+        normal: 60,
+        fast: 100
     };
 
-    const animationDuration = speedMap[speed] || speedMap.normal;
-    const animationDirection = direction === 'right' ? 'reverse' : 'normal';
+    const pixelsPerSecond = speedMap[speed] || speedMap.normal;
 
     // Repetir el texto para crear efecto infinito
-    const repeatedText = `${text}  •  `.repeat(10);
+    const repeatedText = `${text}  •  `.repeat(15);
+
+    // Calcular duración basada en el ancho del contenido
+    // Estimamos ~8px por carácter en promedio
+    const contentWidth = repeatedText.length * 8;
+    const duration = contentWidth / pixelsPerSecond;
+
+    const animationStyle = {
+        animation: `ticker-scroll ${duration}s linear infinite`,
+        animationDirection: direction === 'right' ? 'reverse' : 'normal',
+    };
 
     return (
-        <div
-            className="w-full overflow-hidden py-2 relative"
-            style={{ backgroundColor: bgColor }}
-        >
-            <div
-                className="whitespace-nowrap inline-block animate-ticker"
-                style={{
-                    color: textColor,
-                    animationDuration,
-                    animationDirection,
-                }}
-            >
-                <span className="inline-block text-sm font-medium tracking-wide">
-                    {repeatedText}
-                </span>
-                <span className="inline-block text-sm font-medium tracking-wide">
-                    {repeatedText}
-                </span>
-            </div>
-
-            <style jsx>{`
-                @keyframes ticker {
+        <>
+            <style>{`
+                @keyframes ticker-scroll {
                     0% {
                         transform: translateX(0);
                     }
@@ -62,12 +56,27 @@ export function TickerBanner({
                         transform: translateX(-50%);
                     }
                 }
-                .animate-ticker {
-                    animation-name: ticker;
-                    animation-timing-function: linear;
-                    animation-iteration-count: infinite;
-                }
             `}</style>
-        </div>
+            <div
+                ref={containerRef}
+                className="w-full overflow-hidden py-2.5 relative z-50"
+                style={{ backgroundColor: bgColor }}
+            >
+                <div
+                    className="whitespace-nowrap inline-flex"
+                    style={{
+                        ...animationStyle,
+                        color: textColor,
+                    }}
+                >
+                    <span className="inline-block text-sm font-medium tracking-wide px-4">
+                        {repeatedText}
+                    </span>
+                    <span className="inline-block text-sm font-medium tracking-wide px-4">
+                        {repeatedText}
+                    </span>
+                </div>
+            </div>
+        </>
     );
 }
