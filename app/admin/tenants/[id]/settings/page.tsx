@@ -344,25 +344,26 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Secciones de la Landing */}
-                                    <div className="border-t pt-4">
-                                        <h4 className="font-medium mb-3">Secciones de la Landing</h4>
-                                        <div className="space-y-3">
-                                            <label className="flex items-center gap-3 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={tenant.tenant.branding.showProducts !== false}
-                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, showProducts: e.target.checked } } })}
-                                                    className="w-4 h-4"
-                                                />
-                                                <div>
-                                                    <span className="font-medium">Mostrar sección "Nuestros Productos"</span>
-                                                    <p className="text-xs text-slate-500">Muestra el grid de productos en la landing</p>
-                                                </div>
-                                            </label>
-                                        </div>
+                                {/* Secciones de la Landing */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Secciones de la Landing</h4>
+                                    <div className="space-y-3">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={tenant.tenant.branding.showProducts !== false}
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, showProducts: e.target.checked } } })}
+                                                className="w-4 h-4"
+                                            />
+                                            <div>
+                                                <span className="font-medium">Mostrar sección "Nuestros Productos"</span>
+                                                <p className="text-xs text-slate-500">Muestra el grid de productos en la landing</p>
+                                            </div>
+                                        </label>
                                     </div>
+                                </div>
                             </CardContent>
                             <CardFooter>
                                 <Button type="submit" disabled={saving}>
