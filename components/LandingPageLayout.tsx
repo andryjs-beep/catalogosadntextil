@@ -66,13 +66,14 @@ export function LandingPageLayout({
                 />
             )}
 
-            {/* Hero Section */}
+            {/* Hero Section con Slider de Productos */}
             <HeroSection
                 data={landingPageSections?.hero || {}}
                 tenant={tenant}
                 tenantId={tenant._id.toString()}
                 collectionId={tenantCollection.collectionId?._id?.toString() || ''}
                 collectionName={collectionName}
+                productImages={allProductImages}
             />
 
             {/* Product Gallery (Imágenes del producto al inicio) */}

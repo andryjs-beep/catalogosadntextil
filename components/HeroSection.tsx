@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import { WhatsAppButton } from './WhatsAppButton';
+import { ProductSlider } from './ProductSlider';
 import { Badge } from '@/components/ui/badge';
 import type { ITenant } from '@/lib/models/Tenant';
 
@@ -8,15 +8,26 @@ interface HeroSectionProps {
         headline: string;
         subheadline: string;
         ctaText: string;
-        heroImage: string;
+        heroImage?: string; // Opcional, ya no se usa como principal
     };
     tenant: ITenant;
     tenantId: string;
     collectionId: string;
     collectionName?: string;
+    productImages?: string[]; // NUEVO: Array de imágenes de productos
 }
 
-export function HeroSection({ data, tenant, tenantId, collectionId, collectionName }: HeroSectionProps) {
+export function HeroSection({
+    data,
+    tenant,
+    tenantId,
+    collectionId,
+    collectionName,
+    productImages = []
+}: HeroSectionProps) {
+    // Obtener link de WhatsApp con fallback
+    const whatsappLink = tenant?.socialLinks?.whatsappLink || '';
+
     return (
         <section className="relative overflow-hidden py-16 lg:py-24 px-4 bg-slate-50">
             {/* Background blobs */}
@@ -36,14 +47,20 @@ export function HeroSection({ data, tenant, tenantId, collectionId, collectionNa
                             {data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.'}
                         </p>
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <WhatsAppButton
-                                href={tenant.socialLinks.whatsappLink}
-                                text={data.ctaText || 'Consultar por WhatsApp'}
-                                collectionName={collectionName}
-                                tenantId={tenantId}
-                                collectionId={collectionId}
-                                className="shadow-lg hover:shadow-xl w-full sm:w-auto"
-                            />
+                            {whatsappLink ? (
+                                <WhatsAppButton
+                                    href={whatsappLink}
+                                    text={data.ctaText || 'Consultar por WhatsApp'}
+                                    collectionName={collectionName}
+                                    tenantId={tenantId}
+                                    collectionId={collectionId}
+                                    className="shadow-lg hover:shadow-xl w-full sm:w-auto"
+                                />
+                            ) : (
+                                <div className="bg-gray-300 text-gray-600 py-3 px-6 rounded-full text-sm">
+                                    WhatsApp no configurado
+                                </div>
+                            )}
                             <div className="flex items-center gap-6 mt-4 sm:mt-0">
                                 <div className="text-center">
                                     <p className="font-bold text-slate-900">100%</p>
@@ -51,32 +68,21 @@ export function HeroSection({ data, tenant, tenantId, collectionId, collectionNa
                                 </div>
                                 <div className="text-center">
                                     <p className="font-bold text-slate-900">Envío</p>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wider">Garanzidado</p>
+                                    <p className="text-xs text-slate-500 uppercase tracking-wider">Garantizado</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="relative animate-fade-in-up delay-200">
-                        {data.heroImage ? (
-                            <div className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-                                <Image
-                                    src={data.heroImage}
-                                    alt={data.headline}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                        ) : (
-                            <div className="aspect-square bg-white rounded-3xl shadow-xl flex items-center justify-center p-8 border border-slate-100">
-                                <div className="text-center space-y-4">
-                                    <div className="w-20 h-20 bg-slate-100 rounded-full mx-auto flex items-center justify-center">
-                                        <span className="text-4xl">✨</span>
-                                    </div>
-                                    <p className="text-slate-400 font-medium italic">Sube una imagen impactante para tu Hero</p>
-                                </div>
-                            </div>
-                        )}
+                    {/* Slider de Productos en lugar de imagen Hero estática */}
+                    <div className="relative animate-fade-in-up delay-200 group">
+                        <ProductSlider
+                            images={productImages}
+                            productName={collectionName || 'Producto'}
+                            autoPlay={true}
+                            interval={4000}
+                        />
+
                         {/* Floating elements */}
                         <div className="absolute -bottom-6 -right-6 lg:-right-12 bg-white p-4 rounded-xl shadow-lg border border-slate-100 hidden md:block">
                             <div className="flex items-center gap-3">
