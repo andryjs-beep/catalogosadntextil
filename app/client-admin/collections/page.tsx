@@ -19,23 +19,11 @@ export default function ClientCollectionsPage() {
 
     const fetchData = async () => {
         try {
-            // Reutilizamos el endpoint de productos de cliente para obtener info del tenant si hace falta
-            // O mejor uno específico o el de branding que ya devuelve el tenantId
-            const res = await fetch('/api/client-admin/products');
-            const data = await res.json();
-
-            if (res.ok) {
-                setTenant(data.tenant);
-                // Necesitamos obtener las colecciones asignadas.
-                // Como no hay un endpoint directo para el cliente todavía, 
-                // aprovechamos que el super-admin tiene uno. 
-                // Pero el cliente no puede llamar a /api/admin/...
-                // Crearemos /api/client-admin/collections
-                const colRes = await fetch('/api/client-admin/collections');
-                const colData = await colRes.json();
-                if (colRes.ok) {
-                    setCollections(colData.collections);
-                }
+            const colRes = await fetch('/api/client-admin/collections');
+            const colData = await colRes.json();
+            if (colRes.ok) {
+                setCollections(colData.collections);
+                setTenant(colData.tenant);
             }
         } catch (error) {
             console.error(error);

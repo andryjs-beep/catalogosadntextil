@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import { TenantCollection } from '@/lib/models';
+import { TenantCollection, Tenant } from '@/lib/models';
 import { getSession } from '@/lib/auth';
 
 export async function GET() {
@@ -12,12 +12,15 @@ export async function GET() {
 
         await dbConnect();
 
+        // Obtener info del tenant
+        const tenant = await Tenant.findById(session.tenantId).select('slug name').lean();
+
         const collections = await TenantCollection.find({ tenantId: session.tenantId })
             .populate('collectionId', 'name slug coverImage')
             .sort({ order: 1 })
             .lean();
 
-        return NextResponse.json({ collections });
+        return NextResponse.json({ collections, tenant });
     } catch (error) {
         console.error('Error fetching client collections:', error);
         return NextResponse.json({ error: 'Error al obtener colecciones' }, { status: 500 });
