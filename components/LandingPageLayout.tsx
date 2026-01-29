@@ -12,6 +12,7 @@ import { StickyFooterCTA } from './StickyFooterCTA';
 import { TermsAndConditions } from './TermsAndConditions';
 import { TestimonialSection } from './TestimonialSection';
 import { BadgeOverlay } from './BadgeOverlay';
+import { TickerBanner } from './TickerBanner';
 import type { ITenant } from '@/lib/models/Tenant';
 
 interface LandingPageLayoutProps {
@@ -46,6 +47,16 @@ export function LandingPageLayout({
 
     return (
         <div className="landing-page-flow relative">
+            {/* Ticker Banner (si está habilitado) */}
+            <TickerBanner
+                text={tenant.branding?.tickerText || ''}
+                bgColor={tenant.branding?.tickerBgColor}
+                textColor={tenant.branding?.tickerTextColor}
+                speed={tenant.branding?.tickerSpeed as 'slow' | 'normal' | 'fast'}
+                direction={tenant.branding?.tickerDirection as 'left' | 'right'}
+                enabled={tenant.branding?.tickerEnabled}
+            />
+
             {/* Badge Overlay (si está habilitado) */}
             {badge.enabled && (
                 <BadgeOverlay

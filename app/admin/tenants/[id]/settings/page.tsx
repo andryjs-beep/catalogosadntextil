@@ -39,7 +39,14 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                     accentColor: '#f59e0b',
                     buttonPrimaryColor: '#25D366',
                     buttonSecondaryColor: '#1e40af',
-                    fontFamily: 'Inter'
+                    fontFamily: 'Inter',
+                    // Ticker/Marquee
+                    tickerEnabled: false,
+                    tickerText: '🔥 ¡Ofertas especiales disponibles! • Envío gratis en compras mayores a $50 • Calidad garantizada',
+                    tickerBgColor: '#000000',
+                    tickerTextColor: '#ffffff',
+                    tickerSpeed: 'normal',
+                    tickerDirection: 'left'
                 },
                 socialLinks: {
                     whatsappLink: '',
@@ -263,6 +270,79 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                                         <Input value={tenant.tenant.branding.fontFamily} placeholder="Inter, Roboto, etc."
                                             onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, fontFamily: e.target.value } } })} />
                                         <p className="text-xs text-slate-500">Usa fuentes de Google Fonts</p>
+                                    </div>
+                                </div>
+
+                                {/* Ticker/Marquee Banner */}
+                                <div className="border-t pt-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-medium">Ticker/Marquee (Barra Animada)</h4>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={tenant.tenant.branding.tickerEnabled || false}
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerEnabled: e.target.checked } } })}
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-sm">Activar</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Texto del Ticker</Label>
+                                            <Input
+                                                value={tenant.tenant.branding.tickerText || ''}
+                                                placeholder="🔥 ¡Ofertas disponibles! • Envío gratis..."
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerText: e.target.value } } })}
+                                            />
+                                            <p className="text-xs text-slate-500">Usa • para separar mensajes</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Color de Fondo</Label>
+                                                <div className="flex gap-2">
+                                                    <Input type="color" value={tenant.tenant.branding.tickerBgColor || '#000000'}
+                                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerBgColor: e.target.value } } })} className="w-14 h-10" />
+                                                    <Input type="text" value={tenant.tenant.branding.tickerBgColor || '#000000'} readOnly className="w-24 text-xs" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Color de Texto</Label>
+                                                <div className="flex gap-2">
+                                                    <Input type="color" value={tenant.tenant.branding.tickerTextColor || '#ffffff'}
+                                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerTextColor: e.target.value } } })} className="w-14 h-10" />
+                                                    <Input type="text" value={tenant.tenant.branding.tickerTextColor || '#ffffff'} readOnly className="w-24 text-xs" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Velocidad</Label>
+                                                <select
+                                                    className="w-full p-2 border rounded-md text-sm"
+                                                    value={tenant.tenant.branding.tickerSpeed || 'normal'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerSpeed: e.target.value } } })}
+                                                >
+                                                    <option value="slow">Lenta</option>
+                                                    <option value="normal">Normal</option>
+                                                    <option value="fast">Rápida</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Dirección</Label>
+                                                <select
+                                                    className="w-full p-2 border rounded-md text-sm"
+                                                    value={tenant.tenant.branding.tickerDirection || 'left'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, tickerDirection: e.target.value } } })}
+                                                >
+                                                    <option value="left">← Izquierda</option>
+                                                    <option value="right">Derecha →</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

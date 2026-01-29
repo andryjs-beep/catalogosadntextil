@@ -11,6 +11,15 @@ export interface IBranding {
     secondaryColor: string;
     accentColor: string;
     fontFamily: string;
+    buttonPrimaryColor?: string;
+    buttonSecondaryColor?: string;
+    // Ticker/Marquee
+    tickerEnabled?: boolean;
+    tickerText?: string;
+    tickerBgColor?: string;
+    tickerTextColor?: string;
+    tickerSpeed?: 'slow' | 'normal' | 'fast';
+    tickerDirection?: 'left' | 'right';
 }
 
 export interface ISocialLinks {
@@ -68,6 +77,15 @@ const TenantSchema = new Schema<ITenant>(
             secondaryColor: { type: String, default: '#1e40af' }, // blue-800
             accentColor: { type: String, default: '#f59e0b' }, // amber-500
             fontFamily: { type: String, default: 'Inter' },
+            buttonPrimaryColor: { type: String, default: '#25D366' },
+            buttonSecondaryColor: { type: String, default: '#1e40af' },
+            // Ticker/Marquee
+            tickerEnabled: { type: Boolean, default: false },
+            tickerText: { type: String, default: '' },
+            tickerBgColor: { type: String, default: '#000000' },
+            tickerTextColor: { type: String, default: '#ffffff' },
+            tickerSpeed: { type: String, enum: ['slow', 'normal', 'fast'], default: 'normal' },
+            tickerDirection: { type: String, enum: ['left', 'right'], default: 'left' },
         },
         socialLinks: {
             instagram: { type: String, default: '' },
