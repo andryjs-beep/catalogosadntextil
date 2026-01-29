@@ -414,6 +414,70 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                         </CardContent>
                     </Card>
                 </TabsContent>
+
+                {/* --- Pestaña Textos Globales --- */}
+                <TabsContent value="textos">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Textos Globales</CardTitle>
+                            <CardDescription>Textos que aparecen en todo el catálogo público.</CardDescription>
+                        </CardHeader>
+                        <form onSubmit={handleUpdateBranding}>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Texto del Header (cabecera)</Label>
+                                    <Input
+                                        value={tenant.tenant.globalTexts?.headerText || ''}
+                                        placeholder="Ej: ¡Envío gratis en compras mayores a $50!"
+                                        onChange={(e) => setTenant({
+                                            ...tenant,
+                                            tenant: {
+                                                ...tenant.tenant,
+                                                globalTexts: { ...(tenant.tenant.globalTexts || {}), headerText: e.target.value }
+                                            }
+                                        })}
+                                    />
+                                    <p className="text-xs text-slate-500">Aparece en la parte superior de la página</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Texto del Footer (pie de página)</Label>
+                                    <Input
+                                        value={tenant.tenant.globalTexts?.footerText || ''}
+                                        placeholder="Ej: © 2025 Mi Negocio. Todos los derechos reservados."
+                                        onChange={(e) => setTenant({
+                                            ...tenant,
+                                            tenant: {
+                                                ...tenant.tenant,
+                                                globalTexts: { ...(tenant.tenant.globalTexts || {}), footerText: e.target.value }
+                                            }
+                                        })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Texto del Botón CTA (llamada a la acción)</Label>
+                                    <Input
+                                        value={tenant.tenant.globalTexts?.ctaButtonText || ''}
+                                        placeholder="Ej: ¡Comprar Ahora!"
+                                        onChange={(e) => setTenant({
+                                            ...tenant,
+                                            tenant: {
+                                                ...tenant.tenant,
+                                                globalTexts: { ...(tenant.tenant.globalTexts || {}), ctaButtonText: e.target.value }
+                                            }
+                                        })}
+                                    />
+                                    <p className="text-xs text-slate-500">Texto por defecto para los botones de acción</p>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button type="submit" disabled={saving}>
+                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Guardar Textos
+                                </Button>
+                            </CardFooter>
+                        </form>
+                    </Card>
+                </TabsContent>
             </Tabs>
         </div>
     );
