@@ -20,6 +20,7 @@ export function Lightbox({
     productName = 'Imagen'
 }: LightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    const [touchStartX, setTouchStartX] = useState(0);
 
     useEffect(() => {
         setCurrentIndex(initialIndex);
@@ -67,10 +68,8 @@ export function Lightbox({
         setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
-    // Swipe handling for mobile
-    let touchStartX = 0;
     const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartX = e.touches[0].clientX;
+        setTouchStartX(e.touches[0].clientX);
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
@@ -86,74 +85,69 @@ export function Lightbox({
     };
 
     return (
-        <div
-            className="fixed inset-0 z-[100] bg-black flex flex-col"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
-            {/* Header con controles */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 right-0 z-10">
-                <div className="text-white text-sm bg-white/20 px-3 py-1 rounded-full">
+        <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/70 to-transparent">
+                <span className="text-white text-lg font-medium bg-black/40 px-4 py-2 rounded-full">
                     {currentIndex + 1} / {images.length}
-                </div>
+                </span>
 
                 <button
                     onClick={onClose}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
+                    className="p-3 bg-black/40 hover:bg-black/60 rounded-full text-white transition-colors"
                     aria-label="Cerrar"
                 >
-                    <X className="h-6 w-6" />
+                    <X className="h-7 w-7" />
                 </button>
             </div>
 
-            {/* Contenedor de imagen - ocupa toda la pantalla */}
+            {/* Imagen principal - ocupa toda la pantalla */}
             <div
-                className="flex-1 flex items-center justify-center p-4"
+                className="flex-1 flex items-center justify-center"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
-                <div className="relative w-full h-full flex items-center justify-center">
-                    <Image
-                        src={images[currentIndex]}
-                        alt={`${productName} - Imagen ${currentIndex + 1}`}
-                        fill
-                        className="object-contain"
-                        priority
-                        sizes="100vw"
-                    />
-                </div>
+                <Image
+                    src={images[currentIndex]}
+                    alt={`${productName} - Imagen ${currentIndex + 1}`}
+                    fill
+                    className="object-contain p-2"
+                    priority
+                    sizes="100vw"
+                />
             </div>
 
-            {/* Navegación lateral */}
+            {/* Flechas de navegación - SIEMPRE VISIBLES Y GRANDES */}
             {images.length > 1 && (
                 <>
                     <button
                         onClick={goToPrev}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
-                        aria-label="Anterior"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 p-4 bg-white/90 hover:bg-white rounded-full text-black shadow-xl transition-all z-20"
+                        aria-label="Imagen anterior"
                     >
-                        <ChevronLeft className="h-6 w-6 md:h-8 md:w-8" />
+                        <ChevronLeft className="h-8 w-8" />
                     </button>
                     <button
                         onClick={goToNext}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
-                        aria-label="Siguiente"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-4 bg-white/90 hover:bg-white rounded-full text-black shadow-xl transition-all z-20"
+                        aria-label="Imagen siguiente"
                     >
-                        <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
+                        <ChevronRight className="h-8 w-8" />
                     </button>
                 </>
             )}
 
-            {/* Miniaturas en la parte inferior */}
+            {/* Miniaturas */}
             {images.length > 1 && (
-                <div className="absolute bottom-0 left-0 right-0 pb-6 pt-4 bg-gradient-to-t from-black/80 to-transparent">
-                    <div className="flex justify-center gap-2 px-4 overflow-x-auto">
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
+                    <div className="flex justify-center gap-3 overflow-x-auto pb-2">
                         {images.map((img, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentIndex(idx)}
-                                className={`relative flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 transition-all ${idx === currentIndex
-                                        ? 'border-white scale-110'
-                                        : 'border-transparent opacity-60 hover:opacity-100'
+                                className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-3 transition-all ${idx === currentIndex
+                                        ? 'border-white scale-110 shadow-lg'
+                                        : 'border-transparent opacity-50 hover:opacity-100'
                                     }`}
                             >
                                 <Image
