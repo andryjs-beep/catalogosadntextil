@@ -76,13 +76,7 @@ export function LandingPageLayout({
                 productImages={allProductImages}
             />
 
-            {/* Product Gallery (Imágenes del producto al inicio) */}
-            {showGallery && allProductImages.length > 0 && (
-                <ProductGallery
-                    images={allProductImages}
-                    productName={collectionName}
-                />
-            )}
+            {/* ProductGallery ELIMINADO - Las imágenes ahora se muestran en el slider del Hero */}
 
             {/* Size Selector (si está habilitado) */}
             {sizes.enabled && sizes.items?.length > 0 && (
