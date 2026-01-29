@@ -20,6 +20,8 @@ export interface IBranding {
     tickerTextColor?: string;
     tickerSpeed?: 'slow' | 'normal' | 'fast';
     tickerDirection?: 'left' | 'right';
+    // Secciones
+    showProducts?: boolean;
 }
 
 export interface ISocialLinks {
@@ -86,6 +88,8 @@ const TenantSchema = new Schema<ITenant>(
             tickerTextColor: { type: String, default: '#ffffff' },
             tickerSpeed: { type: String, enum: ['slow', 'normal', 'fast'], default: 'normal' },
             tickerDirection: { type: String, enum: ['left', 'right'], default: 'left' },
+            // Secciones
+            showProducts: { type: Boolean, default: true },
         },
         socialLinks: {
             instagram: { type: String, default: '' },

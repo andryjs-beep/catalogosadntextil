@@ -44,7 +44,7 @@ export function BenefitsSection({ benefits }: BenefitsSectionProps) {
                                     <Icon className="w-5 h-5 text-primary" />
                                 </div>
                                 <h3 className="text-sm font-bold text-slate-900 mb-1">{benefit.title}</h3>
-                                <p className="text-xs text-slate-500 leading-tight line-clamp-2">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     {benefit.description}
                                 </p>
                             </div>

@@ -108,35 +108,37 @@ export function LandingPageLayout({
                 <TestimonialSection testimonials={testimonials} />
             )}
 
-            {/* Product Gallery Section */}
-            <section className="py-20 px-4 bg-slate-50">
-                <div className="container mx-auto max-w-7xl">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-bold mb-4 text-slate-900">
-                            Nuestros Productos
-                        </h2>
-                        <p className="text-slate-600">Selección exclusiva para ti.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-                        {products.map((product) => (
-                            <ProductCard
-                                key={product._id.toString()}
-                                id={product._id.toString()}
-                                name={product.customName || product.name}
-                                price={product.customPrice || ''}
-                                image={product.images?.[0] || ''}
-                                tenantSlug={tenantSlug}
-                                collectionSlug={collectionSlug}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             {/* FAQ Section */}
             {landingPageSections?.faq?.length > 0 && (
                 <FAQSection faqs={landingPageSections.faq} />
+            )}
+
+            {/* Product Gallery Section (condicional) */}
+            {(tenant.branding?.showProducts !== false) && products.length > 0 && (
+                <section className="py-8 px-4 bg-slate-50">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="text-center mb-6">
+                            <h2 className="text-xl md:text-2xl font-bold mb-2 text-slate-900">
+                                Nuestros Productos
+                            </h2>
+                            <p className="text-sm text-slate-500">Selección exclusiva para ti.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                            {products.map((product) => (
+                                <ProductCard
+                                    key={product._id.toString()}
+                                    id={product._id.toString()}
+                                    name={product.customName || product.name}
+                                    price={product.customPrice || ''}
+                                    image={product.images?.[0] || ''}
+                                    tenantSlug={tenantSlug}
+                                    collectionSlug={collectionSlug}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
             )}
 
             {/* Terms and Conditions */}
