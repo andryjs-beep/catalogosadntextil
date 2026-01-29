@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import { Lightbox } from './Lightbox';
 
 interface ProductSliderProps {
     images: string[];
@@ -19,6 +20,7 @@ export function ProductSlider({
 }: ProductSliderProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
     // Filtrar imágenes vacías
     const validImages = images.filter(img => img && img.trim() !== '');
@@ -47,83 +49,117 @@ export function ProductSlider({
 
     // Auto-play
     useEffect(() => {
-        if (!autoPlay || isHovered || validImages.length <= 1) return;
+        if (!autoPlay || isHovered || validImages.length <= 1 || isLightboxOpen) return;
 
         const timer = setInterval(goToNext, interval);
         return () => clearInterval(timer);
-    }, [autoPlay, isHovered, interval, goToNext, validImages.length]);
+    }, [autoPlay, isHovered, interval, goToNext, validImages.length, isLightboxOpen]);
+
+    const handleImageClick = () => {
+        setIsLightboxOpen(true);
+    };
 
     return (
-        <div
-            className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Imágenes */}
-            <div className="relative w-full h-full">
-                {validImages.map((image, index) => (
-                    <div
-                        key={index}
-                        className={`absolute inset-0 transition-all duration-500 ease-in-out ${index === currentIndex
+        <>
+            <div
+                className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white group"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                {/* Imágenes */}
+                <div
+                    className="relative w-full h-full cursor-pointer"
+                    onClick={handleImageClick}
+                >
+                    {validImages.map((image, index) => (
+                        <div
+                            key={index}
+                            className={`absolute inset-0 transition-all duration-500 ease-in-out ${index === currentIndex
                                 ? 'opacity-100 scale-100'
                                 : 'opacity-0 scale-105'
-                            }`}
-                    >
-                        <Image
-                            src={image}
-                            alt={`${productName} - Imagen ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            priority={index === 0}
-                        />
+                                }`}
+                        >
+                            <Image
+                                src={image}
+                                alt={`${productName} - Imagen ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                priority={index === 0}
+                            />
+                        </div>
+                    ))}
+
+                    {/* Overlay de zoom al hover */}
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                        <div className="bg-white/90 p-3 rounded-full shadow-lg">
+                            <Expand className="h-6 w-6 text-slate-700" />
+                        </div>
                     </div>
-                ))}
-            </div>
+                </div>
 
-            {/* Controles de navegación (solo si hay más de 1 imagen) */}
-            {validImages.length > 1 && (
-                <>
-                    {/* Botón Anterior */}
-                    <button
-                        onClick={goToPrev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                        style={{ opacity: isHovered ? 1 : 0 }}
-                        aria-label="Imagen anterior"
-                    >
-                        <ChevronLeft className="h-5 w-5 text-slate-700" />
-                    </button>
+                {/* Controles de navegación (solo si hay más de 1 imagen) */}
+                {validImages.length > 1 && (
+                    <>
+                        {/* Botón Anterior */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                goToPrev();
+                            }}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110"
+                            style={{ opacity: isHovered ? 1 : 0 }}
+                            aria-label="Imagen anterior"
+                        >
+                            <ChevronLeft className="h-5 w-5 text-slate-700" />
+                        </button>
 
-                    {/* Botón Siguiente */}
-                    <button
-                        onClick={goToNext}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                        style={{ opacity: isHovered ? 1 : 0 }}
-                        aria-label="Imagen siguiente"
-                    >
-                        <ChevronRight className="h-5 w-5 text-slate-700" />
-                    </button>
+                        {/* Botón Siguiente */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                goToNext();
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110"
+                            style={{ opacity: isHovered ? 1 : 0 }}
+                            aria-label="Imagen siguiente"
+                        >
+                            <ChevronRight className="h-5 w-5 text-slate-700" />
+                        </button>
 
-                    {/* Indicadores (dots) */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        {validImages.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentIndex(index)}
-                                className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentIndex
+                        {/* Indicadores (dots) */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                            {validImages.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCurrentIndex(index);
+                                    }}
+                                    className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentIndex
                                         ? 'bg-white scale-125 shadow-md'
                                         : 'bg-white/50 hover:bg-white/75'
-                                    }`}
-                                aria-label={`Ir a imagen ${index + 1}`}
-                            />
-                        ))}
-                    </div>
+                                        }`}
+                                    aria-label={`Ir a imagen ${index + 1}`}
+                                />
+                            ))}
+                        </div>
 
-                    {/* Contador de imágenes */}
-                    <div className="absolute top-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                        {currentIndex + 1} / {validImages.length}
-                    </div>
-                </>
-            )}
-        </div>
+                        {/* Contador de imágenes */}
+                        <div className="absolute top-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                            {currentIndex + 1} / {validImages.length}
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Lightbox Modal */}
+            <Lightbox
+                images={validImages}
+                initialIndex={currentIndex}
+                isOpen={isLightboxOpen}
+                onClose={() => setIsLightboxOpen(false)}
+                productName={productName}
+            />
+        </>
     );
 }
