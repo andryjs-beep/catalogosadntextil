@@ -84,11 +84,14 @@ export default async function TenantHomePage({
         <div className="container mx-auto px-4 py-8">
             {/* Hero Section */}
             <div className="text-center mb-12 animate-fade-in-up">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 tenant-gradient-text">
-                    {tenant.globalTexts.headerText || 'Bienvenido a nuestro catálogo'}
+                <h1
+                    className="text-4xl md:text-5xl font-bold mb-4"
+                    style={{ color: tenant.branding?.primaryColor || '#1e40af' }}
+                >
+                    {tenant.globalTexts?.homeTitle || 'Bienvenido a nuestro catálogo'}
                 </h1>
                 <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                    Explora nuestras colecciones y encuentra lo que necesitas
+                    {tenant.globalTexts?.homeSubtitle || 'Explora nuestras colecciones y encuentra lo que necesitas'}
                 </p>
             </div>
 
