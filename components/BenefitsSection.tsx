@@ -1,5 +1,4 @@
 import { Shield, Truck, Star, Zap, Award, CheckCircle, Heart, Sparkles, LucideIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 
 const iconMap: Record<string, LucideIcon> = {
     shield: Shield,
@@ -24,33 +23,31 @@ export function BenefitsSection({ benefits }: BenefitsSectionProps) {
     if (!benefits || benefits.length === 0) return null;
 
     return (
-        <section className="py-10 px-4 bg-white">
-            <div className="container mx-auto max-w-7xl">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-4 text-slate-900">
+        <section className="py-6 px-4 bg-white">
+            <div className="container mx-auto max-w-6xl">
+                <div className="text-center mb-4">
+                    <h2 className="text-xl md:text-2xl font-bold mb-2 text-slate-900">
                         ¿Por Qué Elegirnos?
                     </h2>
-                    <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
+                    <div className="w-12 h-0.5 bg-primary mx-auto rounded-full" />
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {benefits.map((benefit, i) => {
                         const Icon = iconMap[benefit.icon] || Star;
                         return (
-                            <Card
+                            <div
                                 key={i}
-                                className="border-none shadow-none hover:shadow-xl transition-all duration-300 group rounded-2xl p-2"
+                                className="text-center p-3 rounded-xl hover:bg-slate-50 transition-all"
                             >
-                                <CardContent className="pt-8 text-center space-y-4">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                                        <Icon className="w-8 h-8" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900">{benefit.title}</h3>
-                                    <p className="text-slate-600 leading-relaxed">
-                                        {benefit.description}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                    <Icon className="w-5 h-5 text-primary" />
+                                </div>
+                                <h3 className="text-sm font-bold text-slate-900 mb-1">{benefit.title}</h3>
+                                <p className="text-xs text-slate-500 leading-tight line-clamp-2">
+                                    {benefit.description}
+                                </p>
+                            </div>
                         );
                     })}
                 </div>

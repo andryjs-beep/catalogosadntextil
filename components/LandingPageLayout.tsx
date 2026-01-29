@@ -152,27 +152,37 @@ export function LandingPageLayout({
             )}
 
             {/* Final CTA Section */}
-            <section className="py-20 px-4">
-                <div className="container mx-auto max-w-4xl text-center">
-                    <div className="bg-primary text-white rounded-3xl p-12 shadow-2xl relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            <section className="py-8 px-4">
+                <div className="container mx-auto max-w-3xl text-center">
+                    <div
+                        className="rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden"
+                        style={{
+                            backgroundColor: tenant.branding?.primaryColor || '#3b82f6',
+                            color: '#ffffff'
+                        }}
+                    >
+                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
 
-                        <div className="relative z-10 space-y-8">
-                            <h2 className="text-3xl md:text-5xl font-bold">
+                        <div className="relative z-10 space-y-4">
+                            <h2 className="text-xl md:text-2xl font-bold">
                                 {landingPageSections?.finalCTA?.headline || '¿Listo para hacer tu pedido?'}
                             </h2>
-                            <p className="text-xl opacity-90 max-w-2xl mx-auto">
+                            <p className="text-sm md:text-base opacity-90 max-w-xl mx-auto">
                                 {landingPageSections?.finalCTA?.description || 'Haz click en el botón y uno de nuestros asesores te atenderá personalmente por WhatsApp.'}
                             </p>
-                            <div className="flex justify-center pt-4">
-                                <WhatsAppButton
-                                    href={tenant.socialLinks?.whatsappLink || ''}
-                                    text={landingPageSections?.finalCTA?.ctaText || 'Contactar Ahora'}
-                                    collectionName={collectionName}
-                                    tenantId={tenant._id.toString()}
-                                    collectionId={tenantCollection.collectionId?._id?.toString() || ''}
-                                    className="bg-white text-primary hover:bg-slate-100 text-xl py-6 px-10"
-                                />
+                            <div className="flex justify-center pt-2">
+                                <a
+                                    href={`https://wa.me/${(tenant.socialLinks?.whatsappLink || '').replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hola, me interesa la colección: ${collectionName}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 font-bold py-3 px-6 rounded-full transition-all hover:scale-105 shadow-lg"
+                                    style={{
+                                        backgroundColor: '#ffffff',
+                                        color: tenant.branding?.primaryColor || '#3b82f6'
+                                    }}
+                                >
+                                    {landingPageSections?.finalCTA?.ctaText || 'Contactar Ahora'}
+                                </a>
                             </div>
                         </div>
                     </div>
