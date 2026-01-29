@@ -567,6 +567,41 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                                     />
                                     <p className="text-xs text-slate-500">Texto por defecto para los botones de acción</p>
                                 </div>
+
+                                {/* Textos del Home */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Textos de la Página Principal</h4>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Título Principal</Label>
+                                            <Input
+                                                value={tenant.tenant.globalTexts?.homeTitle || ''}
+                                                placeholder="Bienvenido a nuestro catálogo"
+                                                onChange={(e) => setTenant({
+                                                    ...tenant,
+                                                    tenant: {
+                                                        ...tenant.tenant,
+                                                        globalTexts: { ...(tenant.tenant.globalTexts || {}), homeTitle: e.target.value }
+                                                    }
+                                                })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Subtítulo</Label>
+                                            <Input
+                                                value={tenant.tenant.globalTexts?.homeSubtitle || ''}
+                                                placeholder="Explora nuestras colecciones y encuentra lo que necesitas"
+                                                onChange={(e) => setTenant({
+                                                    ...tenant,
+                                                    tenant: {
+                                                        ...tenant.tenant,
+                                                        globalTexts: { ...(tenant.tenant.globalTexts || {}), homeSubtitle: e.target.value }
+                                                    }
+                                                })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </CardContent>
                             <CardFooter>
                                 <Button type="submit" disabled={saving}>

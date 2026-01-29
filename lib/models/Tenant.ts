@@ -38,6 +38,8 @@ export interface IGlobalTexts {
     headerText: string;
     footerText: string;
     ctaButtonText: string;
+    homeTitle?: string;
+    homeSubtitle?: string;
 }
 
 export interface IBusinessInfo {
@@ -104,6 +106,8 @@ const TenantSchema = new Schema<ITenant>(
             headerText: { type: String, default: '' },
             footerText: { type: String, default: '' },
             ctaButtonText: { type: String, default: 'Consultar por WhatsApp' },
+            homeTitle: { type: String, default: 'Bienvenido a nuestro catálogo' },
+            homeSubtitle: { type: String, default: 'Explora nuestras colecciones y encuentra lo que necesitas' },
         },
         businessInfo: {
             businessName: { type: String, default: '' },
