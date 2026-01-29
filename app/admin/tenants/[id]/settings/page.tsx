@@ -31,8 +31,24 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
 
             // Asegurar que todas las propiedades anidadas existan con defaults
             const defaults = {
-                branding: { primaryColor: '#3b82f6', secondaryColor: '#10b981', fontFamily: 'Inter' },
-                socialLinks: { whatsappLink: '', instagram: '', address: '' },
+                branding: {
+                    logo: '',
+                    favicon: '',
+                    primaryColor: '#3b82f6',
+                    secondaryColor: '#10b981',
+                    accentColor: '#f59e0b',
+                    buttonPrimaryColor: '#25D366',
+                    buttonSecondaryColor: '#1e40af',
+                    fontFamily: 'Inter'
+                },
+                socialLinks: {
+                    whatsappLink: '',
+                    instagram: '',
+                    facebook: '',
+                    tiktok: '',
+                    address: '',
+                    googleMapsLink: ''
+                },
                 businessInfo: { businessName: '', niche: '', usp: '', tone: 'profesional' }
             };
 
@@ -166,38 +182,94 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                     <Card>
                         <CardHeader>
                             <CardTitle>Identidad Visual</CardTitle>
-                            <CardDescription>Colores y apariencia del catálogo público.</CardDescription>
+                            <CardDescription>Logo, favicon, colores y apariencia del catálogo público.</CardDescription>
                         </CardHeader>
                         <form onSubmit={handleUpdateBranding}>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-6">
+                                {/* Logo y Favicon */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>Color Primario</Label>
-                                        <div className="flex gap-2">
-                                            <Input type="color" value={tenant.tenant.branding.primaryColor}
-                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, primaryColor: e.target.value } } })} />
-                                            <Input type="text" value={tenant.tenant.branding.primaryColor} readOnly className="w-24" />
-                                        </div>
+                                        <Label>URL del Logo</Label>
+                                        <Input value={tenant.tenant.branding.logo || ''} placeholder="https://..."
+                                            onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, logo: e.target.value } } })} />
+                                        <p className="text-xs text-slate-500">Imagen de logo (recomendado: 200x60px)</p>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Color Secundario</Label>
-                                        <div className="flex gap-2">
-                                            <Input type="color" value={tenant.tenant.branding.secondaryColor}
-                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, secondaryColor: e.target.value } } })} />
-                                            <Input type="text" value={tenant.tenant.branding.secondaryColor} readOnly className="w-24" />
+                                        <Label>URL del Favicon</Label>
+                                        <Input value={tenant.tenant.branding.favicon || ''} placeholder="https://..."
+                                            onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, favicon: e.target.value } } })} />
+                                        <p className="text-xs text-slate-500">Icono del navegador (32x32px)</p>
+                                    </div>
+                                </div>
+
+                                {/* Colores de Marca */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Colores de Marca</h4>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Color Primario</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.primaryColor}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, primaryColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.primaryColor} readOnly className="w-20 text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Color Secundario</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.secondaryColor}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, secondaryColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.secondaryColor} readOnly className="w-20 text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Color de Acento</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.accentColor || '#f59e0b'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, accentColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.accentColor || '#f59e0b'} readOnly className="w-20 text-xs" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Fuente (Font Family)</Label>
-                                    <Input value={tenant.tenant.branding.fontFamily}
-                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, fontFamily: e.target.value } } })} />
+
+                                {/* Colores de Botones */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Colores de Botones</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Botón Primario (CTA/WhatsApp)</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.buttonPrimaryColor || '#25D366'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, buttonPrimaryColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.buttonPrimaryColor || '#25D366'} readOnly className="w-24 text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Botón Secundario</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.buttonSecondaryColor || '#1e40af'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, buttonSecondaryColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.buttonSecondaryColor || '#1e40af'} readOnly className="w-24 text-xs" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Tipografía */}
+                                <div className="border-t pt-4">
+                                    <div className="space-y-2">
+                                        <Label>Fuente (Font Family)</Label>
+                                        <Input value={tenant.tenant.branding.fontFamily} placeholder="Inter, Roboto, etc."
+                                            onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, fontFamily: e.target.value } } })} />
+                                        <p className="text-xs text-slate-500">Usa fuentes de Google Fonts</p>
+                                    </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
                                 <Button type="submit" disabled={saving}>
                                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Guardar Cambios
+                                    Guardar Branding
                                 </Button>
                             </CardFooter>
                         </form>
@@ -208,29 +280,64 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                 <TabsContent value="social">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Redes Sociales y WhatsApp</CardTitle>
+                            <CardTitle>Redes Sociales y Contacto</CardTitle>
                             <CardDescription>Configura cómo tus clientes se comunican contigo.</CardDescription>
                         </CardHeader>
                         <form onSubmit={handleUpdateSocial}>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-6">
+                                {/* WhatsApp */}
                                 <div className="space-y-2">
-                                    <Label>WhatsApp (Link o Número)</Label>
-                                    <Input value={tenant.tenant.socialLinks.whatsappLink} placeholder="https://wa.me/..."
+                                    <Label>WhatsApp (Número con código de país)</Label>
+                                    <Input value={tenant.tenant.socialLinks.whatsappLink || ''} placeholder="584121234567"
                                         onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, whatsappLink: e.target.value } } })} />
+                                    <p className="text-xs text-slate-500">Ej: 584121234567 (Venezuela) o 573101234567 (Colombia)</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Instagram</Label>
-                                    <Input value={tenant.tenant.socialLinks.instagram} placeholder="https://instagram.com/..."
-                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, instagram: e.target.value } } })} />
+
+                                {/* Redes Sociales */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Redes Sociales</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Instagram</Label>
+                                            <Input value={tenant.tenant.socialLinks.instagram || ''} placeholder="https://instagram.com/tu_cuenta"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, instagram: e.target.value } } })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Facebook</Label>
+                                            <Input value={tenant.tenant.socialLinks.facebook || ''} placeholder="https://facebook.com/tu_pagina"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, facebook: e.target.value } } })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>TikTok</Label>
+                                            <Input value={tenant.tenant.socialLinks.tiktok || ''} placeholder="https://tiktok.com/@tu_cuenta"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, tiktok: e.target.value } } })} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Dirección Física</Label>
-                                    <Input value={tenant.tenant.socialLinks.address}
-                                        onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, address: e.target.value } } })} />
+
+                                {/* Ubicación */}
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-3">Ubicación Física</h4>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Dirección (texto que verá el cliente)</Label>
+                                            <Input value={tenant.tenant.socialLinks.address || ''} placeholder="Av. Principal #123, Ciudad"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, address: e.target.value } } })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Link de Google Maps</Label>
+                                            <Input value={tenant.tenant.socialLinks.googleMapsLink || ''} placeholder="https://maps.google.com/..."
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, googleMapsLink: e.target.value } } })} />
+                                            <p className="text-xs text-slate-500">Al hacer clic en la dirección, se abrirá este link de Google Maps</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button type="submit" disabled={saving}>Guardar Ajustes</Button>
+                                <Button type="submit" disabled={saving}>
+                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Guardar Contacto
+                                </Button>
                             </CardFooter>
                         </form>
                     </Card>
