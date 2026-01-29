@@ -6,10 +6,13 @@ export async function middleware(request: NextRequest) {
     const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
     const pathname = request.nextUrl.pathname;
 
-    // Excluir archivos estáticos y APIs
+    // Excluir archivos estáticos, APIs, y rutas de admin
     if (
         pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/client-admin') ||
+        pathname.startsWith('/login') ||
         pathname.includes('.')
     ) {
         return NextResponse.next();
