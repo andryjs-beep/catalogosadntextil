@@ -24,16 +24,16 @@ export function BenefitsSection({ benefits }: BenefitsSectionProps) {
     if (!benefits || benefits.length === 0) return null;
 
     return (
-        <section className="py-20 px-4 bg-white">
+        <section className="py-10 px-4 bg-white">
             <div className="container mx-auto max-w-7xl">
-                <div className="text-center mb-16">
+                <div className="text-center mb-8">
                     <h2 className="text-3xl md:text-5xl font-bold mb-4 text-slate-900">
                         ¿Por Qué Elegirnos?
                     </h2>
                     <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {benefits.map((benefit, i) => {
                         const Icon = iconMap[benefit.icon] || Star;
                         return (
