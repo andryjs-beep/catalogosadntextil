@@ -10,8 +10,15 @@ import type { Metadata } from 'next';
 // Tipos para datos con lean()
 interface TenantData {
     _id: { toString(): string };
-    globalTexts: { headerText: string; footerText: string; ctaButtonText: string };
+    globalTexts: {
+        headerText: string;
+        footerText: string;
+        ctaButtonText: string;
+        homeTitle?: string;
+        homeSubtitle?: string;
+    };
     socialLinks: { whatsappLink: string };
+    branding?: { primaryColor?: string };
 }
 
 interface TenantCollectionPopulated {
