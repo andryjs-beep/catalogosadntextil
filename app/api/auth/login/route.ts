@@ -56,13 +56,8 @@ export async function POST(request: NextRequest) {
 
         // Determinar URL de redirección según rol
         let redirectUrl = '/admin';
-        if (user.role === 'client-admin' && user.tenantId) {
-            // Cliente-admin: obtener slug del tenant para redirección
-            const { Tenant } = await import('@/lib/models');
-            const tenant = await Tenant.findById(user.tenantId);
-            if (tenant) {
-                redirectUrl = `/t/${tenant.slug}/admin`;
-            }
+        if (user.role === 'client-admin') {
+            redirectUrl = '/client-admin';
         }
 
         return NextResponse.json({
