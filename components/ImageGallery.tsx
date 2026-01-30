@@ -7,6 +7,7 @@
  * - slider-manual: Carrusel con flechas
  */
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 
@@ -163,8 +164,8 @@ export function ImageGallery({
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
                                 className={`w-2 h-2 rounded-full transition-all ${index === currentIndex
-                                        ? 'bg-slate-900 w-6'
-                                        : 'bg-slate-300 hover:bg-slate-400'
+                                    ? 'bg-slate-900 w-6'
+                                    : 'bg-slate-300 hover:bg-slate-400'
                                     }`}
                             />
                         ))}
@@ -179,8 +180,8 @@ export function ImageGallery({
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
                                 className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all ${index === currentIndex
-                                        ? 'ring-2 ring-slate-900 ring-offset-2'
-                                        : 'opacity-60 hover:opacity-100'
+                                    ? 'ring-2 ring-slate-900 ring-offset-2'
+                                    : 'opacity-60 hover:opacity-100'
                                     }`}
                             >
                                 <Image
@@ -239,6 +240,17 @@ function Lightbox({
     onNext: () => void;
     productName: string;
 }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Lock scroll
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -248,29 +260,26 @@ function Lightbox({
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = '';
-        };
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose, onPrev, onNext]);
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
             onClick={onClose}
         >
             {/* Close button */}
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors z-50"
+                className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors z-[101]"
             >
                 <X className="h-8 w-8" />
             </button>
 
             {/* Counter */}
-            <div className="absolute top-4 left-4 text-white text-lg">
+            <div className="absolute top-4 left-4 text-white text-lg z-[101]">
                 {currentIndex + 1} / {images.length}
             </div>
 
@@ -285,6 +294,8 @@ function Lightbox({
                     fill
                     className="object-contain"
                     sizes="100vw"
+                    quality={90}
+                    priority
                 />
             </div>
 
@@ -296,7 +307,7 @@ function Lightbox({
                             e.stopPropagation();
                             onPrev();
                         }}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors z-[101]"
                     >
                         <ChevronLeft className="h-10 w-10" />
                     </button>
@@ -305,12 +316,15 @@ function Lightbox({
                             e.stopPropagation();
                             onNext();
                         }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors z-[101]"
                     >
                         <ChevronRight className="h-10 w-10" />
                     </button>
                 </>
             )}
-        </div>
+        </div>,
+        document.body
     );
 }
+
+
