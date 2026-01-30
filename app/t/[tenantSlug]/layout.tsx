@@ -84,7 +84,7 @@ export default async function TenantLayout({
                 />
             </head>
             <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
-                <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+                <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
                     <Header
                         logo={branding.logo}
                         headerText={globalTexts.headerText}
