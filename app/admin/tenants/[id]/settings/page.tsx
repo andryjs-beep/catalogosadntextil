@@ -363,6 +363,42 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                                     </div>
                                 </div>
 
+                                {/* Top Bar (Barra de contacto superior) */}
+                                <div className="border-t pt-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-medium">Barra de Contacto Superior</h4>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={tenant.tenant.branding.topBarEnabled || false}
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, topBarEnabled: e.target.checked } } })}
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-sm">Activar</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Color de Fondo</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.topBarBgColor || '#1e40af'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, topBarBgColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.topBarBgColor || '#1e40af'} readOnly className="w-24 text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Color de Texto</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="color" value={tenant.tenant.branding.topBarTextColor || '#ffffff'}
+                                                    onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, branding: { ...tenant.tenant.branding, topBarTextColor: e.target.value } } })} className="w-14 h-10" />
+                                                <Input type="text" value={tenant.tenant.branding.topBarTextColor || '#ffffff'} readOnly className="w-24 text-xs" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-2">Configura teléfono y email en la pestaña "Contacto/Redes"</p>
+                                </div>
+
                                 {/* Secciones de la Landing */}
                                 <div className="border-t pt-4">
                                     <h4 className="font-medium mb-3">Secciones de la Landing</h4>
@@ -401,6 +437,25 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                         </CardHeader>
                         <form onSubmit={handleUpdateSocial}>
                             <CardContent className="space-y-6">
+                                {/* Datos de Contacto para Barra Superior */}
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                    <h4 className="font-medium text-blue-800 mb-3">📞 Datos para Barra de Contacto</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Teléfono</Label>
+                                            <Input value={tenant.tenant.socialLinks.phoneNumber || ''} placeholder="(0212) 239 19 23"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, phoneNumber: e.target.value } } })} />
+                                            <p className="text-xs text-slate-500">Aparece en la barra superior</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Email</Label>
+                                            <Input value={tenant.tenant.socialLinks.email || ''} placeholder="ventas@miempresa.com"
+                                                onChange={(e) => setTenant({ ...tenant, tenant: { ...tenant.tenant, socialLinks: { ...tenant.tenant.socialLinks, email: e.target.value } } })} />
+                                            <p className="text-xs text-slate-500">Aparece en la barra superior</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* WhatsApp */}
                                 <div className="space-y-2">
                                     <Label>WhatsApp (Número con código de país)</Label>

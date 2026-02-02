@@ -9,6 +9,7 @@ import type { ITenant } from '@/lib/models/Tenant';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { TopBar } from '@/components/TopBar';
 import './tenant.css';
 
 interface CollectionData {
@@ -85,6 +86,9 @@ export default async function TenantLayout({
             </head>
             <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
                 <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
+                    {/* Barra de contacto superior */}
+                    <TopBar socialLinks={socialLinks} branding={branding} />
+
                     <Header
                         logo={branding.logo}
                         headerText={globalTexts.headerText}
@@ -92,6 +96,7 @@ export default async function TenantLayout({
                         tenantSlug={tenantSlug}
                         collections={collections}
                         primaryColor={branding.primaryColor}
+                        branding={branding}
                     />
                     <main className="flex-1">{children}</main>
                     <WhatsAppButton
@@ -109,3 +114,4 @@ export default async function TenantLayout({
         </html>
     );
 }
+

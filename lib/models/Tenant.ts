@@ -20,6 +20,10 @@ export interface IBranding {
     tickerTextColor?: string;
     tickerSpeed?: 'slow' | 'normal' | 'fast';
     tickerDirection?: 'left' | 'right';
+    // Top Bar (Barra de contacto superior)
+    topBarEnabled?: boolean;
+    topBarBgColor?: string;
+    topBarTextColor?: string;
     // Secciones
     showProducts?: boolean;
 }
@@ -32,6 +36,9 @@ export interface ISocialLinks {
     address: string;
     googleMapsLink: string;
     locationImage: string;
+    // Contact Info
+    phoneNumber?: string;
+    email?: string;
 }
 
 export interface IGlobalTexts {
@@ -90,6 +97,10 @@ const TenantSchema = new Schema<ITenant>(
             tickerTextColor: { type: String, default: '#ffffff' },
             tickerSpeed: { type: String, enum: ['slow', 'normal', 'fast'], default: 'normal' },
             tickerDirection: { type: String, enum: ['left', 'right'], default: 'left' },
+            // Top Bar (Barra de contacto superior)
+            topBarEnabled: { type: Boolean, default: false },
+            topBarBgColor: { type: String, default: '#1e40af' },
+            topBarTextColor: { type: String, default: '#ffffff' },
             // Secciones
             showProducts: { type: Boolean, default: true },
         },
@@ -101,6 +112,9 @@ const TenantSchema = new Schema<ITenant>(
             address: { type: String, default: '' },
             googleMapsLink: { type: String, default: '' },
             locationImage: { type: String, default: '' },
+            // Contact Info
+            phoneNumber: { type: String, default: '' },
+            email: { type: String, default: '' },
         },
         globalTexts: {
             headerText: { type: String, default: '' },
