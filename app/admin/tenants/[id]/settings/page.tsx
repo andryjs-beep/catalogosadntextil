@@ -147,6 +147,23 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
         }
     };
 
+    const handleUpdateGlobalTexts = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/admin/tenants/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ globalTexts: tenant.tenant.globalTexts }),
+            });
+            if (!res.ok) throw new Error('Error al actualizar');
+            toast.success('Textos globales actualizados correctamente');
+        } catch (error) {
+            toast.error('No se pudo actualizar los textos globales');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
     // Verificar que tenant y tenant.tenant existan
@@ -521,7 +538,7 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                             <CardTitle>Textos Globales</CardTitle>
                             <CardDescription>Textos que aparecen en todo el catálogo público.</CardDescription>
                         </CardHeader>
-                        <form onSubmit={handleUpdateBranding}>
+                        <form onSubmit={handleUpdateGlobalTexts}>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
                                     <Label>Texto del Header (cabecera)</Label>
