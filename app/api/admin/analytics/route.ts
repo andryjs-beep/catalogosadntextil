@@ -9,8 +9,8 @@ import { requireSuperAdmin } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
     try {
-        const authError = await requireSuperAdmin();
-        if (authError) return authError;
+        // Verifica autenticación - lanza error si no es super-admin
+        await requireSuperAdmin();
 
         await dbConnect();
 
@@ -104,6 +104,15 @@ export async function GET(request: NextRequest) {
         });
     } catch (error) {
         console.error('Error fetching analytics:', error);
+
+        // Si es error de autenticación, devolver 401
+        if (error instanceof Error && error.message.includes('Acceso denegado')) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: 401 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Error al obtener estadísticas' },
             { status: 500 }
