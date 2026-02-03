@@ -81,7 +81,6 @@ export default async function ResellerCollectionPage({
     // Obtener productos de la colección
     const products = await Product.find({
         collectionId: collection._id,
-        isActive: true,
     })
         .select('_id slug name images description')
         .sort({ order: 1 })

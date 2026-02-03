@@ -75,12 +75,12 @@ export default async function ResellerLayout({
         .lean();
 
     const collections = tenantCollections
-        .filter((tc: any) => tc.collectionId && tc.collectionId.isActive !== false)
+        .filter((tc: any) => tc.collectionId)
         .map((tc: any) => ({
             _id: tc.collectionId._id.toString(),
             slug: tc.collectionId.slug,
             name: tc.collectionId.name,
-            image: tc.collectionId.image || '',
+            image: tc.collectionId.coverImage || tc.collectionId.image || '',
         }));
 
     return (

@@ -46,15 +46,15 @@ export default async function ResellerHomePage({
         .sort({ order: 1 })
         .lean();
 
-    // Filtrar solo las colecciones activas
+    // Filtrar solo las colecciones que existen (pobladas correctamente)
     const collections = tenantCollections
-        .filter((tc: any) => tc.collectionId && tc.collectionId.isActive !== false)
+        .filter((tc: any) => tc.collectionId)
         .map((tc: any) => ({
             _id: tc.collectionId._id.toString(),
             slug: tc.collectionId.slug,
             name: tc.collectionId.name,
             description: tc.collectionId.description || '',
-            image: tc.collectionId.image || '',
+            image: tc.collectionId.coverImage || tc.collectionId.image || '',
         }));
 
     if (collections.length === 0) {
