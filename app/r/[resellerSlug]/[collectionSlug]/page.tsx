@@ -63,7 +63,7 @@ export default async function ResellerCollectionPage({
     }
 
     // Buscar colección
-    const collection = await Collection.findOne({ slug: collectionSlug }).lean() as { _id: any; name: string; description?: string } | null;
+    const collection = await Collection.findOne({ slug: collectionSlug }).lean() as { _id: any; name: string; description?: string; productIds: any[] } | null;
     if (!collection) {
         notFound();
     }
@@ -78,9 +78,9 @@ export default async function ResellerCollectionPage({
         notFound();
     }
 
-    // Obtener productos de la colección
+    // Obtener productos de la colección usando el array de IDs
     const products = await Product.find({
-        collectionId: collection._id,
+        _id: { $in: collection.productIds || [] },
     })
         .select('_id slug name images description')
         .sort({ order: 1 })
