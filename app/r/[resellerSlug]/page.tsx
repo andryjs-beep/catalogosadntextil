@@ -37,10 +37,15 @@ export default async function ResellerHomePage({
         notFound();
     }
 
-    // Obtener colecciones asignadas
+    // Obtener colecciones asignadas usando el tenant._id
+    const tenantId = tenant._id;
+    console.log('Reseller page - tenantId:', tenantId, 'type:', typeof tenantId);
+
     const tenantCollections = await TenantCollection.find({
-        tenantId: tenant._id,
+        tenantId: tenantId,
     }).lean();
+
+    console.log('Reseller page - tenantCollections found:', tenantCollections.length);
 
     const collectionIds = tenantCollections.map((tc: any) => tc.collectionId);
     const collections = await Collection.find({
@@ -49,6 +54,8 @@ export default async function ResellerHomePage({
     })
         .select('_id slug name description image')
         .lean<CollectionData[]>();
+
+    console.log('Reseller page - collections found:', collections.length);
 
     if (collections.length === 0) {
         return (
