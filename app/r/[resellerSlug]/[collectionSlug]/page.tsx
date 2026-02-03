@@ -127,7 +127,7 @@ export default async function ResellerCollectionPage({
                     {products.map((product) => (
                         <Link
                             key={product._id.toString()}
-                            href={`/r/${resellerSlug}/${collectionSlug}/${product.slug}`}
+                            href={`/r/${resellerSlug}/${collectionSlug}/${product.slug || product._id.toString()}`}
                             className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
                         >
                             {/* Imagen */}

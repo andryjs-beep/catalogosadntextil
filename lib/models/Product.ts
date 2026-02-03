@@ -6,14 +6,14 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IProduct extends Document {
     _id: mongoose.Types.ObjectId;
-    slug: string;
+    slug?: string;
     name: string;
     description: string;
     images: string[];
     tags: string[];
-    collectionId: mongoose.Types.ObjectId;
-    isActive: boolean;
-    order: number;
+    collectionId?: mongoose.Types.ObjectId;
+    isActive?: boolean;
+    order?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -22,8 +22,6 @@ const ProductSchema = new Schema<IProduct>(
     {
         slug: {
             type: String,
-            required: [true, 'El slug es requerido'],
-            unique: true,
             lowercase: true,
             trim: true,
         },

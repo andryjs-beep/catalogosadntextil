@@ -70,10 +70,13 @@ export default async function ResellerProductPage({
         notFound();
     }
 
-    // Buscar producto por slug
-    const product = await Product.findOne({
-        slug: productSlug,
-    }).lean();
+    // Buscar producto por slug o por ID
+    let product = await Product.findOne({ slug: productSlug }).lean();
+
+    // Si no se encuentra por slug, intentar por ID
+    if (!product && productSlug.match(/^[0-9a-fA-F]{24}$/)) {
+        product = await Product.findById(productSlug).lean();
+    }
 
     if (!product) {
         notFound();
