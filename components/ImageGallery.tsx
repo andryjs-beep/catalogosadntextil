@@ -7,9 +7,9 @@
  * - slider-manual: Carrusel con flechas
  */
 import { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { Lightbox } from './Lightbox';
 
 interface ImageGalleryProps {
     images: string[];
@@ -87,20 +87,13 @@ export function ImageGallery({
                 </div>
 
                 {/* Lightbox */}
-                {lightboxOpen && (
-                    <Lightbox
-                        images={images}
-                        currentIndex={lightboxIndex}
-                        onClose={() => setLightboxOpen(false)}
-                        onPrev={() =>
-                            setLightboxIndex((prev) => (prev - 1 + images.length) % images.length)
-                        }
-                        onNext={() =>
-                            setLightboxIndex((prev) => (prev + 1) % images.length)
-                        }
-                        productName={productName}
-                    />
-                )}
+                <Lightbox
+                    images={images}
+                    initialIndex={lightboxIndex}
+                    isOpen={lightboxOpen}
+                    onClose={() => setLightboxOpen(false)}
+                    productName={productName}
+                />
             </>
         );
     }
@@ -206,124 +199,14 @@ export function ImageGallery({
             </div>
 
             {/* Lightbox */}
-            {lightboxOpen && (
-                <Lightbox
-                    images={images}
-                    currentIndex={lightboxIndex}
-                    onClose={() => setLightboxOpen(false)}
-                    onPrev={() =>
-                        setLightboxIndex((prev) => (prev - 1 + images.length) % images.length)
-                    }
-                    onNext={() =>
-                        setLightboxIndex((prev) => (prev + 1) % images.length)
-                    }
-                    productName={productName}
-                />
-            )}
+            <Lightbox
+                images={images}
+                initialIndex={lightboxIndex}
+                isOpen={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+                productName={productName}
+            />
         </>
-    );
-}
-
-// Componente Lightbox
-function Lightbox({
-    images,
-    currentIndex,
-    onClose,
-    onPrev,
-    onNext,
-    productName,
-}: {
-    images: string[];
-    currentIndex: number;
-    onClose: () => void;
-    onPrev: () => void;
-    onNext: () => void;
-    productName: string;
-}) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        // Lock scroll
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
-
-    // Keyboard navigation
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-            if (e.key === 'ArrowLeft') onPrev();
-            if (e.key === 'ArrowRight') onNext();
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onClose, onPrev, onNext]);
-
-    if (!mounted) return null;
-
-    return createPortal(
-        <div
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
-            onClick={onClose}
-        >
-            {/* Close button */}
-            <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors z-[101]"
-            >
-                <X className="h-8 w-8" />
-            </button>
-
-            {/* Counter */}
-            <div className="absolute top-4 left-4 text-white text-lg z-[101]">
-                {currentIndex + 1} / {images.length}
-            </div>
-
-            {/* Main image */}
-            <div
-                className="relative w-full h-full max-w-5xl max-h-[80vh] mx-4"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <Image
-                    src={images[currentIndex]}
-                    alt={`${productName} ${currentIndex + 1}`}
-                    fill
-                    className="object-contain"
-                    sizes="100vw"
-                    quality={90}
-                    priority
-                />
-            </div>
-
-            {/* Navigation */}
-            {images.length > 1 && (
-                <>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onPrev();
-                        }}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors z-[101]"
-                    >
-                        <ChevronLeft className="h-10 w-10" />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onNext();
-                        }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors z-[101]"
-                    >
-                        <ChevronRight className="h-10 w-10" />
-                    </button>
-                </>
-            )}
-        </div>,
-        document.body
     );
 }
 
