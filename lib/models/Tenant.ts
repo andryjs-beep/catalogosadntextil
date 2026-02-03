@@ -56,6 +56,17 @@ export interface IBusinessInfo {
     tone: 'profesional' | 'casual' | 'juvenil' | 'persuasivo';
 }
 
+export interface IResellerConfig {
+    enabled: boolean;
+    slug: string;                    // URL personalizada: /r/[slug]
+    headerTitle: string;             // Ej: "Catálogo Online"
+    headerSubtitle: string;          // Ej: "Encuentra los mejores productos"
+    hideLogo: boolean;               // No mostrar logo
+    hideBusinessName: boolean;       // No mostrar nombre del negocio
+    hideSocialLinks: boolean;        // No mostrar redes sociales
+    footerText: string;              // Texto del footer: "© Catálogo Online"
+}
+
 export interface ITenant extends Document {
     _id: mongoose.Types.ObjectId;
     slug: string;
@@ -63,6 +74,7 @@ export interface ITenant extends Document {
     socialLinks: ISocialLinks;
     globalTexts: IGlobalTexts;
     businessInfo: IBusinessInfo;
+    resellerConfig: IResellerConfig;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -133,6 +145,16 @@ const TenantSchema = new Schema<ITenant>(
                 default: 'profesional'
             }
         },
+        resellerConfig: {
+            enabled: { type: Boolean, default: false },
+            slug: { type: String, default: '' },
+            headerTitle: { type: String, default: 'Catálogo Online' },
+            headerSubtitle: { type: String, default: 'Encuentra los mejores productos' },
+            hideLogo: { type: Boolean, default: true },
+            hideBusinessName: { type: Boolean, default: true },
+            hideSocialLinks: { type: Boolean, default: true },
+            footerText: { type: String, default: '© Catálogo Online' },
+        },
         isActive: {
             type: Boolean,
             default: true,
@@ -146,6 +168,7 @@ const TenantSchema = new Schema<ITenant>(
 // Índices
 TenantSchema.index({ slug: 1 }, { unique: true });
 TenantSchema.index({ isActive: 1 });
+TenantSchema.index({ 'resellerConfig.slug': 1 }, { sparse: true });
 
 export default mongoose.models.Tenant ||
     mongoose.model<ITenant>('Tenant', TenantSchema);

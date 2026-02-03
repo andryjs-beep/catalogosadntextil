@@ -1,0 +1,7 @@
+/* Estilos base para el catálogo de revendedor */
+@import url('../../globals.css');
+
+/* Sin elementos premium o marcas */
+.reseller-mode {
+    /* Modo limpio */
+}

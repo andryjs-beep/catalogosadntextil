@@ -185,6 +185,20 @@ export default function TenantSettingsPage({ params }: { params: Promise<{ id: s
                     </Button>
                     <h1 className="text-3xl font-bold">Ajustes de {tenant.tenant.slug}</h1>
                 </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mb-6 flex flex-wrap gap-3">
+                <Link href={`/admin/tenants/${id}/reseller`}>
+                    <Button variant="outline" className="gap-2">
+                        🏪 Modo Revendedor
+                    </Button>
+                </Link>
+                <Link href={`/admin/tenants/${id}/landing`}>
+                    <Button variant="outline" className="gap-2">
+                        📄 Landing Page
+                    </Button>
+                </Link>
                 <Link href={`https://${tenant.tenant.slug}.catalogo.dpdns.org`} target="_blank">
                     <Button variant="ghost" className="gap-2">
                         Ver Tienda <ExternalLink className="h-4 w-4" />
