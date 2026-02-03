@@ -65,18 +65,23 @@ export default async function ResellerLayout({
 
     const { branding, resellerConfig } = tenant;
 
-    // Obtener colecciones asignadas
+    // Obtener colecciones asignadas (solo publicadas)
     const tenantCollections = await TenantCollection.find({
         tenantId: tenant._id,
-    }).lean();
-
-    const collectionIds = tenantCollections.map((tc: any) => tc.collectionId);
-    const collections = await Collection.find({
-        _id: { $in: collectionIds },
-        isActive: true,
+        isPublished: true,
     })
-        .select('_id slug name image')
-        .lean<CollectionData[]>();
+        .populate('collectionId', 'slug name image isActive')
+        .sort({ order: 1 })
+        .lean();
+
+    const collections = tenantCollections
+        .filter((tc: any) => tc.collectionId && tc.collectionId.isActive !== false)
+        .map((tc: any) => ({
+            _id: tc.collectionId._id.toString(),
+            slug: tc.collectionId.slug,
+            name: tc.collectionId.name,
+            image: tc.collectionId.image || '',
+        }));
 
     return (
         <html lang="es">

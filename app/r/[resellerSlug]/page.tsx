@@ -37,25 +37,25 @@ export default async function ResellerHomePage({
         notFound();
     }
 
-    // Obtener colecciones asignadas usando el tenant._id
-    const tenantId = tenant._id;
-    console.log('Reseller page - tenantId:', tenantId, 'type:', typeof tenantId);
-
+    // Obtener colecciones asignadas usando el mismo patrón que el catálogo principal
     const tenantCollections = await TenantCollection.find({
-        tenantId: tenantId,
-    }).lean();
-
-    console.log('Reseller page - tenantCollections found:', tenantCollections.length);
-
-    const collectionIds = tenantCollections.map((tc: any) => tc.collectionId);
-    const collections = await Collection.find({
-        _id: { $in: collectionIds },
-        isActive: true,
+        tenantId: tenant._id,
+        isPublished: true,  // Solo colecciones publicadas
     })
-        .select('_id slug name description image')
-        .lean<CollectionData[]>();
+        .populate('collectionId', 'slug name description image isActive')
+        .sort({ order: 1 })
+        .lean();
 
-    console.log('Reseller page - collections found:', collections.length);
+    // Filtrar solo las colecciones activas
+    const collections = tenantCollections
+        .filter((tc: any) => tc.collectionId && tc.collectionId.isActive !== false)
+        .map((tc: any) => ({
+            _id: tc.collectionId._id.toString(),
+            slug: tc.collectionId.slug,
+            name: tc.collectionId.name,
+            description: tc.collectionId.description || '',
+            image: tc.collectionId.image || '',
+        }));
 
     if (collections.length === 0) {
         return (
