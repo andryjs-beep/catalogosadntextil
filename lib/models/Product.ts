@@ -6,16 +6,27 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IProduct extends Document {
     _id: mongoose.Types.ObjectId;
+    slug: string;
     name: string;
     description: string;
     images: string[];
     tags: string[];
+    collectionId: mongoose.Types.ObjectId;
+    isActive: boolean;
+    order: number;
     createdAt: Date;
     updatedAt: Date;
 }
 
 const ProductSchema = new Schema<IProduct>(
     {
+        slug: {
+            type: String,
+            required: [true, 'El slug es requerido'],
+            unique: true,
+            lowercase: true,
+            trim: true,
+        },
         name: {
             type: String,
             required: [true, 'El nombre del producto es requerido'],
@@ -30,16 +41,22 @@ const ProductSchema = new Schema<IProduct>(
         images: {
             type: [String],
             default: [],
-            validate: {
-                validator: function (v: string[]) {
-                    return v.every((url) => url.startsWith('https://res.cloudinary.com'));
-                },
-                message: 'Las imágenes deben ser URLs válidas de Cloudinary',
-            },
         },
         tags: {
             type: [String],
             default: [],
+        },
+        collectionId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Collection',
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        order: {
+            type: Number,
+            default: 0,
         },
     },
     {
