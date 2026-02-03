@@ -5,6 +5,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
 import { Tenant, TenantCollection, Collection, Product } from '@/lib/models';
 import type { ITenant } from '@/lib/models/Tenant';
@@ -78,9 +79,13 @@ export default async function ResellerCollectionPage({
         notFound();
     }
 
-    // Obtener productos de la colección usando el array de IDs
+    // Obtener productos de la colección usando el array de IDs (forzando conversión a ObjectId)
+    const productIds = (collection.productIds || []).map(id =>
+        typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id
+    );
+
     const products = await Product.find({
-        _id: { $in: collection.productIds || [] },
+        _id: { $in: productIds },
     })
         .select('_id slug name images description')
         .sort({ order: 1 })
