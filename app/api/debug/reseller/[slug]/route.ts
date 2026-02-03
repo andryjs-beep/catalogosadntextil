@@ -21,14 +21,14 @@ export async function GET(
 
         if (!tenant) {
             // Intentar buscar por slug normal para debug
-            const tenantBySlug = await Tenant.findOne({ slug }).lean();
+            const tenantBySlug = await Tenant.findOne({ slug }).lean() as any;
             return NextResponse.json({
                 error: 'Tenant no encontrado por resellerConfig.slug',
                 searchedSlug: slug,
                 tenantByNormalSlug: tenantBySlug ? {
                     _id: tenantBySlug._id,
-                    slug: (tenantBySlug as any).slug,
-                    resellerConfig: (tenantBySlug as any).resellerConfig,
+                    slug: tenantBySlug.slug,
+                    resellerConfig: tenantBySlug.resellerConfig,
                 } : null,
             });
         }
