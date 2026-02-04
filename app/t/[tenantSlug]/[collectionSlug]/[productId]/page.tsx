@@ -54,6 +54,11 @@ interface CustomizationData {
     footerNote?: string;
     galleryMode?: GalleryMode;
     sliderSpeed?: number;
+    tieredPricing?: Array<{
+        unitCount: number;
+        price: string;
+        enabled: boolean;
+    }>;
     showLocation?: boolean;
 }
 
@@ -223,17 +228,54 @@ export default async function ProductDetailPage({
                     {/* Información del producto */}
                     <div className="space-y-6">
                         {/* Nombre y precio */}
-                        <div>
+                        <div className="space-y-4">
                             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                                 {productName}
                             </h2>
-                            {productPrice && (
-                                <div
-                                    className="text-2xl md:text-3xl font-bold"
-                                    style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
-                                >
-                                    {productPrice}
+
+                            {/* Visualización de Precios Multinivel */}
+                            {customization?.tieredPricing && customization.tieredPricing.some(t => t.enabled) ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {customization.tieredPricing.filter(t => t.enabled).map((tier) => (
+                                            <div
+                                                key={tier.unitCount}
+                                                className="bg-white border-2 rounded-xl p-3 text-center transition-all hover:shadow-md"
+                                                style={{
+                                                    borderColor: tenant.branding.primaryColor + '20',
+                                                    boxShadow: `0 4px 6px -1px ${tenant.branding.primaryColor}10`
+                                                }}
+                                            >
+                                                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                                    {tier.unitCount} {tier.unitCount === 1 ? 'Unidad' : 'Unidades'}
+                                                </div>
+                                                <div
+                                                    className="text-xl font-black"
+                                                    style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
+                                                >
+                                                    {tier.price}
+                                                </div>
+                                                {tier.unitCount > 1 && tier.price.includes('$') && (
+                                                    <div className="text-[10px] text-slate-400 mt-1">
+                                                        Llévalo ahora
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-slate-400 italic">
+                                        * Precios válidos para la misma referencia
+                                    </p>
                                 </div>
+                            ) : (
+                                productPrice && (
+                                    <div
+                                        className="text-2xl md:text-3xl font-bold"
+                                        style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
+                                    >
+                                        {productPrice}
+                                    </div>
+                                )
                             )}
                         </div>
 

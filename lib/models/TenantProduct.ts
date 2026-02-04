@@ -24,6 +24,12 @@ export interface ILandingContent {
     }>;
 }
 
+export interface ITieredPrice {
+    unitCount: number;
+    price: string;
+    enabled: boolean;
+}
+
 export interface ITenantProduct extends Document {
     _id: mongoose.Types.ObjectId;
     tenantId: mongoose.Types.ObjectId;
@@ -32,6 +38,7 @@ export interface ITenantProduct extends Document {
     customTitle: string; // Título destacado del producto
     customName: string;
     customPrice: string;
+    tieredPricing: ITieredPrice[];
     customDescription: string; // Descripción larga con soporte para viñetas
     // Galería
     galleryMode: GalleryMode;
@@ -79,6 +86,22 @@ const TenantProductSchema = new Schema<ITenantProduct>(
             default: '',
             trim: true,
             maxlength: [50, 'El precio no puede exceder 50 caracteres'],
+        },
+        tieredPricing: {
+            type: [
+                {
+                    unitCount: Number,
+                    price: String,
+                    enabled: { type: Boolean, default: false },
+                },
+            ],
+            default: [
+                { unitCount: 1, price: '', enabled: false },
+                { unitCount: 2, price: '', enabled: false },
+                { unitCount: 3, price: '', enabled: false },
+                { unitCount: 6, price: '', enabled: false },
+                { unitCount: 12, price: '', enabled: false },
+            ],
         },
         customDescription: {
             type: String,

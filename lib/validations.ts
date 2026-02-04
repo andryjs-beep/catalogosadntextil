@@ -197,6 +197,15 @@ export const tenantProductSchema = z.object({
     customTitle: z.string().max(200).default(''),
     customName: z.string().max(200).default(''),
     customPrice: z.string().max(50).default(''),
+    tieredPricing: z
+        .array(
+            z.object({
+                unitCount: z.number(),
+                price: z.string().max(50).default(''),
+                enabled: z.boolean().default(false),
+            })
+        )
+        .optional(),
     customDescription: z.string().max(5000).default(''),
     galleryMode: z.enum(['album', 'slider-auto', 'slider-manual']).default('album'),
     sliderSpeed: z.number().int().min(1).max(30).default(3),

@@ -40,6 +40,7 @@ interface ProductWithCustom {
     images: string[];
     customName?: string;
     customPrice?: string;
+    tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>;
     customDescription?: string;
 }
 
@@ -47,6 +48,7 @@ interface CustomizationData {
     productId: { toString(): string };
     customName?: string;
     customPrice?: string;
+    tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>;
     customDescription?: string;
 }
 
@@ -84,10 +86,22 @@ async function getCollectionData(tenantSlug: string, collectionSlug: string) {
     // Combinar datos
     const productsWithCustom = products.map((product) => {
         const custom = customizationMap.get(product._id.toString());
+
+        // Calcular precio a mostrar
+        let displayPrice = custom?.customPrice || '';
+        if (custom?.tieredPricing && custom.tieredPricing.some(t => t.enabled)) {
+            const enabledTiers = custom.tieredPricing.filter(t => t.enabled);
+            // Si hay tiers, mostramos el de menor unidad o simplemente marcamos como "Desde"
+            const firstTier = enabledTiers[0];
+            if (firstTier) {
+                displayPrice = `Desde ${firstTier.price}`;
+            }
+        }
+
         return {
             ...product,
             customName: custom?.customName || '',
-            customPrice: custom?.customPrice || '',
+            customPrice: displayPrice,
             customDescription: custom?.customDescription || '',
         };
     });

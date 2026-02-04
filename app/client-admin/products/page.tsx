@@ -44,6 +44,11 @@ interface Product {
         sliderSpeed?: number;
         ctaText?: string;
         ctaSubtext?: string;
+        tieredPricing?: Array<{
+            unitCount: number;
+            price: string;
+            enabled: boolean;
+        }>;
         footerNote?: string;
         showLocation?: boolean;
     } | null;
@@ -60,6 +65,11 @@ interface FormData {
     ctaSubtext: string;
     footerNote: string;
     showLocation: boolean;
+    tieredPricing: Array<{
+        unitCount: number;
+        price: string;
+        enabled: boolean;
+    }>;
     useLandingLayout: boolean;
     landingContent: {
         headline: string;
@@ -88,6 +98,13 @@ export default function ClientProductsPage() {
             ctaSubtext: '',
             footerNote: '',
             showLocation: true,
+            tieredPricing: [
+                { unitCount: 1, price: '', enabled: false },
+                { unitCount: 2, price: '', enabled: false },
+                { unitCount: 3, price: '', enabled: false },
+                { unitCount: 6, price: '', enabled: false },
+                { unitCount: 12, price: '', enabled: false },
+            ],
             useLandingLayout: false,
             landingContent: {
                 headline: '',
@@ -130,6 +147,13 @@ export default function ClientProductsPage() {
             ctaSubtext: c?.ctaSubtext || '',
             footerNote: c?.footerNote || '',
             showLocation: c?.showLocation !== false,
+            tieredPricing: c?.tieredPricing || [
+                { unitCount: 1, price: '', enabled: false },
+                { unitCount: 2, price: '', enabled: false },
+                { unitCount: 3, price: '', enabled: false },
+                { unitCount: 6, price: '', enabled: false },
+                { unitCount: 12, price: '', enabled: false },
+            ],
             useLandingLayout: (c as any)?.useLandingLayout || false,
             landingContent: {
                 headline: (c as any)?.landingContent?.headline || '',
@@ -290,12 +314,45 @@ export default function ClientProductsPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="customPrice">Precio</Label>
+                                        <Label htmlFor="customPrice">Precio Individual (Opcional)</Label>
                                         <Input
                                             id="customPrice"
                                             {...form.register('customPrice')}
                                             placeholder="Ej: $45.990 o OFERTA: $29.990"
                                         />
+                                        <p className="text-xs text-slate-500">
+                                            Si habilitas los precios por volumen abajo, este se usará como referencia principal.
+                                        </p>
+                                    </div>
+
+                                    {/* Sección: Precios por Volumen */}
+                                    <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
+                                        <h4 className="font-bold text-blue-900 flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4" />
+                                            Precios por Volumen (Estilo Shopify)
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {(form.watch('tieredPricing') || []).map((tier, index) => (
+                                                <div key={tier.unitCount} className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="font-bold text-slate-700">
+                                                            {tier.unitCount} {tier.unitCount === 1 ? 'Unidad' : 'Unidades'}
+                                                        </Label>
+                                                        <input
+                                                            type="checkbox"
+                                                            {...form.register(`tieredPricing.${index}.enabled`)}
+                                                            className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        placeholder="Ej: $35.000"
+                                                        disabled={!form.watch(`tieredPricing.${index}.enabled`)}
+                                                        {...form.register(`tieredPricing.${index}.price`)}
+                                                        className="bg-slate-50 border-none"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     <div className="space-y-2">
