@@ -74,7 +74,7 @@ async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug
 
     // 2. Si no es colección o no está publicada para este tenant, intentar buscar como Producto
     if (!tenantCollection) {
-        const product = await Product.findOne({ slug: collectionSlugOrProductSlug }).lean();
+        const product = await Product.findOne({ slug: collectionSlugOrProductSlug }).lean() as any;
         if (product) {
             // Buscar en todas las colecciones publicadas del tenant para encontrar la que tiene el producto
             const allTCs = await TenantCollection.find({
