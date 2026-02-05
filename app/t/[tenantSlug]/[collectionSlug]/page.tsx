@@ -36,6 +36,7 @@ interface TenantCollectionData {
 
 interface ProductWithCustom {
     _id: { toString(): string };
+    slug?: string;
     name: string;
     images: string[];
     customName?: string;

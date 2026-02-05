@@ -36,6 +36,7 @@ interface CollectionData {
 
 interface ProductData {
     _id: { toString(): string };
+    slug?: string;
     name: string;
     description?: string;
     images: string[];
