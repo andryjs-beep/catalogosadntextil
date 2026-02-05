@@ -5,7 +5,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -355,24 +356,24 @@ export default function ClientProductsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="customDescription" className="flex items-center gap-2">
+                                    <div className="space-y-4">
+                                        <Label className="flex items-center gap-2">
                                             <AlignLeft className="h-4 w-4 text-slate-500" />
-                                            Descripción Organizada (Usa guiones)
+                                            Descripción del Producto (Silicon Valley 2026 Style)
                                         </Label>
-                                        <Textarea
-                                            id="customDescription"
-                                            {...form.register('customDescription')}
-                                            rows={8}
-                                            className="text-base leading-relaxed"
-                                            placeholder={`Escribe beneficios o especificaciones:
-- Calidad Premium garantizada
-- Colores vibrantes y duraderos
-- Material: Micromalla dry-fit
-- Ideal para uniformes deportivos`}
+                                        <Controller
+                                            name="customDescription"
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <RichTextEditor
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Escribe beneficios, especificaciones, negritas, centrado y GIFs..."
+                                                />
+                                            )}
                                         />
-                                        <p className="text-xs text-slate-500">
-                                            Tip: Comienza cada línea con un guion (-) para que aparezca con un check (✓).
+                                        <p className="text-[10px] text-slate-400">
+                                            Tip: Selecciona el texto para ver opciones de formato. Pega URLs de GIFs directamente.
                                         </p>
                                     </div>
 
@@ -514,7 +515,19 @@ export default function ClientProductsPage() {
                                         </Button>
                                     </div>
                                     <Input {...form.register('landingContent.headline')} placeholder="Ej: La prenda que transformará tu armario" />
-                                    <Textarea {...form.register('landingContent.subheadline')} placeholder="Describe el beneficio principal de forma impactante." />
+
+                                    <Label>Subheadline Pro (Rich Text)</Label>
+                                    <Controller
+                                        name="landingContent.subheadline"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <RichTextEditor
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Describe el beneficio principal con negritas, centrado y GIFs..."
+                                            />
+                                        )}
+                                    />
                                 </div>
 
                                 <div className="space-y-4 border-t pt-4">

@@ -60,6 +60,11 @@ interface CustomizationData {
         enabled: boolean;
     }>;
     showLocation?: boolean;
+    useLandingLayout?: boolean;
+    landingContent?: {
+        headline?: string;
+        subheadline?: string;
+    };
 }
 
 async function getProductData(
@@ -214,9 +219,9 @@ export default async function ProductDetailPage({
                     Volver a {collection.name}
                 </Link>
 
-                <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Galería de imágenes */}
-                    <div>
+                <div className="flex flex-col gap-8 max-w-4xl mx-auto">
+                    {/* Galería de imágenes - ARRIBA */}
+                    <div className="w-full">
                         <ImageGallery
                             images={product.images}
                             mode={galleryMode}
@@ -225,41 +230,46 @@ export default async function ProductDetailPage({
                         />
                     </div>
 
-                    {/* Información del producto */}
-                    <div className="space-y-6">
+                    {/* Información del producto - ABAJO */}
+                    <div className="space-y-8 bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-100">
                         {/* Nombre y precio */}
-                        <div className="space-y-4">
-                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-                                {productName}
+                        <div className="text-center space-y-4">
+                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                                {customization?.useLandingLayout && customization.landingContent?.headline
+                                    ? customization.landingContent.headline
+                                    : productName}
                             </h2>
+
+                            {/* Subheadline Enriquecida (Silicon Valley style) */}
+                            {customization?.useLandingLayout && customization.landingContent?.subheadline && (
+                                <div
+                                    className="text-lg md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto"
+                                    dangerouslySetInnerHTML={{ __html: customization.landingContent.subheadline }}
+                                />
+                            )}
 
                             {/* Visualización de Precios Multinivel */}
                             {customization?.tieredPricing && customization.tieredPricing.some(t => t.enabled) ? (
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {customization.tieredPricing.filter(t => t.enabled).map((tier) => (
                                             <div
                                                 key={tier.unitCount}
-                                                className="bg-white border-2 rounded-xl p-3 text-center transition-all hover:shadow-md"
+                                                className="bg-white border-2 rounded-2xl p-4 text-center transition-all hover:scale-105 hover:shadow-lg"
                                                 style={{
-                                                    borderColor: tenant.branding.primaryColor + '20',
-                                                    boxShadow: `0 4px 6px -1px ${tenant.branding.primaryColor}10`
+                                                    borderColor: tenant.branding.primaryColor + '30',
+                                                    boxShadow: `0 10px 15px -3px ${tenant.branding.primaryColor}15`
                                                 }}
                                             >
-                                                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
                                                     {tier.unitCount} {tier.unitCount === 1 ? 'Unidad' : 'Unidades'}
                                                 </div>
                                                 <div
-                                                    className="text-xl font-black"
+                                                    className="text-2xl font-black"
                                                     style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
                                                 >
                                                     {tier.price}
                                                 </div>
-                                                {tier.unitCount > 1 && tier.price.includes('$') && (
-                                                    <div className="text-[10px] text-slate-400 mt-1">
-                                                        Llévalo ahora
-                                                    </div>
-                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -279,26 +289,28 @@ export default async function ProductDetailPage({
                             )}
                         </div>
 
-                        {/* Descripción con viñetas */}
-                        {descriptionItems.length > 0 && (
-                            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                                <h3 className="text-lg font-semibold text-slate-900 mb-4 border-b pb-2">
-                                    Especificaciones y Beneficios
+                        {/* Descripción Pro (Silicon Valley 2026 Style) */}
+                        <div className="prose prose-slate max-w-none">
+                            <div
+                                className="text-slate-700 leading-relaxed text-lg md:text-xl text-center"
+                                dangerouslySetInnerHTML={{ __html: finalDescription }}
+                            />
+                        </div>
+
+                        {/* Especificaciones con Checks (Si hay líneas con guiones) */}
+                        {descriptionItems.some(item => item.isBullet) && (
+                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 max-w-2xl mx-auto w-full">
+                                <h3 className="text-center font-bold text-slate-800 mb-4 uppercase tracking-wider text-sm">
+                                    Lo que obtienes
                                 </h3>
-                                <ul className="space-y-4">
-                                    {descriptionItems.map((item, index) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                            {item.isBullet ? (
-                                                <div className="mt-1 flex-shrink-0">
-                                                    <CheckCircle
-                                                        className="h-5 w-5"
-                                                        style={{ color: tenant.branding.primaryColor || '#22c55e' }}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <span className="w-5" />
-                                            )}
-                                            <span className="text-slate-700 leading-relaxed text-base md:text-lg">
+                                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {descriptionItems.filter(item => item.isBullet).map((item, index) => (
+                                        <li key={index} className="flex items-center gap-3">
+                                            <CheckCircle
+                                                className="h-5 w-5 flex-shrink-0"
+                                                style={{ color: tenant.branding.primaryColor || '#22c55e' }}
+                                            />
+                                            <span className="text-slate-700 font-medium">
                                                 {item.text}
                                             </span>
                                         </li>
