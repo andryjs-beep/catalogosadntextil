@@ -10,6 +10,8 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 import { ArrowLeft } from 'lucide-react';
 import { LandingPageLayout } from '@/components/LandingPageLayout';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
