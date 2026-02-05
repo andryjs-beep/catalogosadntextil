@@ -23,6 +23,7 @@ interface TenantData {
 interface CollectionData {
     _id: { toString(): string };
     name: string;
+    coverImage: string;
     productIds: Array<{ toString(): string }>;
 }
 
