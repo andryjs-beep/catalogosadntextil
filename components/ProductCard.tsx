@@ -25,7 +25,7 @@ export function ProductCard({
     collectionSlug,
 }: ProductCardProps) {
     return (
-        <Link href={`/t/${tenantSlug}/${collectionSlug}/${slug || id}`}>
+        <Link href={`/t/${tenantSlug}/${slug || id}`}>
             <div className="tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer">
                 {/* Imagen */}
                 <div className="aspect-square relative overflow-hidden">

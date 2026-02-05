@@ -216,28 +216,56 @@ export default async function CollectionPage({
                 Volver al catálogo
             </Link>
 
-            {/* Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mb-4 tenant-gradient-text">
-                    {collection.name}
-                </h1>
+            {/* Header Profesional 2026 */}
+            <div className="relative rounded-3xl overflow-hidden mb-12 shadow-2xl border border-white/20 aspect-[3/1] min-h-[260px] flex items-end">
+                {/* Background Image Overlay */}
+                <div className="absolute inset-0 z-0">
+                    {collection.coverImage ? (
+                        <Image
+                            src={collection.coverImage}
+                            alt={collection.name}
+                            fill
+                            className="object-cover transition-transform duration-700 hover:scale-105"
+                            priority
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                </div>
 
-                {/* Texto persuasivo arriba */}
-                {tenantCollection.persuasiveTextTop && (
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-6">
-                        {tenantCollection.persuasiveTextTop}
-                    </p>
-                )}
+                {/* Content Overlay */}
+                <div className="relative z-10 p-8 md:p-12 w-full flex flex-col md:flex-row items-end justify-between gap-6 animate-fade-in-up">
+                    <div className="max-w-2xl">
+                        <Badge className="mb-4 bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/30 transition-colors uppercase tracking-widest text-[10px] font-black">
+                            Colección Oficial
+                        </Badge>
+                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
+                            {collection.name}
+                        </h1>
+                        {tenantCollection.persuasiveTextTop && (
+                            <p className="text-slate-200 text-lg md:text-xl font-medium line-clamp-2 max-w-xl drop-shadow">
+                                {tenantCollection.persuasiveTextTop}
+                            </p>
+                        )}
+                    </div>
 
-                {/* Botón WhatsApp */}
-                {tenant.socialLinks.whatsappLink && (
-                    <WhatsAppButton
-                        href={tenant.socialLinks.whatsappLink}
-                        text={ctaText}
-                        tenantId={tenant._id.toString()}
-                        collectionId={collection._id.toString()}
-                    />
-                )}
+                    {/* Action Section */}
+                    <div className="flex flex-col gap-3 shrink-0">
+                        {tenant.socialLinks.whatsappLink && (
+                            <WhatsAppButton
+                                href={tenant.socialLinks.whatsappLink}
+                                text={ctaText}
+                                tenantId={tenant._id.toString()}
+                                collectionId={collection._id.toString()}
+                                className="shadow-2xl hover:scale-105 transition-transform active:scale-95"
+                            />
+                        )}
+                        <span className="text-[11px] text-white/60 font-medium text-center md:text-right uppercase tracking-widest">
+                            {products.length} Productos Disponibles
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {/* Grid de productos */}

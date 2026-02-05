@@ -36,7 +36,14 @@ export function HeroSection({
     const hasTiers = tieredPricing && tieredPricing.some(t => t.enabled);
     const activeTiers = tieredPricing?.filter(t => t.enabled) || [];
     const firstTier = activeTiers[0];
-    const displayPrice = hasTiers && firstTier ? `Desde ${firstTier.price}` : price;
+
+    // Formateo profesional de precio (Estándar 2026)
+    const formatPrice = (p: string) => {
+        const clean = p.replace('$', '').trim();
+        return `$${clean}`;
+    };
+    const displayValue = hasTiers && firstTier ? firstTier.price : (price || '');
+    const displayPrice = displayValue ? formatPrice(displayValue) : '';
 
     return (
         <section className="relative overflow-hidden py-16 lg:py-24 px-4 bg-slate-50">
@@ -82,20 +89,36 @@ export function HeroSection({
                                     <span className="text-sm font-bold text-primary/60 uppercase tracking-tighter">
                                         {hasTiers ? 'Desde' : 'Precio'}
                                     </span>
-                                    <span className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">
-                                        {/* Simple formatting for display */}
-                                        {displayPrice.includes('$') ? displayPrice : `$${displayPrice}`}
-                                        <span className="text-xl md:text-2xl font-bold text-slate-400 ml-1">
+                                    <span className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter flex items-baseline leading-[0.85]">
+                                        {displayPrice}
+                                        <span className="text-2xl md:text-3xl font-bold text-slate-400 ml-2">
                                             USD
                                         </span>
                                     </span>
                                 </div>
 
-                                {hasTiers && (
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary rounded-r-md animate-pulse-slow">
-                                        <div className="w-2 h-2 bg-primary rounded-full" />
+                                {activeTiers.length > 1 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {activeTiers.slice(1).map((tier, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="bg-white border border-slate-100 shadow-sm px-4 py-2 rounded-xl flex items-center gap-3 animate-fade-in group/tier hover:border-primary/30 transition-colors"
+                                                style={{ animationDelay: `${(idx + 1) * 100}ms` }}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover/tier:text-primary/60 transition-colors">Lleva {tier.unitCount}+</span>
+                                                    <span className="text-lg font-black text-slate-700 leading-tight group-hover/tier:text-primary transition-colors">{formatPrice(tier.price)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {hasTiers && activeTiers.length === 1 && (
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary rounded-r-md">
+                                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                                         <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
-                                            Precio Mayorista Disponible
+                                            Mejores ofertas disponibles por volumen
                                         </span>
                                     </div>
                                 )}
