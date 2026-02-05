@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Sparkles, Save, Trash2, Plus } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles, Save, Trash2, Plus, Package, Tag, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
@@ -20,10 +20,29 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);
     const [data, setData] = useState<any>(null);
+    const [products, setProducts] = useState<any[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(true);
 
     useEffect(() => {
         fetchData();
+        fetchProducts();
     }, [tenantId, colId]);
+
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch(`/api/admin/tenants/${tenantId}/products`);
+            const json = await res.json();
+            if (res.ok) {
+                // Filtrar solo productos que pertenecen a esta colección
+                // (tc.collectionId.productIds contiene los IDs)
+                setProducts(json.products || []);
+            }
+        } catch (error) {
+            console.error("Error fetching products", error);
+        } finally {
+            setLoadingProducts(false);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -128,7 +147,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Obtener todas las asignaciones actuales para no sobreescribir las demás
+            // 1. Guardar Landing Page (TenantCollection)
             const res = await fetch(`/api/admin/tenants/${tenantId}/assign`);
             const json = await res.json();
 
@@ -164,8 +183,24 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                 body: JSON.stringify({ assignments })
             });
 
+            // 2. Guardar Personalización de Productos (Precios)
+            const collectionProducts = products.filter(p => data.collectionId.productIds.includes(p._id));
+            const productSavePromises = collectionProducts.map(p => {
+                if (!p.customization) return Promise.resolve();
+                return fetch(`/api/admin/tenants/${tenantId}/products`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: p._id,
+                        ...p.customization
+                    })
+                });
+            });
+
+            await Promise.all(productSavePromises);
+
             if (saveRes.ok) {
-                toast.success('Landing Page guardada con éxito');
+                toast.success('Landing Page y Precios guardados');
                 router.back();
             } else {
                 toast.error('Error al guardar cambios');
@@ -876,6 +911,172 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* ===== GESTIÓN DE PRECIOS ===== */}
+                        <div className="pt-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                    <Tag className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-900">Gestión de Precios de Productos</h2>
+                                    <p className="text-slate-500">Configura los precios normales y por volumen para los productos de esta colección.</p>
+                                </div>
+                            </div>
+
+                            {loadingProducts ? (
+                                <div className="flex justify-center p-12">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {products
+                                        .filter(p => data.collectionId.productIds.includes(p._id))
+                                        .map((product) => (
+                                            <Card key={product._id} className="overflow-hidden border-slate-200 shadow-sm">
+                                                <div className="bg-slate-50 px-6 py-4 border-b flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        {product.images?.[0] && (
+                                                            <div className="h-12 w-12 rounded-lg overflow-hidden border bg-white">
+                                                                <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <h3 className="font-bold text-slate-900">{product.name}</h3>
+                                                            <p className="text-xs text-slate-500">REF: {product.sku || product._id.slice(-6).toUpperCase()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="bg-white">
+                                                        Precio Base: ${product.price?.toLocaleString()}
+                                                    </Badge>
+                                                </div>
+                                                <CardContent className="p-6 space-y-6">
+                                                    <div className="grid md:grid-cols-2 gap-6">
+                                                        <div className="space-y-2">
+                                                            <Label className="flex items-center gap-2">
+                                                                <Tag className="h-4 w-4 text-blue-500" />
+                                                                Precio Personalizado para Tenant
+                                                            </Label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-2.5 text-slate-400">$</span>
+                                                                <Input
+                                                                    type="text"
+                                                                    className="pl-7 font-bold text-lg"
+                                                                    value={product.customization?.customPrice || ''}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        const newProducts = [...products];
+                                                                        const idx = newProducts.findIndex(p => p._id === product._id);
+                                                                        newProducts[idx].customization = {
+                                                                            ...(newProducts[idx].customization || { productId: product._id }),
+                                                                            customPrice: val
+                                                                        };
+                                                                        setProducts(newProducts);
+                                                                    }}
+                                                                    placeholder={product.price?.toString()}
+                                                                />
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-500">Deja vacío para usar el precio base de la tienda.</p>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label className="flex items-center gap-2">
+                                                                <Package className="h-4 w-4 text-purple-500" />
+                                                                Nombre Personalizado
+                                                            </Label>
+                                                            <Input
+                                                                value={product.customization?.customName || ''}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    const newProducts = [...products];
+                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
+                                                                    newProducts[idx].customization = {
+                                                                        ...(newProducts[idx].customization || { productId: product._id }),
+                                                                        customName: val
+                                                                    };
+                                                                    setProducts(newProducts);
+                                                                }}
+                                                                placeholder={product.name}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="border-t pt-6 space-y-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1.5 bg-amber-100 rounded text-amber-600">
+                                                                <Layers className="h-4 w-4" />
+                                                            </div>
+                                                            <h4 className="font-bold text-slate-800">Precios Multinivel (Venta por Volumen)</h4>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                                                            {[1, 2, 3, 6, 12].map((units) => {
+                                                                const tier = product.customization?.tieredPricing?.find((t: any) => t.unitCount === units) || { unitCount: units, price: '', enabled: false };
+                                                                return (
+                                                                    <div key={units} className={`p-3 rounded-xl border transition-all ${tier.enabled ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}>
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <span className="text-xs font-bold uppercase">{units} {units === 1 ? 'Unidad' : 'Unidades'}</span>
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={tier.enabled}
+                                                                                onChange={(e) => {
+                                                                                    const enabled = e.target.checked;
+                                                                                    const newProducts = [...products];
+                                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
+                                                                                    const customization = newProducts[idx].customization || { productId: product._id, tieredPricing: [] };
+                                                                                    const tiers = [...(customization.tieredPricing || [])];
+                                                                                    const tIdx = tiers.findIndex((t: any) => t.unitCount === units);
+
+                                                                                    if (tIdx > -1) {
+                                                                                        tiers[tIdx].enabled = enabled;
+                                                                                    } else {
+                                                                                        tiers.push({ unitCount: units, price: '', enabled });
+                                                                                    }
+
+                                                                                    newProducts[idx].customization = { ...customization, tieredPricing: tiers };
+                                                                                    setProducts(newProducts);
+                                                                                }}
+                                                                                className="h-4 w-4"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-2 top-1.5 text-xs text-slate-400">$</span>
+                                                                            <Input
+                                                                                size={1}
+                                                                                className="h-8 pl-5 text-sm font-bold bg-white"
+                                                                                value={tier.price || ''}
+                                                                                disabled={!tier.enabled}
+                                                                                onChange={(e) => {
+                                                                                    const val = e.target.value;
+                                                                                    const newProducts = [...products];
+                                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
+                                                                                    const customization = newProducts[idx].customization || { productId: product._id, tieredPricing: [] };
+                                                                                    const tiers = [...(customization.tieredPricing || [])];
+                                                                                    const tIdx = tiers.findIndex((t: any) => t.unitCount === units);
+
+                                                                                    if (tIdx > -1) {
+                                                                                        tiers[tIdx].price = val;
+                                                                                    } else {
+                                                                                        tiers.push({ unitCount: units, price: val, enabled: true });
+                                                                                    }
+
+                                                                                    newProducts[idx].customization = { ...customization, tieredPricing: tiers };
+                                                                                    setProducts(newProducts);
+                                                                                }}
+                                                                                placeholder="0.00"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
