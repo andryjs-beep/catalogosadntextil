@@ -11,6 +11,7 @@ interface ProductCardProps {
     name: string;
     price: string;
     image: string;
+    coverImage?: string;
     tenantSlug: string;
     collectionSlug: string;
 }
@@ -21,17 +22,20 @@ export function ProductCard({
     name,
     price,
     image,
+    coverImage,
     tenantSlug,
     collectionSlug,
 }: ProductCardProps) {
+    const displayImage = coverImage || image;
+
     return (
         <Link href={`/t/${tenantSlug}/${slug || id}`}>
             <div className="tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer">
                 {/* Imagen */}
                 <div className="aspect-square relative overflow-hidden">
-                    {image ? (
+                    {displayImage ? (
                         <Image
-                            src={image}
+                            src={displayImage}
                             alt={name}
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-110"

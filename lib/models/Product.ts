@@ -10,6 +10,7 @@ export interface IProduct extends Document {
     name: string;
     description: string;
     images: string[];
+    coverImage?: string; // NUEVO: Imagen específica para la cuadrícula
     tags: string[];
     collectionId?: mongoose.Types.ObjectId;
     isActive?: boolean;
@@ -39,6 +40,10 @@ const ProductSchema = new Schema<IProduct>(
         images: {
             type: [String],
             default: [],
+        },
+        coverImage: {
+            type: String,
+            default: '',
         },
         tags: {
             type: [String],

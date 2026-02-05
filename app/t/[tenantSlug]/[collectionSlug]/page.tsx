@@ -42,6 +42,7 @@ interface ProductWithCustom {
     slug?: string;
     name: string;
     images: string[];
+    coverImage?: string;
     customName?: string;
     customPrice?: string;
     tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>;
@@ -138,6 +139,7 @@ async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug
             customPrice: displayPrice,
             customDescription: custom?.customDescription || '',
             tieredPricing: custom?.tieredPricing, // Pasar tieredPricing para el Hero
+            coverImage: product.coverImage, // Pasar la nueva portada
         };
     });
 
@@ -282,6 +284,7 @@ export default async function CollectionPage({
                             name={product.customName || product.name}
                             price={product.customPrice || ''}
                             image={product.images[0] || ''}
+                            coverImage={product.coverImage}
                             tenantSlug={tenantSlug}
                             collectionSlug={collectionSlug}
                         />

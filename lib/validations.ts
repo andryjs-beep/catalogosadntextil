@@ -17,6 +17,7 @@ export const productSchema = z.object({
         .max(200, 'El nombre no puede exceder 200 caracteres'),
     description: z.string().max(2000).default(''),
     images: z.array(z.string().url('URL de imagen inválida')).default([]),
+    coverImage: z.string().default(''),
     tags: z.array(z.string()).default([]),
 });
 

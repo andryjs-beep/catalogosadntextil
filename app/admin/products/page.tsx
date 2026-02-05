@@ -39,6 +39,7 @@ interface Product {
     name: string;
     description: string;
     images: string[];
+    coverImage?: string;
     tags: string[];
     createdAt: string;
 }
@@ -128,9 +129,10 @@ export default function ProductsPage() {
                 tags: product.tags,
             });
             setUploadedImages(product.images);
+            form.setValue('coverImage', product.coverImage || '');
         } else {
             setEditingProduct(null);
-            form.reset({ slug: '', name: '', description: '', images: [], tags: [] });
+            form.reset({ slug: '', name: '', description: '', images: [], tags: [], coverImage: '' });
             setUploadedImages([]);
         }
         setIsDialogOpen(true);
@@ -154,7 +156,7 @@ export default function ProductsPage() {
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...data, images: uploadedImages }),
+                body: JSON.stringify({ ...data, images: uploadedImages, coverImage: form.getValues('coverImage') }),
             });
 
             if (response.ok) {
@@ -344,21 +346,37 @@ export default function ProductsPage() {
                             <Label>Imágenes</Label>
                             <div className="grid grid-cols-4 gap-2">
                                 {uploadedImages.map((url, index) => (
-                                    <div key={url} className="relative group">
+                                    <div key={url} className={`relative group rounded-lg overflow-hidden border-2 transition-all ${form.watch('coverImage') === url ? 'border-primary shadow-md' : 'border-transparent'}`}>
                                         <Image
                                             src={url}
                                             alt={`Imagen ${index + 1}`}
                                             width={100}
                                             height={100}
-                                            className="rounded-lg object-cover w-full aspect-square"
+                                            className="object-cover w-full aspect-square"
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(index)}
-                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeImage(index)}
+                                                className="bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                                                title="Eliminar imagen"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => form.setValue('coverImage', url)}
+                                                className={`rounded-full p-1.5 transition-colors ${form.watch('coverImage') === url ? 'bg-primary text-white' : 'bg-white text-slate-900 hover:bg-slate-100'}`}
+                                                title="Usar como portada"
+                                            >
+                                                <Upload className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                        {form.watch('coverImage') === url && (
+                                            <div className="absolute top-1 left-1">
+                                                <Badge className="bg-primary text-[8px] px-1 py-0 h-4 uppercase">Portada</Badge>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">

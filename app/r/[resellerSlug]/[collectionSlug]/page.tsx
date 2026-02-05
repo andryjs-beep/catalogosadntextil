@@ -16,6 +16,7 @@ interface ProductData {
     slug: string;
     name: string;
     images: string[];
+    coverImage?: string;
     description?: string;
 }
 
@@ -87,7 +88,7 @@ export default async function ResellerCollectionPage({
     const products = await Product.find({
         _id: { $in: productIds },
     })
-        .select('_id slug name images description')
+        .select('_id slug name images coverImage description')
         .sort({ order: 1 })
         .lean<ProductData[]>();
 
@@ -137,9 +138,9 @@ export default async function ResellerCollectionPage({
                         >
                             {/* Imagen */}
                             <div className="relative aspect-square overflow-hidden">
-                                {product.images?.[0] ? (
+                                {product.coverImage || (product.images && product.images[0]) ? (
                                     <Image
-                                        src={product.images[0]}
+                                        src={product.coverImage || product.images[0]}
                                         alt={product.name}
                                         fill
                                         className="object-cover transition-transform duration-500 group-hover:scale-110"

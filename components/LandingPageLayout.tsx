@@ -51,11 +51,17 @@ export function LandingPageLayout({
     // 2. Si es producto único, todas sus imágenes
     // 3. Si es colección, las imágenes del PRIMER producto (destacado) para mantener identidad visual pura
     const landingHeroImage = landingPageSections?.hero?.heroImage;
+    const collectionCoverImage = tenantCollection.collectionId?.coverImage;
+
+    // PRIORIDAD PROFESIONAL 2026: 
+    // 1. Imagen de Hero específica configurada para la landing
+    // 2. Imagen de portada de la colección (SI existe)
+    // 3. Si no hay portadas, imágenes del producto destacado
     const allProductImages = landingHeroImage
         ? [landingHeroImage]
-        : (products.length > 0
-            ? (products[0].images || [])
-            : []);
+        : (collectionCoverImage
+            ? [collectionCoverImage]
+            : (products.length > 0 ? (products[0].images || []) : []));
 
     // Si es producto único, el precio del Hero debe ser el de ese producto
     const heroPrice = products[0]?.customPrice || '';
@@ -151,6 +157,7 @@ export function LandingPageLayout({
                                     name={product.customName || product.name}
                                     price={product.customPrice || ''}
                                     image={product.images?.[0] || ''}
+                                    coverImage={product.coverImage}
                                     tenantSlug={tenantSlug}
                                     collectionSlug={collectionSlug}
                                 />
