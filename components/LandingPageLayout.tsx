@@ -122,33 +122,20 @@ export function LandingPageLayout({
                 </section>
             )}
 
-            {/* Benefits Section */}
-            {landingPageSections?.benefits?.items?.length > 0 && (
-                <BenefitsSection benefits={landingPageSections.benefits.items} />
-            )}
-
-            {/* Testimonials Section */}
-            {testimonials.length > 0 && (
-                <TestimonialSection testimonials={testimonials} />
-            )}
-
-            {/* FAQ Section */}
-            {landingPageSections?.faq?.length > 0 && (
-                <FAQSection faqs={landingPageSections.faq} />
-            )}
-
-            {/* Product Gallery Section (condicional) */}
-            {(tenant.branding?.showProducts !== false) && products.length > 0 && (
-                <section className="py-8 px-4 bg-slate-50">
+            {/* Product Gallery Section - PRIORIDAD 2026: Ver catálogo inmediatamente */}
+            {(tenant.branding?.showProducts !== false) && products.length > 0 && !isSingleProduct && (
+                <section className="py-8 px-4 bg-slate-50 border-b border-slate-200">
                     <div className="container mx-auto max-w-6xl">
-                        <div className="text-center mb-6">
-                            <h2 className="text-xl md:text-2xl font-bold mb-2 text-slate-900">
-                                Nuestros Productos
+                        <div className="text-center mb-8">
+                            <h2 className="text-2xl md:text-3xl font-bold mb-2 text-slate-900">
+                                {collectionName}
                             </h2>
-                            <p className="text-sm text-slate-500">Selección exclusiva para ti.</p>
+                            <p className="text-sm text-slate-500 uppercase tracking-widest font-medium">
+                                Catálogo Disponible ({products.length})
+                            </p>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product._id.toString()}
@@ -165,6 +152,11 @@ export function LandingPageLayout({
                         </div>
                     </div>
                 </section>
+            )}
+
+            {/* Benefits Section */}
+            {landingPageSections?.benefits?.items?.length > 0 && (
+                <BenefitsSection benefits={landingPageSections.benefits.items} />
             )}
 
             {/* Terms and Conditions */}

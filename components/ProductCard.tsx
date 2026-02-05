@@ -14,6 +14,7 @@ interface ProductCardProps {
     coverImage?: string;
     tenantSlug: string;
     collectionSlug: string;
+    ctaText?: string;
 }
 
 export function ProductCard({
@@ -25,6 +26,7 @@ export function ProductCard({
     coverImage,
     tenantSlug,
     collectionSlug,
+    ctaText = 'Ver catálogo',
 }: ProductCardProps) {
     const displayImage = coverImage || image;
 
@@ -38,7 +40,7 @@ export function ProductCard({
                             src={displayImage}
                             alt={name}
                             fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         />
                     ) : (
@@ -56,15 +58,23 @@ export function ProductCard({
                 </div>
 
                 {/* Contenido */}
-                <div className="p-4">
-                    <h3 className="font-semibold text-slate-900 group-hover:tenant-text-primary transition-colors line-clamp-2">
+                <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-bold text-slate-800 group-hover:tenant-text-primary transition-colors line-clamp-2 text-sm md:text-base mb-2">
                         {name}
                     </h3>
-                    {price && (
-                        <p className="text-lg font-bold mt-1 tenant-gradient-text">
-                            {price}
-                        </p>
-                    )}
+
+                    <div className="mt-auto pt-2 flex flex-col gap-2">
+                        {price && (
+                            <p className="font-extrabold text-lg tenant-gradient-text">
+                                {price}
+                            </p>
+                        )}
+
+                        <div className="flex items-center text-[10px] font-black uppercase tracking-tighter tenant-text-primary group-hover:translate-x-1 transition-transform">
+                            {ctaText}
+                            <span className="ml-1">→</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </Link>
