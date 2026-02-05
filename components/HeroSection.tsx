@@ -15,6 +15,8 @@ interface HeroSectionProps {
     collectionId: string;
     collectionName?: string;
     productImages?: string[]; // NUEVO: Array de imágenes de productos
+    price?: string; // NUEVO: Precio individual
+    tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>; // NUEVO: Precios multinivel
 }
 
 export function HeroSection({
@@ -23,10 +25,18 @@ export function HeroSection({
     tenantId,
     collectionId,
     collectionName,
-    productImages = []
+    productImages = [],
+    price,
+    tieredPricing
 }: HeroSectionProps) {
     // Obtener link de WhatsApp con fallback
     const whatsappLink = tenant?.socialLinks?.whatsappLink || '';
+
+    // Lógica de precio para el Hero
+    const hasTiers = tieredPricing && tieredPricing.some(t => t.enabled);
+    const activeTiers = tieredPricing?.filter(t => t.enabled) || [];
+    const firstTier = activeTiers[0];
+    const displayPrice = hasTiers && firstTier ? `Desde ${firstTier.price}` : price;
 
     return (
         <section className="relative overflow-hidden py-16 lg:py-24 px-4 bg-slate-50">
@@ -63,9 +73,21 @@ export function HeroSection({
                         <Badge className="mb-4 px-4 py-1 text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                             Colección Exclusiva
                         </Badge>
-                        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight text-slate-900">
+                        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight text-slate-900">
                             {data.headline || 'Descubre Nuestra Nueva Colección'}
                         </h1>
+                        {displayPrice && (
+                            <div className="mb-8 flex flex-col items-center lg:items-start gap-1">
+                                <span className="text-3xl md:text-5xl font-black text-primary drop-shadow-sm">
+                                    {displayPrice}
+                                </span>
+                                {hasTiers && (
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                        Precio por mayor disponible
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         <div
                             className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0"
                             dangerouslySetInnerHTML={{ __html: data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.' }}

@@ -61,9 +61,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        const productData = { ...result.data };
+        if (!productData.slug) {
+            productData.slug = productData.name
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/[\s_-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
         const product = await Product.findByIdAndUpdate(
             id,
-            result.data,
+            productData,
             { new: true, runValidators: true }
         ).lean();
 

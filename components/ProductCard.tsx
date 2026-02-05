@@ -7,6 +7,7 @@ import { Package } from 'lucide-react';
 
 interface ProductCardProps {
     id: string;
+    slug?: string;
     name: string;
     price: string;
     image: string;
@@ -16,6 +17,7 @@ interface ProductCardProps {
 
 export function ProductCard({
     id,
+    slug,
     name,
     price,
     image,
@@ -23,7 +25,7 @@ export function ProductCard({
     collectionSlug,
 }: ProductCardProps) {
     return (
-        <Link href={`/t/${tenantSlug}/${collectionSlug}/${id}`}>
+        <Link href={`/t/${tenantSlug}/${collectionSlug}/${slug || id}`}>
             <div className="tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer">
                 {/* Imagen */}
                 <div className="aspect-square relative overflow-hidden">

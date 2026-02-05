@@ -35,6 +35,7 @@ import Image from 'next/image';
 
 interface Product {
     _id: string;
+    slug?: string;
     name: string;
     description: string;
     images: string[];
@@ -54,6 +55,7 @@ export default function ProductsPage() {
     const form = useForm<ProductInput>({
         resolver: zodResolver(productSchema),
         defaultValues: {
+            slug: '',
             name: '',
             description: '',
             images: [],
@@ -119,6 +121,7 @@ export default function ProductsPage() {
         if (product) {
             setEditingProduct(product);
             form.reset({
+                slug: product.slug || '',
                 name: product.name,
                 description: product.description || '',
                 images: product.images,
@@ -127,7 +130,7 @@ export default function ProductsPage() {
             setUploadedImages(product.images);
         } else {
             setEditingProduct(null);
-            form.reset({ name: '', description: '', images: [], tags: [] });
+            form.reset({ slug: '', name: '', description: '', images: [], tags: [] });
             setUploadedImages([]);
         }
         setIsDialogOpen(true);
@@ -307,18 +310,34 @@ export default function ProductsPage() {
                     </DialogHeader>
 
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Nombre del producto</Label>
-                            <Input
-                                id="name"
-                                {...form.register('name')}
-                                placeholder="Ej: Gorra personalizada"
-                            />
-                            {form.formState.errors.name && (
-                                <p className="text-sm text-red-500">
-                                    {form.formState.errors.name.message}
-                                </p>
-                            )}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nombre del producto</Label>
+                                <Input
+                                    id="name"
+                                    {...form.register('name')}
+                                    placeholder="Ej: Gorra personalizada"
+                                />
+                                {form.formState.errors.name && (
+                                    <p className="text-sm text-red-500">
+                                        {form.formState.errors.name.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="slug">Slug (URL amigable)</Label>
+                                <Input
+                                    id="slug"
+                                    {...form.register('slug')}
+                                    placeholder="ej-mi-producto"
+                                />
+                                {form.formState.errors.slug && (
+                                    <p className="text-sm text-red-500">
+                                        {form.formState.errors.slug.message}
+                                    </p>
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-2">

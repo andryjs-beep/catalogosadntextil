@@ -74,7 +74,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const product = await Product.create(result.data);
+        const productData = { ...result.data };
+        if (!productData.slug) {
+            productData.slug = productData.name
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/[\s_-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        const product = await Product.create(productData);
 
         return NextResponse.json({ product }, { status: 201 });
     } catch (error) {

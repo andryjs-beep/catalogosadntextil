@@ -85,6 +85,8 @@ export function LandingPageLayout({
                 collectionId={tenantCollection.collectionId?._id?.toString() || ''}
                 collectionName={collectionName}
                 productImages={allProductImages}
+                price={products[0]?.customPrice}
+                tieredPricing={products[0]?.tieredPricing}
             />
 
             {/* ProductGallery ELIMINADO - Las imágenes ahora se muestran en el slider del Hero */}
@@ -129,6 +131,7 @@ export function LandingPageLayout({
                                 <ProductCard
                                     key={product._id.toString()}
                                     id={product._id.toString()}
+                                    slug={product.slug}
                                     name={product.customName || product.name}
                                     price={product.customPrice || ''}
                                     image={product.images?.[0] || ''}

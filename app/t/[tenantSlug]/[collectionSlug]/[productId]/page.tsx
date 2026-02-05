@@ -8,6 +8,7 @@ import { ImageGallery } from '@/components/ImageGallery';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 import { ArrowLeft, CheckCircle, MapPin, ExternalLink } from 'lucide-react';
+import { LandingPageLayout } from '@/components/LandingPageLayout';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { GalleryMode } from '@/lib/models/TenantProduct';
@@ -42,6 +43,7 @@ interface ProductData {
 
 interface TenantCollectionData {
     ctaButtonText: string;
+    landingPageSections?: any;
 }
 
 interface CustomizationData {
@@ -70,7 +72,7 @@ interface CustomizationData {
 async function getProductData(
     tenantSlug: string,
     collectionSlug: string,
-    productId: string
+    productIdOrSlug: string
 ) {
     await dbConnect();
 
@@ -80,12 +82,19 @@ async function getProductData(
     const collection = (await Collection.findOne({ slug: collectionSlug }).lean()) as unknown as CollectionData | null;
     if (!collection) return null;
 
-    const product = (await Product.findById(productId).lean()) as unknown as ProductData | null;
+    // Buscar por ID o por Slug
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(productIdOrSlug);
+    const productQuery = isObjectId
+        ? { _id: productIdOrSlug }
+        : { slug: productIdOrSlug };
+
+    const product = (await Product.findOne(productQuery).lean()) as unknown as ProductData | null;
     if (!product) return null;
 
-    // Verificar que el producto está en la colección
+    // Verificar que el producto está en la colección (usando string para comparar)
+    const productIdStr = product._id.toString();
     const isInCollection = collection.productIds.some(
-        (id) => id.toString() === productId
+        (id) => id.toString() === productIdStr
     );
     if (!isInCollection) return null;
 
@@ -182,6 +191,35 @@ export default async function ProductDetailPage({
     const galleryMode = customization?.galleryMode || 'album';
     const sliderSpeed = customization?.sliderSpeed || 3;
     const showProductLocation = customization?.showLocation !== false; // Default true
+
+    if (customization?.useLandingLayout) {
+        return (
+            <LandingPageLayout
+                tenant={tenant as any}
+                tenantCollection={{
+                    ...tenantCollection,
+                    collectionId: collection,
+                    landingPageSections: {
+                        ...tenantCollection.landingPageSections,
+                        hero: {
+                            ...tenantCollection.landingPageSections?.hero,
+                            headline: customization.landingContent?.headline || productTitle || productName,
+                            subheadline: customization.landingContent?.subheadline || '',
+                        }
+                    }
+                }}
+                products={[{
+                    ...product,
+                    customName: productName,
+                    customPrice: productPrice,
+                    tieredPricing: customization.tieredPricing,
+                    customDescription: finalDescription
+                }]}
+                tenantSlug={tenantSlug}
+                collectionSlug={collectionSlug}
+            />
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50">

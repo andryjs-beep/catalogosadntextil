@@ -208,6 +208,7 @@ export default async function CollectionPage({
                         <ProductCard
                             key={product._id.toString()}
                             id={product._id.toString()}
+                            slug={product.slug}
                             name={product.customName || product.name}
                             price={product.customPrice || ''}
                             image={product.images[0] || ''}

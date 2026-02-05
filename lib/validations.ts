@@ -6,6 +6,11 @@ import { z } from 'zod';
 
 // ============ PRODUCTOS ============
 export const productSchema = z.object({
+    slug: z
+        .string()
+        .max(100, 'El slug no puede exceder 100 caracteres')
+        .regex(/^[a-z0-9-]*$/, 'El slug solo puede contener letras minúsculas, números y guiones')
+        .optional(),
     name: z
         .string()
         .min(1, 'El nombre es requerido')
