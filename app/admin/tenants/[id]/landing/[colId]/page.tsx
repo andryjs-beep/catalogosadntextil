@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Sparkles, Save, Trash2, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 export default function LandingEditorPage({ params }: { params: Promise<{ id: string, colId: string }> }) {
     const { id: tenantId, colId } = use(params);
@@ -641,12 +642,21 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Subheadline (Bajada)</Label>
-                                    <Textarea
+                                    <Label>Subheadline (Bajada Pro)</Label>
+                                    <RichTextEditor
                                         value={data.landingPageSections.hero.subheadline}
-                                        onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, subheadline: e.target.value } } })}
-                                        placeholder="Ej: Nuestra nueva colección combina diseño urbano con la mejor calidad."
+                                        onChange={(val) => setData({
+                                            ...data,
+                                            landingPageSections: {
+                                                ...data.landingPageSections,
+                                                hero: { ...data.landingPageSections.hero, subheadline: val }
+                                            }
+                                        })}
+                                        placeholder="Describe el beneficio principal con negritas, centrado y GIFs..."
                                     />
+                                    <p className="text-[10px] text-slate-400">
+                                        Tip: El contenido se guarda como HTML para soportar el diseño Silicon Valley 2026.
+                                    </p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">

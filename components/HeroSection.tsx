@@ -35,17 +35,41 @@ export function HeroSection({
             <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-secondary/10 rounded-full blur-3xl" />
 
             <div className="container mx-auto max-w-7xl relative z-10">
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
-                    <div className="text-center lg:text-left animate-fade-in-up">
+                <div className="flex flex-col lg:flex-row gap-12 items-center">
+                    {/* Slider de Productos - AHORA PRIMERO (Arriba en móvil) */}
+                    <div className="w-full lg:w-1/2 relative animate-fade-in-up delay-200 group order-1 lg:order-2">
+                        <ProductSlider
+                            images={productImages}
+                            productName={collectionName || 'Producto'}
+                            autoPlay={true}
+                            interval={4000}
+                        />
+
+                        {/* Floating elements */}
+                        <div className="absolute -bottom-6 -right-6 lg:-right-12 bg-white p-4 rounded-xl shadow-lg border border-slate-100 hidden md:block">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
+                                    ✅
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-900">Entrega rápida</p>
+                                    <p className="text-xs text-slate-500">En todo el país</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full lg:w-1/2 text-center lg:text-left animate-fade-in-up order-2 lg:order-1">
                         <Badge className="mb-4 px-4 py-1 text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                             Colección Exclusiva
                         </Badge>
                         <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight text-slate-900">
                             {data.headline || 'Descubre Nuestra Nueva Colección'}
                         </h1>
-                        <p className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                            {data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.'}
-                        </p>
+                        <div
+                            className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                            dangerouslySetInnerHTML={{ __html: data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.' }}
+                        />
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             {whatsappLink ? (
                                 <WhatsAppButton
@@ -74,28 +98,6 @@ export function HeroSection({
                         </div>
                     </div>
 
-                    {/* Slider de Productos en lugar de imagen Hero estática */}
-                    <div className="relative animate-fade-in-up delay-200 group">
-                        <ProductSlider
-                            images={productImages}
-                            productName={collectionName || 'Producto'}
-                            autoPlay={true}
-                            interval={4000}
-                        />
-
-                        {/* Floating elements */}
-                        <div className="absolute -bottom-6 -right-6 lg:-right-12 bg-white p-4 rounded-xl shadow-lg border border-slate-100 hidden md:block">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
-                                    ✅
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">Entrega rápida</p>
-                                    <p className="text-xs text-slate-500">En todo el país</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
