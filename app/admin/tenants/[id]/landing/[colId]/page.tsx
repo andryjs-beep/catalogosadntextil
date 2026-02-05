@@ -184,7 +184,8 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
             });
 
             // 2. Guardar Personalización de Productos (Precios)
-            const collectionProducts = products.filter(p => data.collectionId.productIds.includes(p._id));
+            const productIds = data.collectionId?.productIds || [];
+            const collectionProducts = products.filter(p => productIds.includes(p._id));
             const productSavePromises = collectionProducts.map(p => {
                 if (!p.customization) return Promise.resolve();
                 return fetch(`/api/admin/tenants/${tenantId}/products`, {
@@ -931,7 +932,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                             ) : (
                                 <div className="space-y-6">
                                     {products
-                                        .filter(p => data.collectionId.productIds.includes(p._id))
+                                        .filter(p => (data.collectionId?.productIds || []).includes(p._id))
                                         .map((product) => (
                                             <Card key={product._id} className="overflow-hidden border-slate-200 shadow-sm">
                                                 <div className="bg-slate-50 px-6 py-4 border-b flex items-center justify-between">

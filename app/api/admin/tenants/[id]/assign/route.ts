@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // Obtener asignaciones del tenant
         const tenantCollections = await TenantCollection.find({ tenantId: id })
-            .populate('collectionId', 'slug name coverImage')
+            .populate('collectionId', 'slug name coverImage productIds')
             .sort({ order: 1 })
             .lean();
 
