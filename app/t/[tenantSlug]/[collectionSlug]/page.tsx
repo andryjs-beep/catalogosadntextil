@@ -53,31 +53,62 @@ interface CustomizationData {
     customDescription?: string;
 }
 
-async function getCollectionData(tenantSlug: string, collectionSlug: string) {
+async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug: string) {
     await dbConnect();
 
     const tenant = (await Tenant.findOne({ slug: tenantSlug, isActive: true }).lean()) as unknown as TenantData | null;
     if (!tenant) return null;
 
-    const collection = (await Collection.findOne({ slug: collectionSlug }).lean()) as unknown as CollectionData | null;
-    if (!collection) return null;
+    // 1. Intentar buscar como Colección
+    let collection = (await Collection.findOne({ slug: collectionSlugOrProductSlug }).lean()) as unknown as CollectionData | null;
+    let tenantCollection: TenantCollectionData | null = null;
+    let singleProductId: string | null = null;
 
-    const tenantCollection = (await TenantCollection.findOne({
-        tenantId: tenant._id,
-        collectionId: collection._id,
-        isPublished: true,
-    }).lean()) as unknown as TenantCollectionData | null;
-    if (!tenantCollection) return null;
+    if (collection) {
+        tenantCollection = (await TenantCollection.findOne({
+            tenantId: tenant._id,
+            collectionId: collection._id,
+            isPublished: true,
+        }).lean()) as unknown as TenantCollectionData | null;
+    }
+
+    // 2. Si no es colección o no está publicada para este tenant, intentar buscar como Producto
+    if (!tenantCollection) {
+        const product = await Product.findOne({ slug: collectionSlugOrProductSlug }).lean();
+        if (product) {
+            // Buscar en todas las colecciones publicadas del tenant para encontrar la que tiene el producto
+            const allTCs = await TenantCollection.find({
+                tenantId: tenant._id,
+                isPublished: true,
+            }).populate('collectionId').lean() as any[];
+
+            const targetTC = allTCs.find(t =>
+                t.collectionId &&
+                t.collectionId.productIds &&
+                t.collectionId.productIds.some((id: any) => id.toString() === product._id.toString())
+            );
+
+            if (targetTC) {
+                collection = targetTC.collectionId;
+                tenantCollection = targetTC;
+                singleProductId = product._id.toString();
+            }
+        }
+    }
+
+    if (!collection || !tenantCollection) return null;
 
     // Obtener productos
-    const products = (await Product.find({
-        _id: { $in: collection.productIds },
-    }).lean()) as unknown as ProductWithCustom[];
+    const productQuery = singleProductId
+        ? { _id: singleProductId }
+        : { _id: { $in: collection.productIds } };
+
+    const products = (await Product.find(productQuery).lean()) as unknown as ProductWithCustom[];
 
     // Obtener personalizaciones
     const customizations = (await TenantProduct.find({
         tenantId: tenant._id,
-        productId: { $in: collection.productIds },
+        productId: { $in: products.map(p => p._id) },
     }).lean()) as unknown as CustomizationData[];
 
     const customizationMap = new Map(
@@ -90,9 +121,8 @@ async function getCollectionData(tenantSlug: string, collectionSlug: string) {
 
         // Calcular precio a mostrar
         let displayPrice = custom?.customPrice || '';
-        if (custom?.tieredPricing && custom.tieredPricing.some(t => t.enabled)) {
-            const enabledTiers = custom.tieredPricing.filter(t => t.enabled);
-            // Si hay tiers, mostramos el de menor unidad o simplemente marcamos como "Desde"
+        if (custom?.tieredPricing && custom.tieredPricing.some((t: any) => t.enabled)) {
+            const enabledTiers = custom.tieredPricing.filter((t: any) => t.enabled);
             const firstTier = enabledTiers[0];
             if (firstTier) {
                 displayPrice = `Desde ${firstTier.price}`;
@@ -104,6 +134,7 @@ async function getCollectionData(tenantSlug: string, collectionSlug: string) {
             customName: custom?.customName || '',
             customPrice: displayPrice,
             customDescription: custom?.customDescription || '',
+            tieredPricing: custom?.tieredPricing, // Pasar tieredPricing para el Hero
         };
     });
 
@@ -112,6 +143,7 @@ async function getCollectionData(tenantSlug: string, collectionSlug: string) {
         collection,
         tenantCollection,
         products: productsWithCustom,
+        isSingleProduct: !!singleProductId
     };
 }
 
@@ -124,11 +156,16 @@ export async function generateMetadata({
     const data = await getCollectionData(tenantSlug, collectionSlug);
 
     if (!data) {
-        return { title: 'Colección no encontrada' };
+        return { title: 'No encontrado' };
     }
 
+    const { tenant, collection, products, isSingleProduct } = data;
+    const title = isSingleProduct
+        ? `${products[0]?.customName || products[0]?.name} | ${tenant.globalTexts.headerText || tenantSlug}`
+        : `${collection.name} | ${tenant.globalTexts.headerText || tenantSlug}`;
+
     return {
-        title: `${data.collection.name} | ${data.tenant.globalTexts.headerText || tenantSlug}`,
+        title,
         description: data.tenantCollection.persuasiveTextTop || `Explora ${data.collection.name}`,
     };
 }
@@ -145,10 +182,11 @@ export default async function CollectionPage({
         notFound();
     }
 
-    const { tenant, collection, tenantCollection, products } = data;
+    const { tenant, collection, tenantCollection, products, isSingleProduct } = data;
     const ctaText = tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText;
 
-    if (tenantCollection.useLandingLayout) {
+    // Si es una vista de producto único vía slug, o la colección tiene layout de landing
+    if (tenantCollection.useLandingLayout || isSingleProduct) {
         return (
             <LandingPageLayout
                 tenant={tenant as any}

@@ -31,7 +31,10 @@ export function LandingPageLayout({
     collectionSlug
 }: LandingPageLayoutProps) {
     const { landingPageSections } = tenantCollection;
-    const collectionName = tenantCollection.collectionId?.name || 'Colección';
+    const isSingleProduct = products.length === 1;
+    const collectionName = isSingleProduct
+        ? (products[0].customName || products[0].name)
+        : (tenantCollection.collectionId?.name || 'Colección');
 
     // Configuración premium con defaults
     const countdown = landingPageSections?.countdown || { enabled: false };
@@ -43,7 +46,14 @@ export function LandingPageLayout({
     const showSticky = landingPageSections?.showStickyCTA !== false;
 
     // Recopilar todas las imágenes de productos para la galería principal
-    const allProductImages = products.flatMap(p => p.images || []).slice(0, 8);
+    // Si hay un solo producto, solo usamos sus imágenes para no mezclar
+    const allProductImages = products.length === 1
+        ? (products[0].images || [])
+        : products.flatMap(p => p.images || []).slice(0, 12);
+
+    // Si es producto único, el precio del Hero debe ser el de ese producto
+    const heroPrice = products[0]?.customPrice || '';
+    const heroTieredPricing = products[0]?.tieredPricing || [];
 
     return (
         <div className="landing-page-flow relative">
@@ -85,8 +95,8 @@ export function LandingPageLayout({
                 collectionId={tenantCollection.collectionId?._id?.toString() || ''}
                 collectionName={collectionName}
                 productImages={allProductImages}
-                price={products[0]?.customPrice}
-                tieredPricing={products[0]?.tieredPricing}
+                price={heroPrice}
+                tieredPricing={heroTieredPricing}
             />
 
             {/* ProductGallery ELIMINADO - Las imágenes ahora se muestran en el slider del Hero */}
