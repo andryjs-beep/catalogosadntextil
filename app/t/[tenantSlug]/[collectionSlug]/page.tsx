@@ -190,8 +190,9 @@ export default async function CollectionPage({
     const { tenant, collection, tenantCollection, products, isSingleProduct } = data;
     const ctaText = tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText;
 
-    // Si es una vista de producto único vía slug, o la colección tiene layout de landing
-    if (tenantCollection.useLandingLayout || isSingleProduct) {
+    // PRIORIDAD 2026: Flujo de Catálogo -> Landing
+    // Si es un producto único (acceso por slug de producto), usar LandingPageLayout
+    if (isSingleProduct) {
         return (
             <LandingPageLayout
                 tenant={tenant as any}
