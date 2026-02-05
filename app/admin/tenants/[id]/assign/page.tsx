@@ -21,6 +21,11 @@ interface Collection {
     slug: string;
     name: string;
     coverImage: string;
+    productIds: Array<{
+        _id: string;
+        name: string;
+        images: string[];
+    }>;
 }
 
 interface TenantCollection {
@@ -195,7 +200,7 @@ export default function AssignCollectionsPage({
                                     <div className="flex items-center gap-2">
                                         {isAssigned && (
                                             <Link href={`/admin/tenants/${tenantId}/landing/${collection._id}`}>
-                                                <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5">
+                                                <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5 transition-all active:scale-95">
                                                     <LayoutTemplate className="h-4 w-4" />
                                                     Landing Page
                                                 </Button>
@@ -205,10 +210,42 @@ export default function AssignCollectionsPage({
                                             variant={isAssigned ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => toggleCollection(collection._id)}
+                                            className="transition-all active:scale-95"
                                         >
                                             {isAssigned && <Check className="h-4 w-4 mr-1" />}
                                             {isAssigned ? 'Asignada' : 'Asignar'}
                                         </Button>
+                                    </div>
+                                </div>
+
+                                {/* Product Preview List (Premium 2026) */}
+                                <div className="mt-4 pt-4 border-t border-slate-50">
+                                    <div className="flex flex-wrap gap-2">
+                                        {collection.productIds?.length > 0 ? (
+                                            collection.productIds.map((p) => (
+                                                <div
+                                                    key={p._id}
+                                                    className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-full border border-slate-100 hover:bg-white hover:shadow-sm transition-all cursor-default group/p"
+                                                >
+                                                    {p.images?.[0] && (
+                                                        <div className="w-5 h-5 rounded-full overflow-hidden relative border border-slate-200">
+                                                            <Image
+                                                                src={p.images[0]}
+                                                                alt={p.name}
+                                                                fill
+                                                                className="object-cover"
+                                                                sizes="20px"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <span className="text-[11px] font-medium text-slate-500 group-hover/p:text-slate-900 transition-colors">
+                                                        {p.name}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <span className="text-[11px] text-slate-400 italic">Sin productos</span>
+                                        )}
                                     </div>
                                 </div>
                             </CardHeader>

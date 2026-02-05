@@ -36,9 +36,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // Obtener todas las colecciones disponibles
+        // Obtener todas las colecciones disponibles con sus productos
         const allCollections = await Collection.find()
-            .select('slug name coverImage productIds order')
+            .populate('productIds', 'name images')
             .sort({ order: 1 })
             .lean();
 

@@ -45,11 +45,17 @@ export function LandingPageLayout({
     const showGallery = landingPageSections?.showProductGallery !== false;
     const showSticky = landingPageSections?.showStickyCTA !== false;
 
-    // Recopilar todas las imágenes de productos para la galería principal
-    // Si hay un solo producto, solo usamos sus imágenes para no mezclar
-    const allProductImages = products.length === 1
-        ? (products[0].images || [])
-        : products.flatMap(p => p.images || []).slice(0, 12);
+    // Recopilar imágenes para el Hero
+    // PRIORIDAD PROFESIONAL 2026: 
+    // 1. Imagen de Hero específica configurada para la landing
+    // 2. Si es producto único, todas sus imágenes
+    // 3. Si es colección, las imágenes del PRIMER producto (destacado) para mantener identidad visual pura
+    const landingHeroImage = landingPageSections?.hero?.heroImage;
+    const allProductImages = landingHeroImage
+        ? [landingHeroImage]
+        : (products.length > 0
+            ? (products[0].images || [])
+            : []);
 
     // Si es producto único, el precio del Hero debe ser el de ese producto
     const heroPrice = products[0]?.customPrice || '';

@@ -77,14 +77,27 @@ export function HeroSection({
                             {data.headline || 'Descubre Nuestra Nueva Colección'}
                         </h1>
                         {displayPrice && (
-                            <div className="mb-8 flex flex-col items-center lg:items-start gap-1">
-                                <span className="text-3xl md:text-5xl font-black text-primary drop-shadow-sm">
-                                    {displayPrice}
-                                </span>
-                                {hasTiers && (
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                        Precio por mayor disponible
+                            <div className="mb-8 flex flex-col items-center lg:items-start gap-2">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-sm font-bold text-primary/60 uppercase tracking-tighter">
+                                        {hasTiers ? 'Desde' : 'Precio'}
                                     </span>
+                                    <span className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">
+                                        {/* Simple formatting for display */}
+                                        {displayPrice.includes('$') ? displayPrice : `$${displayPrice}`}
+                                        <span className="text-xl md:text-2xl font-bold text-slate-400 ml-1">
+                                            USD
+                                        </span>
+                                    </span>
+                                </div>
+
+                                {hasTiers && (
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary rounded-r-md animate-pulse-slow">
+                                        <div className="w-2 h-2 bg-primary rounded-full" />
+                                        <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
+                                            Precio Mayorista Disponible
+                                        </span>
+                                    </div>
                                 )}
                             </div>
                         )}
