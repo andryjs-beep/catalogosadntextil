@@ -222,55 +222,37 @@ export default async function CollectionPage({
                 Volver al catálogo
             </Link>
 
-            {/* Header Profesional 2026 */}
-            <div className="relative rounded-3xl overflow-hidden mb-12 shadow-2xl border border-white/20 aspect-[3/1] min-h-[260px] flex items-end">
-                {/* Background Image Overlay */}
-                <div className="absolute inset-0 z-0">
-                    {collection.coverImage ? (
-                        <Image
-                            src={collection.coverImage}
-                            alt={collection.name}
-                            fill
-                            className="object-cover transition-transform duration-700 hover:scale-105"
-                            priority
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900" />
+            {/* Título de Colección Minimalista 2026 */}
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-8">
+                <div className="animate-fade-in-up">
+                    <Badge variant="outline" className="mb-3 text-[10px] uppercase font-black tracking-widest border-slate-200 text-slate-400">
+                        Catálogo Oficial
+                    </Badge>
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+                        {collection.name}
+                    </h1>
+                    {tenantCollection.persuasiveTextTop && (
+                        <p className="mt-3 text-slate-500 text-lg max-w-2xl font-medium leading-relaxed">
+                            {tenantCollection.persuasiveTextTop}
+                        </p>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 </div>
 
-                {/* Content Overlay */}
-                <div className="relative z-10 p-8 md:p-12 w-full flex flex-col md:flex-row items-end justify-between gap-6 animate-fade-in-up">
-                    <div className="max-w-2xl">
-                        <Badge className="mb-4 bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/30 transition-colors uppercase tracking-widest text-[10px] font-black">
-                            Colección Oficial
-                        </Badge>
-                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
-                            {collection.name}
-                        </h1>
-                        {tenantCollection.persuasiveTextTop && (
-                            <p className="text-slate-200 text-lg md:text-xl font-medium line-clamp-2 max-w-xl drop-shadow">
-                                {tenantCollection.persuasiveTextTop}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Action Section */}
-                    <div className="flex flex-col gap-3 shrink-0">
-                        {tenant.socialLinks.whatsappLink && (
+                <div className="flex flex-col items-start md:items-end gap-2 animate-fade-in delay-200">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        {products.length} Referencias Disponibles
+                    </span>
+                    {tenant.socialLinks.whatsappLink && (
+                        <div className="mt-1">
                             <WhatsAppButton
                                 href={tenant.socialLinks.whatsappLink}
                                 text={ctaText}
                                 tenantId={tenant._id.toString()}
                                 collectionId={collection._id.toString()}
-                                className="shadow-2xl hover:scale-105 transition-transform active:scale-95"
+                                className="text-xs py-2 px-4"
                             />
-                        )}
-                        <span className="text-[11px] text-white/60 font-medium text-center md:text-right uppercase tracking-widest">
-                            {products.length} Productos Disponibles
-                        </span>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

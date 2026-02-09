@@ -55,13 +55,16 @@ export function LandingPageLayout({
 
     // PRIORIDAD PROFESIONAL 2026: 
     // 1. Imagen de Hero específica configurada para la landing
-    // 2. Imagen de portada de la colección (SI existe)
-    // 3. Si no hay portadas, imágenes del producto destacado
+    // 2. Si es producto único, PRIORIDAD TOTAL a su galería (si existe)
+    // 3. Imagen de portada de la colección (SI existe)
+    // 4. Si no hay nada, imágenes del primer producto
     const allProductImages = landingHeroImage
         ? [landingHeroImage]
-        : (collectionCoverImage
-            ? [collectionCoverImage]
-            : (products.length > 0 ? (products[0].images || []) : []));
+        : (isSingleProduct && products[0]?.images?.length > 0
+            ? products[0].images
+            : (collectionCoverImage
+                ? [collectionCoverImage]
+                : (products.length > 0 ? (products[0].images || []) : [])));
 
     // Si es producto único, el precio del Hero debe ser el de ese producto
     const heroPrice = products[0]?.customPrice || '';
