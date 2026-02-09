@@ -32,6 +32,8 @@ export interface ISocialLinks {
     instagram: string;
     facebook: string;
     tiktok: string;
+    youtube?: string;
+    x?: string;
     whatsappLink: string;
     address: string;
     googleMapsLink: string;
@@ -120,6 +122,8 @@ const TenantSchema = new Schema<ITenant>(
             instagram: { type: String, default: '' },
             facebook: { type: String, default: '' },
             tiktok: { type: String, default: '' },
+            youtube: { type: String, default: '' },
+            x: { type: String, default: '' },
             whatsappLink: { type: String, default: '' },
             address: { type: String, default: '' },
             googleMapsLink: { type: String, default: '' },

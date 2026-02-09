@@ -18,12 +18,13 @@ export function Footer({ footerText, socialLinks }: FooterProps) {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     {/* Texto del footer */}
                     <div className="text-center md:text-left">
-                        {footerText && (
-                            <p className="text-slate-300 mb-2">{footerText}</p>
+                        {footerText ? (
+                            <p className="text-slate-300 text-sm md:text-base font-medium">{footerText}</p>
+                        ) : (
+                            <p className="text-slate-500 text-sm">
+                                © {currentYear} Todos los derechos reservados
+                            </p>
                         )}
-                        <p className="text-slate-500 text-sm">
-                            © {currentYear} Todos los derechos reservados
-                        </p>
                     </div>
 
                     {/* Redes sociales */}
