@@ -23,10 +23,34 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
     const [products, setProducts] = useState<any[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
 
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+    const [localProductContent, setLocalProductContent] = useState<any>(null);
+
     useEffect(() => {
         fetchData();
         fetchProducts();
     }, [tenantId, colId]);
+
+    // Al cambiar el producto seleccionado, cargar su contenido local o el de la colección
+    useEffect(() => {
+        if (selectedProductId) {
+            const product = products.find(p => p._id === selectedProductId);
+            if (product) {
+                setLocalProductContent({
+                    hero: product.customization?.landingContent?.hero || { headline: product.customization?.customTitle || product.name, subheadline: "", ctaText: "Consultar", heroImage: "", videoUrl: "" },
+                    benefits: { items: product.customization?.landingContent?.features || [] },
+                    faq: product.customization?.landingContent?.faq || [],
+                    finalCTA: product.customization?.landingContent?.hero ? {
+                        headline: product.customization.landingContent.hero.headline,
+                        description: "",
+                        ctaText: "Pedir Ahora"
+                    } : { headline: "", description: "", ctaText: "Contactar Ahora" }
+                });
+            }
+        } else {
+            setLocalProductContent(null);
+        }
+    }, [selectedProductId, products]);
 
     const fetchProducts = async () => {
         try {
@@ -34,7 +58,9 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
             const json = await res.json();
             if (res.ok) {
                 // Filtrar solo productos que pertenecen a esta colección
-                // (tc.collectionId.productIds contiene los IDs)
+                const relevantProducts = json.products.filter((p: any) =>
+                    (data?.collectionId?.productIds || []).includes(p._id)
+                );
                 setProducts(json.products || []);
             }
         } catch (error) {
@@ -60,7 +86,6 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                         faq: [],
                         finalCTA: { headline: "", description: "", ctaText: "Contactar Ahora" },
                         socialProof: { stats: [], testimonials: [], logos: [] },
-                        // Campos Premium
                         countdown: { enabled: false, durationMinutes: 30, title: "⚡ ¡OFERTA POR TIEMPO LIMITADO!", subtitle: "Aprovecha antes de que termine" },
                         sizes: { enabled: false, items: [] },
                         buttonStyles: { bgColor: "#25D366", textColor: "#ffffff", borderRadius: "pill", animation: "scale" },
@@ -70,7 +95,6 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                         showStickyCTA: true
                     };
 
-                    // Asegurar que tenant tenga businessInfo con defaults
                     const tenantWithDefaults = {
                         ...json.tenant,
                         businessInfo: {
@@ -101,14 +125,17 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
     const generateSection = async (section: string) => {
         setGenerating(true);
         try {
+            const currentProduct = selectedProductId ? products.find(p => p._id === selectedProductId) : null;
+
             const response = await fetch('/api/ai/generate-copy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: 'collection',
+                    type: selectedProductId ? 'product' : 'collection',
                     section,
                     productInfo: {
-                        name: data.collectionId?.name || 'Colección',
+                        name: currentProduct ? (currentProduct.customization?.customName || currentProduct.name) : (data.collectionId?.name || 'Colección'),
+                        description: currentProduct ? (currentProduct.customization?.customDescription || currentProduct.description) : ''
                     },
                     tenantInfo: data.tenant?.businessInfo || {},
                     productContext: data.productContext || ''
@@ -117,21 +144,33 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
 
             const aiData = await response.json();
             if (aiData.success) {
-                if (section === 'hero') {
-                    setData((prev: any) => ({
-                        ...prev,
-                        landingPageSections: { ...prev.landingPageSections, hero: { ...prev.landingPageSections.hero, ...aiData.content } }
-                    }));
-                } else if (section === 'benefits') {
-                    setData((prev: any) => ({
-                        ...prev,
-                        landingPageSections: { ...prev.landingPageSections, benefits: { items: aiData.content } }
-                    }));
-                } else if (section === 'faq') {
-                    setData((prev: any) => ({
-                        ...prev,
-                        landingPageSections: { ...prev.landingPageSections, faq: aiData.content }
-                    }));
+                if (selectedProductId) {
+                    // Actualizar contenido local del producto
+                    setLocalProductContent((prev: any) => {
+                        const next = { ...prev };
+                        if (section === 'hero') next.hero = { ...next.hero, ...aiData.content };
+                        else if (section === 'benefits') next.benefits = { items: aiData.content };
+                        else if (section === 'faq') next.faq = aiData.content;
+                        return next;
+                    });
+                } else {
+                    // Actualizar contenido de la colección
+                    if (section === 'hero') {
+                        setData((prev: any) => ({
+                            ...prev,
+                            landingPageSections: { ...prev.landingPageSections, hero: { ...prev.landingPageSections.hero, ...aiData.content } }
+                        }));
+                    } else if (section === 'benefits') {
+                        setData((prev: any) => ({
+                            ...prev,
+                            landingPageSections: { ...prev.landingPageSections, benefits: { items: aiData.content } }
+                        }));
+                    } else if (section === 'faq') {
+                        setData((prev: any) => ({
+                            ...prev,
+                            landingPageSections: { ...prev.landingPageSections, faq: aiData.content }
+                        }));
+                    }
                 }
                 toast.success('Contenido generado con éxito');
             } else {
@@ -147,6 +186,22 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Si hay un producto seleccionado, actualizar su personalización en el array de productos antes de guardar
+            let updatedProducts = [...products];
+            if (selectedProductId && localProductContent) {
+                const idx = updatedProducts.findIndex(p => p._id === selectedProductId);
+                if (idx > -1) {
+                    updatedProducts[idx].customization = {
+                        ...(updatedProducts[idx].customization || { productId: selectedProductId }),
+                        landingContent: {
+                            hero: localProductContent.hero,
+                            features: localProductContent.benefits.items,
+                            faq: localProductContent.faq
+                        }
+                    };
+                }
+            }
+
             // 1. Guardar Landing Page (TenantCollection)
             const res = await fetch(`/api/admin/tenants/${tenantId}/assign`);
             const json = await res.json();
@@ -165,16 +220,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                         landingPageSections: data.landingPageSections
                     };
                 }
-                return {
-                    collectionId: tc.collectionId._id || tc.collectionId,
-                    persuasiveTextTop: tc.persuasiveTextTop,
-                    persuasiveTextBottom: tc.persuasiveTextBottom,
-                    ctaButtonText: tc.ctaButtonText,
-                    isPublished: tc.isPublished,
-                    order: tc.order,
-                    useLandingLayout: tc.useLandingLayout,
-                    landingPageSections: tc.landingPageSections
-                };
+                return tc;
             });
 
             const saveRes = await fetch(`/api/admin/tenants/${tenantId}/assign`, {
@@ -183,30 +229,31 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                 body: JSON.stringify({ assignments })
             });
 
-            // 2. Guardar Personalización de Productos (Precios)
-            const productIds = data.collectionId?.productIds || [];
-            const collectionProducts = products.filter(p => productIds.includes(p._id));
-            const productSavePromises = collectionProducts.map(p => {
-                if (!p.customization) return Promise.resolve();
-                return fetch(`/api/admin/tenants/${tenantId}/products`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        productId: p._id,
-                        ...p.customization
-                    })
+            // 2. Guardar Personalización de Productos
+            const productSavePromises = updatedProducts
+                .filter(p => (data.collectionId?.productIds || []).includes(p._id))
+                .map(p => {
+                    if (!p.customization) return Promise.resolve();
+                    return fetch(`/api/admin/tenants/${tenantId}/products`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productId: p._id,
+                            ...p.customization
+                        })
+                    });
                 });
-            });
 
             await Promise.all(productSavePromises);
 
             if (saveRes.ok) {
-                toast.success('Landing Page y Precios guardados');
+                toast.success('Cambios guardados correctamente');
                 router.back();
             } else {
-                toast.error('Error al guardar cambios');
+                toast.error('Error al guardar cambios principales');
             }
         } catch (error) {
+            console.error("Save error", error);
             toast.error('Error al guardar');
         } finally {
             setSaving(false);
@@ -215,6 +262,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
 
     if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     if (!data) return <div className="p-8 text-center">No se encontró la información.</div>;
+
 
     return (
         <div className="container mx-auto py-8 max-w-5xl">
@@ -238,6 +286,48 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="space-y-8">
+                {/* Selector de Modo de Edición */}
+                <Card className="border-blue-200 bg-blue-50/50">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center gap-2 text-blue-800">
+                            <Layers className="h-5 w-5" />
+                            <CardTitle className="text-lg">Modo de Edición</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Selecciona si quieres editar el contenido general de la colección o personalizar un producto específico.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                            <Button
+                                variant={selectedProductId === null ? "default" : "outline"}
+                                onClick={() => setSelectedProductId(null)}
+                                className="rounded-full"
+                            >
+                                <Tag className="h-4 w-4 mr-2" />
+                                Toda la Colección
+                            </Button>
+                            {products
+                                .filter(p => (data.collectionId?.productIds || []).includes(p._id))
+                                .map(p => (
+                                    <Button
+                                        key={p._id}
+                                        variant={selectedProductId === p._id ? "default" : "outline"}
+                                        onClick={() => setSelectedProductId(p._id)}
+                                        className="rounded-full border-blue-200"
+                                    >
+                                        {p.customization?.customName || p.name}
+                                    </Button>
+                                ))}
+                        </div>
+                        {selectedProductId && (
+                            <p className="mt-4 text-sm text-blue-700 font-medium animate-in fade-in duration-300">
+                                ✨ Estás personalizando la landing solo para este producto. Los cambios sobrescribirán el contenido general en su página de detalle.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+
                 {/* Configuración General */}
                 <Card className="border-primary/20 bg-primary/5">
                     <CardContent className="pt-6">
@@ -269,32 +359,26 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                     Datos para la IA (Contexto Adicional)
                                 </CardTitle>
                                 <CardDescription className="text-amber-700">
-                                    Proporciona información extra sobre tu producto: características especiales, precios, materiales, ventajas, o incluso un enlace a la competencia para inspirar el copy.
+                                    Proporciona información extra sobre tu producto: características especiales, materiales, ventajas, o inspira el copy con un enlace.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Textarea
                                     value={data.productContext || ''}
                                     onChange={(e) => setData({ ...data, productContext: e.target.value })}
-                                    rows={6}
-                                    placeholder="Ej: - Material: Algodón 100% peruano
-- Precio: $29.990 oferta (antes $45.990)
-- Envío gratis en pedidos +$50.000
-- Competencia: https://ejemplo.com/producto-similar
-- Beneficio clave: Durabilidad superior"
+                                    rows={4}
+                                    placeholder="Ej: Material 100% Algodón, No destiñe, Tallas Oversize..."
                                     className="bg-white"
                                 />
                             </CardContent>
                         </Card>
 
-                        {/* ===== CONFIGURACIÓN PREMIUM ===== */}
-
                         {/* SECCIÓN HERO */}
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                                 <div>
-                                    <CardTitle>Sección Hero (Encabezado)</CardTitle>
-                                    <CardDescription>La primera impresión que verá el usuario.</CardDescription>
+                                    <CardTitle>Sección Hero {selectedProductId ? '(Personalizado)' : '(General)'}</CardTitle>
+                                    <CardDescription>Impacto inicial para {selectedProductId ? 'este producto' : 'toda la colección'}.</CardDescription>
                                 </div>
                                 <Button
                                     variant="outline"
@@ -311,22 +395,29 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 <div className="space-y-2">
                                     <Label>Headline (Título Principal)</Label>
                                     <Input
-                                        value={data.landingPageSections.hero.headline}
-                                        onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, headline: e.target.value } } })}
+                                        value={selectedProductId ? localProductContent?.hero?.headline : data.landingPageSections.hero.headline}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (selectedProductId) {
+                                                setLocalProductContent((prev: any) => ({ ...prev, hero: { ...prev.hero, headline: val } }));
+                                            } else {
+                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, headline: val } } });
+                                            }
+                                        }}
                                         placeholder="Ej: Gorras que definen tu estilo"
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Subheadline (Bajada Pro)</Label>
                                     <RichTextEditor
-                                        value={data.landingPageSections.hero.subheadline}
-                                        onChange={(val) => setData({
-                                            ...data,
-                                            landingPageSections: {
-                                                ...data.landingPageSections,
-                                                hero: { ...data.landingPageSections.hero, subheadline: val }
+                                        value={selectedProductId ? localProductContent?.hero?.subheadline : data.landingPageSections.hero.subheadline}
+                                        onChange={(val) => {
+                                            if (selectedProductId) {
+                                                setLocalProductContent((prev: any) => ({ ...prev, hero: { ...prev.hero, subheadline: val } }));
+                                            } else {
+                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, subheadline: val } } });
                                             }
-                                        })}
+                                        }}
                                         placeholder="Describe el beneficio principal con negritas, centrado y GIFs..."
                                     />
                                     <p className="text-[10px] text-slate-400">
@@ -337,15 +428,29 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                     <div className="space-y-2">
                                         <Label>Texto Botón CTA</Label>
                                         <Input
-                                            value={data.landingPageSections.hero.ctaText}
-                                            onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, ctaText: e.target.value } } })}
+                                            value={selectedProductId ? localProductContent?.hero?.ctaText : data.landingPageSections.hero.ctaText}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (selectedProductId) {
+                                                    setLocalProductContent((prev: any) => ({ ...prev, hero: { ...prev.hero, ctaText: val } }));
+                                                } else {
+                                                    setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, ctaText: val } } });
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Imagen URL (Hero)</Label>
                                         <Input
-                                            value={data.landingPageSections.hero.heroImage}
-                                            onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, heroImage: e.target.value } } })}
+                                            value={selectedProductId ? localProductContent?.hero?.heroImage : data.landingPageSections.hero.heroImage}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (selectedProductId) {
+                                                    setLocalProductContent((prev: any) => ({ ...prev, hero: { ...prev.hero, heroImage: val } }));
+                                                } else {
+                                                    setData({ ...data, landingPageSections: { ...data.landingPageSections, hero: { ...data.landingPageSections.hero, heroImage: val } } });
+                                                }
+                                            }}
                                             placeholder="https://..."
                                         />
                                     </div>
@@ -358,7 +463,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                                 <div>
                                     <CardTitle>Beneficios Clave</CardTitle>
-                                    <CardDescription>3-4 puntos fuertes que destaquen el valor de tu oferta.</CardDescription>
+                                    <CardDescription>Puntos fuertes que destacan el valor de tu oferta.</CardDescription>
                                 </div>
                                 <Button
                                     variant="outline"
@@ -372,36 +477,49 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {data.landingPageSections.benefits.items.map((benefit: any, index: number) => (
+                                {(selectedProductId ? localProductContent?.benefits?.items : data.landingPageSections.benefits.items || []).map((benefit: any, index: number) => (
                                     <div key={index} className="p-4 border rounded-xl bg-slate-50 relative group">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-500"
                                             onClick={() => {
-                                                const newItems = [...data.landingPageSections.benefits.items];
-                                                newItems.splice(index, 1);
-                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                if (selectedProductId) {
+                                                    const newItems = [...localProductContent.benefits.items];
+                                                    newItems.splice(index, 1);
+                                                    setLocalProductContent((prev: any) => ({ ...prev, benefits: { items: newItems } }));
+                                                } else {
+                                                    const newItems = [...data.landingPageSections.benefits.items];
+                                                    newItems.splice(index, 1);
+                                                    setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                }
                                             }}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
-                                                <Label>Icono (Lucide)</Label>
+                                                <Label>Icono</Label>
                                                 <select
                                                     className="w-full p-2 border rounded-md bg-white"
                                                     value={benefit.icon}
                                                     onChange={(e) => {
-                                                        const newItems = [...data.landingPageSections.benefits.items];
-                                                        newItems[index].icon = e.target.value;
-                                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        const val = e.target.value;
+                                                        if (selectedProductId) {
+                                                            const newItems = [...localProductContent.benefits.items];
+                                                            newItems[index].icon = val;
+                                                            setLocalProductContent((prev: any) => ({ ...prev, benefits: { items: newItems } }));
+                                                        } else {
+                                                            const newItems = [...data.landingPageSections.benefits.items];
+                                                            newItems[index].icon = val;
+                                                            setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        }
                                                     }}
                                                 >
                                                     <option value="shield">Escudo</option>
-                                                    <option value="truck">Camión (Inmediato)</option>
-                                                    <option value="star">Estrella (Calidad)</option>
-                                                    <option value="zap">Rayo (Rápido)</option>
+                                                    <option value="truck">Camión</option>
+                                                    <option value="star">Estrella</option>
+                                                    <option value="zap">Rayo</option>
                                                     <option value="award">Premio</option>
                                                     <option value="check-circle">Check</option>
                                                     <option value="heart">Corazón</option>
@@ -413,21 +531,35 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                 <Input
                                                     value={benefit.title}
                                                     onChange={(e) => {
-                                                        const newItems = [...data.landingPageSections.benefits.items];
-                                                        newItems[index].title = e.target.value;
-                                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        const val = e.target.value;
+                                                        if (selectedProductId) {
+                                                            const newItems = [...localProductContent.benefits.items];
+                                                            newItems[index].title = val;
+                                                            setLocalProductContent((prev: any) => ({ ...prev, benefits: { items: newItems } }));
+                                                        } else {
+                                                            const newItems = [...data.landingPageSections.benefits.items];
+                                                            newItems[index].title = val;
+                                                            setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        }
                                                     }}
                                                 />
                                             </div>
                                             <div className="md:col-span-3 space-y-2">
                                                 <Label>Descripción Corta</Label>
                                                 <Textarea
-                                                    rows={2}
+                                                    rows={1}
                                                     value={benefit.description}
                                                     onChange={(e) => {
-                                                        const newItems = [...data.landingPageSections.benefits.items];
-                                                        newItems[index].description = e.target.value;
-                                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        const val = e.target.value;
+                                                        if (selectedProductId) {
+                                                            const newItems = [...localProductContent.benefits.items];
+                                                            newItems[index].description = val;
+                                                            setLocalProductContent((prev: any) => ({ ...prev, benefits: { items: newItems } }));
+                                                        } else {
+                                                            const newItems = [...data.landingPageSections.benefits.items];
+                                                            newItems[index].description = val;
+                                                            setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                                        }
                                                     }}
                                                 />
                                             </div>
@@ -438,8 +570,12 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                     variant="outline"
                                     className="w-full border-dashed"
                                     onClick={() => {
-                                        const newItems = [...data.landingPageSections.benefits.items, { icon: 'star', title: '', description: '' }];
-                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, benefits: { items: newItems } } });
+                                        const newItem = { icon: 'star', title: '', description: '' };
+                                        if (selectedProductId) {
+                                            setLocalProductContent((prev: any) => ({ ...prev, benefits: { items: [...prev.benefits.items, newItem] } }));
+                                        } else {
+                                            setData((prev: any) => ({ ...prev, landingPageSections: { ...prev.landingPageSections, benefits: { items: [...prev.landingPageSections.benefits.items, newItem] } } }));
+                                        }
                                     }}
                                 >
                                     <Plus className="h-4 w-4 mr-2" /> Agregar Beneficio
@@ -466,16 +602,22 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {(Array.isArray(data.landingPageSections?.faq) ? data.landingPageSections.faq : []).map((item: any, index: number) => (
+                                {(selectedProductId ? localProductContent?.faq : data.landingPageSections?.faq || []).map((item: any, index: number) => (
                                     <div key={index} className="p-4 border rounded-xl relative group">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-500"
                                             onClick={() => {
-                                                const newFaq = [...(data.landingPageSections?.faq || [])];
-                                                newFaq.splice(index, 1);
-                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                if (selectedProductId) {
+                                                    const newFaq = [...localProductContent.faq];
+                                                    newFaq.splice(index, 1);
+                                                    setLocalProductContent((prev: any) => ({ ...prev, faq: newFaq }));
+                                                } else {
+                                                    const newFaq = [...data.landingPageSections.faq];
+                                                    newFaq.splice(index, 1);
+                                                    setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                }
                                             }}
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -486,9 +628,16 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                 <Input
                                                     value={item.question}
                                                     onChange={(e) => {
-                                                        const newFaq = [...data.landingPageSections.faq];
-                                                        newFaq[index].question = e.target.value;
-                                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                        const val = e.target.value;
+                                                        if (selectedProductId) {
+                                                            const newFaq = [...localProductContent.faq];
+                                                            newFaq[index].question = val;
+                                                            setLocalProductContent((prev: any) => ({ ...prev, faq: newFaq }));
+                                                        } else {
+                                                            const newFaq = [...data.landingPageSections.faq];
+                                                            newFaq[index].question = val;
+                                                            setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                        }
                                                     }}
                                                 />
                                             </div>
@@ -497,9 +646,16 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                 <Textarea
                                                     value={item.answer}
                                                     onChange={(e) => {
-                                                        const newFaq = [...data.landingPageSections.faq];
-                                                        newFaq[index].answer = e.target.value;
-                                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                        const val = e.target.value;
+                                                        if (selectedProductId) {
+                                                            const newFaq = [...localProductContent.faq];
+                                                            newFaq[index].answer = val;
+                                                            setLocalProductContent((prev: any) => ({ ...prev, faq: newFaq }));
+                                                        } else {
+                                                            const newFaq = [...data.landingPageSections.faq];
+                                                            newFaq[index].answer = val;
+                                                            setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                                        }
                                                     }}
                                                 />
                                             </div>
@@ -510,8 +666,12 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                     variant="outline"
                                     className="w-full border-dashed"
                                     onClick={() => {
-                                        const newFaq = [...data.landingPageSections.faq, { question: '', answer: '' }];
-                                        setData({ ...data, landingPageSections: { ...data.landingPageSections, faq: newFaq } });
+                                        const newItem = { question: '', answer: '' };
+                                        if (selectedProductId) {
+                                            setLocalProductContent((prev: any) => ({ ...prev, faq: [...prev.faq, newItem] }));
+                                        } else {
+                                            setData((prev: any) => ({ ...prev, landingPageSections: { ...prev.landingPageSections, faq: [...(prev.landingPageSections.faq || []), newItem] } }));
+                                        }
                                     }}
                                 >
                                     <Plus className="h-4 w-4 mr-2" /> Agregar Pregunta
@@ -529,28 +689,49 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 <div className="space-y-2">
                                     <Label>Headline de Cierre</Label>
                                     <Input
-                                        value={data.landingPageSections.finalCTA.headline}
-                                        onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, headline: e.target.value } } })}
+                                        value={selectedProductId ? localProductContent?.finalCTA?.headline : data.landingPageSections.finalCTA.headline}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (selectedProductId) {
+                                                setLocalProductContent((prev: any) => ({ ...prev, finalCTA: { ...prev.finalCTA, headline: val } }));
+                                            } else {
+                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, headline: val } } });
+                                            }
+                                        }}
                                         placeholder="Ej: ¿Listo para llevar tu estilo al siguiente nivel?"
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Descripción de Cierre</Label>
                                     <Textarea
-                                        value={data.landingPageSections.finalCTA.description}
-                                        onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, description: e.target.value } } })}
-                                        placeholder="Ej: Haz clic abajo y uno de nuestros asesores te ayudará con tu pedido."
+                                        value={selectedProductId ? localProductContent?.finalCTA?.description : data.landingPageSections.finalCTA.description}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (selectedProductId) {
+                                                setLocalProductContent((prev: any) => ({ ...prev, finalCTA: { ...prev.finalCTA, description: val } }));
+                                            } else {
+                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, description: val } } });
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Texto Botón Final</Label>
                                     <Input
-                                        value={data.landingPageSections.finalCTA.ctaText}
-                                        onChange={(e) => setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, ctaText: e.target.value } } })}
+                                        value={selectedProductId ? localProductContent?.finalCTA?.ctaText : data.landingPageSections.finalCTA.ctaText}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (selectedProductId) {
+                                                setLocalProductContent((prev: any) => ({ ...prev, finalCTA: { ...prev.finalCTA, ctaText: val } }));
+                                            } else {
+                                                setData({ ...data, landingPageSections: { ...data.landingPageSections, finalCTA: { ...data.landingPageSections.finalCTA, ctaText: val } } });
+                                            }
+                                        }}
                                     />
                                 </div>
                             </CardContent>
                         </Card>
+
 
                         {/* ===== GESTIÓN DE PRECIOS ===== */}
                         <div className="pt-8">

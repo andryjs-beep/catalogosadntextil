@@ -30,8 +30,25 @@ export function LandingPageLayout({
     tenantSlug,
     collectionSlug
 }: LandingPageLayoutProps) {
-    const { landingPageSections } = tenantCollection;
     const isSingleProduct = products.length === 1;
+
+    // PRIORIDAD 2026: Si es producto único, usar su landingContent específico si existe
+    const productLanding = (isSingleProduct && products[0]?.customization?.landingContent)
+        ? products[0].customization.landingContent
+        : null;
+
+    let { landingPageSections } = tenantCollection;
+
+    // Sobrescribir secciones si hay contenido de producto específico
+    if (productLanding) {
+        landingPageSections = {
+            ...landingPageSections,
+            hero: productLanding.hero || landingPageSections?.hero,
+            benefits: { items: productLanding.features || landingPageSections?.benefits?.items || [] },
+            faq: productLanding.faq || landingPageSections?.faq || []
+        };
+    }
+
     const collectionName = isSingleProduct
         ? (products[0].customName || products[0].name)
         : (tenantCollection.collectionId?.name || 'Colección');
