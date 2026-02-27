@@ -29,6 +29,7 @@ interface TenantCollectionPopulated {
         name: string;
         coverImage: string;
         productIds: string[];
+        order: number;
     };
     ctaButtonText: string;
     order: number;
@@ -44,11 +45,15 @@ async function getTenantData(slug: string) {
         tenantId: tenant._id,
         isPublished: true,
     })
-        .populate('collectionId', 'slug name coverImage productIds')
-        .sort({ order: 1 })
+        .populate('collectionId', 'slug name coverImage productIds order')
         .lean()) as unknown as TenantCollectionPopulated[];
 
-    return { tenant, collections };
+    // Ordenar en memoria por el orden global de la colección
+    const sortedCollections = collections.sort((a, b) =>
+        (a.collectionId.order || 0) - (b.collectionId.order || 0)
+    );
+
+    return { tenant, collections: sortedCollections };
 }
 
 export async function generateMetadata({

@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload, ArrowUp, ArrowDown } from 'lucide-react';
 import Image from 'next/image';
 
 interface Collection {
@@ -215,6 +215,25 @@ export default function CollectionsPage() {
         }
     };
 
+    const handleMove = async (collectionId: string, direction: 'up' | 'down') => {
+        try {
+            const response = await fetch('/api/admin/collections/reorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ collectionId, direction }),
+            });
+
+            if (response.ok) {
+                fetchCollections();
+            } else {
+                const error = await response.json();
+                toast.error(error.error || 'Error al reordenar');
+            }
+        } catch {
+            toast.error('Error al reordenar');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -258,7 +277,7 @@ export default function CollectionsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {collections.map((col) => (
+                                {collections.map((col, index) => (
                                     <TableRow key={col._id}>
                                         <TableCell>
                                             {col.coverImage ? (
@@ -281,7 +300,27 @@ export default function CollectionsPage() {
                                         </TableCell>
                                         <TableCell>{col.productIds.length} productos</TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex justify-end gap-1">
+                                                <div className="flex flex-col gap-1 mr-2">
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-8 w-8"
+                                                        onClick={() => handleMove(col._id, 'up')}
+                                                        disabled={index === 0}
+                                                    >
+                                                        <ArrowUp className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-8 w-8"
+                                                        onClick={() => handleMove(col._id, 'down')}
+                                                        disabled={index === collections.length - 1}
+                                                    >
+                                                        <ArrowDown className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
@@ -373,8 +412,8 @@ export default function CollectionsPage() {
                                         type="button"
                                         onClick={() => toggleProduct(product._id)}
                                         className={`p-2 rounded-lg text-left text-sm transition-colors ${selectedProductIds.includes(product._id)
-                                                ? 'bg-blue-100 border-blue-500 border-2'
-                                                : 'bg-slate-50 border border-slate-200 hover:bg-slate-100'
+                                            ? 'bg-blue-100 border-blue-500 border-2'
+                                            : 'bg-slate-50 border border-slate-200 hover:bg-slate-100'
                                             }`}
                                     >
                                         <div className="truncate">{product.name}</div>

@@ -28,8 +28,7 @@ async function getTenantWithCollections(slug: string) {
         tenantId: tenant._id,
         isPublished: true,
     })
-        .populate('collectionId', 'name slug coverImage')
-        .sort({ order: 1 })
+        .populate('collectionId', 'name slug coverImage order')
         .lean();
 
     const collections = tenantCollections
@@ -39,7 +38,9 @@ async function getTenantWithCollections(slug: string) {
             name: tc.collectionId.name,
             slug: tc.collectionId.slug,
             coverImage: tc.collectionId.coverImage,
-        }));
+            order: tc.collectionId.order || 0,
+        }))
+        .sort((a: any, b: any) => a.order - b.order);
 
     return { tenant, collections };
 }
