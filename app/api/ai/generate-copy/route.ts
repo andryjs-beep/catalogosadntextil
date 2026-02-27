@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
         const pName = productInfo?.name || "Colección";
         const pContext = productContext || productInfo?.description || '';
 
-        // PROMPT PARA HERO DE COLECCIÓN (Método AIDA)
-        if (type === "collection" && section === "hero") {
+        // PROMPT PARA HERO DE COLECCIÓN O PRODUCTO (Método AIDA)
+        if ((type === "collection" || type === "product") && section === "hero") {
             prompt = `Eres un copywriter experto. Genera contenido AIDA (Atención, Interés, Deseo, Acción) para el HERO de una landing.
 
 CONTEXTO:

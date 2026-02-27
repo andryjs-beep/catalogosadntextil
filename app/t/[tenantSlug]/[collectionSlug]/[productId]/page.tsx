@@ -59,6 +59,7 @@ interface CustomizationData {
     sliderSpeed?: number;
     tieredPricing?: Array<{
         unitCount: number;
+        label?: string;
         price: string;
         enabled: boolean;
     }>;
@@ -67,6 +68,15 @@ interface CustomizationData {
     landingContent?: {
         headline?: string;
         subheadline?: string;
+        features?: Array<{
+            icon: string;
+            title: string;
+            description: string;
+        }>;
+        faq?: Array<{
+            question: string;
+            answer: string;
+        }>;
     };
 }
 
@@ -206,7 +216,13 @@ export default async function ProductDetailPage({
                             ...tenantCollection.landingPageSections?.hero,
                             headline: customization.landingContent?.headline || productTitle || productName,
                             subheadline: customization.landingContent?.subheadline || '',
-                        }
+                        },
+                        benefits: customization.landingContent?.features?.length
+                            ? { items: customization.landingContent.features }
+                            : tenantCollection.landingPageSections?.benefits,
+                        faq: customization.landingContent?.faq?.length
+                            ? customization.landingContent.faq
+                            : tenantCollection.landingPageSections?.faq,
                     }
                 }}
                 products={[{
@@ -289,22 +305,26 @@ export default async function ProductDetailPage({
 
                             {/* Visualización de Precios Multinivel */}
                             {customization?.tieredPricing && customization.tieredPricing.some(t => t.enabled) ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <div className="space-y-6">
+                                    <div className="flex flex-wrap justify-center gap-4">
                                         {customization.tieredPricing.filter(t => t.enabled).map((tier) => (
                                             <div
                                                 key={tier.unitCount}
-                                                className="bg-white border-2 rounded-2xl p-4 text-center transition-all hover:scale-105 hover:shadow-lg"
+                                                className="bg-white border-2 rounded-2xl p-4 text-center transition-all hover:scale-110 hover:shadow-xl relative overflow-hidden group min-w-[120px]"
                                                 style={{
-                                                    borderColor: tenant.branding.primaryColor + '30',
-                                                    boxShadow: `0 10px 15px -3px ${tenant.branding.primaryColor}15`
+                                                    borderColor: tenant.branding.primaryColor + '40',
+                                                    boxShadow: `0 10px 20px -5px ${tenant.branding.primaryColor}20`
                                                 }}
                                             >
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                                                    {tier.unitCount} {tier.unitCount === 1 ? 'Unidad' : 'Unidades'}
+                                                <div
+                                                    className="absolute top-0 left-0 w-full h-1 opacity-20 group-hover:opacity-100 transition-opacity"
+                                                    style={{ backgroundColor: tenant.branding.primaryColor }}
+                                                />
+                                                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                                                    {tier.label || (tier.unitCount === 1 ? '1 Unidad' : `${tier.unitCount} Unidades`)}
                                                 </div>
                                                 <div
-                                                    className="text-2xl font-black"
+                                                    className="text-3xl font-black tenant-gradient-text"
                                                     style={{ color: tenant.branding.primaryColor || '#3b82f6' }}
                                                 >
                                                     {tier.price}
@@ -312,9 +332,11 @@ export default async function ProductDetailPage({
                                             </div>
                                         ))}
                                     </div>
-                                    <p className="text-xs text-slate-400 italic">
-                                        * Precios válidos para la misma referencia
-                                    </p>
+                                    <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                            🚚 Descuento aplicado por volumen
+                                        </span>
+                                    </div>
                                 </div>
                             ) : (
                                 productPrice && (

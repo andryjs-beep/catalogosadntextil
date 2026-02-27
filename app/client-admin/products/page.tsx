@@ -68,6 +68,7 @@ interface FormData {
     showLocation: boolean;
     tieredPricing: Array<{
         unitCount: number;
+        label: string;
         price: string;
         enabled: boolean;
     }>;
@@ -148,12 +149,12 @@ export default function ClientProductsPage() {
             ctaSubtext: c?.ctaSubtext || '',
             footerNote: c?.footerNote || '',
             showLocation: c?.showLocation !== false,
-            tieredPricing: c?.tieredPricing || [
-                { unitCount: 1, price: '', enabled: false },
-                { unitCount: 2, price: '', enabled: false },
-                { unitCount: 3, price: '', enabled: false },
-                { unitCount: 6, price: '', enabled: false },
-                { unitCount: 12, price: '', enabled: false },
+            tieredPricing: c?.tieredPricing?.map((t: any) => ({ ...t, label: t.label || `${t.unitCount} ${t.unitCount === 1 ? 'Unidad' : 'Unidades'}` })) || [
+                { unitCount: 1, label: '1 Unidad', price: '', enabled: false },
+                { unitCount: 2, label: '2 Unidades', price: '', enabled: false },
+                { unitCount: 3, label: '3 Unidades', price: '', enabled: false },
+                { unitCount: 6, label: '6 Unidades', price: '', enabled: false },
+                { unitCount: 12, label: '12 Unidades', price: '', enabled: false },
             ],
             useLandingLayout: (c as any)?.useLandingLayout || false,
             landingContent: {
@@ -336,9 +337,11 @@ export default function ClientProductsPage() {
                                             {(form.watch('tieredPricing') || []).map((tier, index) => (
                                                 <div key={tier.unitCount} className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm space-y-2">
                                                     <div className="flex items-center justify-between">
-                                                        <Label className="font-bold text-slate-700">
-                                                            {tier.unitCount} {tier.unitCount === 1 ? 'Unidad' : 'Unidades'}
-                                                        </Label>
+                                                        <Input
+                                                            {...form.register(`tieredPricing.${index}.label`)}
+                                                            className="font-bold text-slate-700 border-none p-0 h-auto bg-transparent focus-visible:ring-0 w-2/3"
+                                                            placeholder={`${tier.unitCount} Unidades`}
+                                                        />
                                                         <input
                                                             type="checkbox"
                                                             {...form.register(`tieredPricing.${index}.enabled`)}
