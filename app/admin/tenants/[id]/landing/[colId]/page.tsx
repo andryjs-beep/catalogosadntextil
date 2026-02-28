@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Sparkles, Save, Trash2, Plus, Package, Tag, Layers } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles, Save, Trash2, Plus, Package, Tag, Layers, Coins } from 'lucide-react';
 import Link from 'next/link';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
@@ -734,7 +734,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
 
 
                         {/* ===== GESTIÓN DE PRECIOS ===== */}
-                        <div className="pt-8">
+                        <div className="pt-8 space-y-6">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                                     <Tag className="h-6 w-6" />
@@ -745,15 +745,13 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </div>
                             </div>
 
-                            {loadingProducts ? (
-                                <div className="flex justify-center p-12">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {products
-                                        .filter(p => (data.collectionId?.productIds || []).includes(p._id))
-                                        .map((product) => (
+                            <div className="space-y-6">
+                                {products
+                                    .filter(p => (data.collectionId?.productIds || []).includes(p._id))
+                                    .filter(p => !selectedProductId || p._id === selectedProductId)
+                                    .map((product) => {
+                                        const pIdx = products.findIndex(pr => pr._id === product._id);
+                                        return (
                                             <Card key={product._id} className="overflow-hidden border-slate-200 shadow-sm">
                                                 <div className="bg-slate-50 px-6 py-4 border-b flex items-center justify-between">
                                                     <div className="flex items-center gap-4">
@@ -764,11 +762,11 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                         )}
                                                         <div>
                                                             <h3 className="font-bold text-slate-900">{product.name}</h3>
-                                                            <p className="text-xs text-slate-500">REF: {product.sku || product._id.slice(-6).toUpperCase()}</p>
+                                                            <p className="text-xs text-slate-500 uppercase">REF: {product._id.toString().slice(-6).toUpperCase()}</p>
                                                         </div>
                                                     </div>
                                                     <Badge variant="outline" className="bg-white">
-                                                        Precio Base: ${product.price?.toLocaleString()}
+                                                        Precio Base: ${(product.price || 0).toLocaleString()}
                                                     </Badge>
                                                 </div>
                                                 <CardContent className="p-6 space-y-6">
@@ -787,9 +785,8 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                                     onChange={(e) => {
                                                                         const val = e.target.value;
                                                                         const newProducts = [...products];
-                                                                        const idx = newProducts.findIndex(p => p._id === product._id);
-                                                                        newProducts[idx].customization = {
-                                                                            ...(newProducts[idx].customization || { productId: product._id }),
+                                                                        newProducts[pIdx].customization = {
+                                                                            ...(newProducts[pIdx].customization || { productId: product._id }),
                                                                             customPrice: val
                                                                         };
                                                                         setProducts(newProducts);
@@ -802,7 +799,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
 
                                                         <div className="space-y-2">
                                                             <Label className="flex items-center gap-2">
-                                                                <Package className="h-4 w-4 text-purple-500" />
+                                                                <Layers className="h-4 w-4 text-purple-500" />
                                                                 Nombre Personalizado
                                                             </Label>
                                                             <Input
@@ -810,9 +807,8 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                                 onChange={(e) => {
                                                                     const val = e.target.value;
                                                                     const newProducts = [...products];
-                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
-                                                                    newProducts[idx].customization = {
-                                                                        ...(newProducts[idx].customization || { productId: product._id }),
+                                                                    newProducts[pIdx].customization = {
+                                                                        ...(newProducts[pIdx].customization || { productId: product._id }),
                                                                         customName: val
                                                                     };
                                                                     setProducts(newProducts);
@@ -825,26 +821,25 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                     <div className="border-t pt-6 space-y-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className="p-1.5 bg-amber-100 rounded text-amber-600">
-                                                                <Layers className="h-4 w-4" />
+                                                                <Coins className="h-4 w-4" />
                                                             </div>
                                                             <h4 className="font-bold text-slate-800">Precios Multinivel (Venta por Volumen)</h4>
                                                         </div>
 
                                                         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                                                             {[1, 2, 3, 6, 12].map((units) => {
-                                                                const tier = product.customization?.tieredPricing?.find((t: any) => t.unitCount === units) || { unitCount: units, price: '', enabled: false };
+                                                                const tier = (product.customization?.tieredPricing || []).find((t: any) => t.unitCount === units) || { unitCount: units, price: '', enabled: false };
                                                                 return (
                                                                     <div key={units} className={`p-3 rounded-xl border transition-all ${tier.enabled ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}>
                                                                         <div className="flex items-center justify-between mb-2">
-                                                                            <span className="text-xs font-bold uppercase">{units} {units === 1 ? 'Unidad' : 'Unidades'}</span>
+                                                                            <span className="text-[10px] font-bold uppercase">{units} {units === 1 ? 'Unidad' : 'Unidades'}</span>
                                                                             <input
                                                                                 type="checkbox"
                                                                                 checked={tier.enabled}
                                                                                 onChange={(e) => {
                                                                                     const enabled = e.target.checked;
                                                                                     const newProducts = [...products];
-                                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
-                                                                                    const customization = newProducts[idx].customization || { productId: product._id, tieredPricing: [] };
+                                                                                    const customization = newProducts[pIdx].customization || { productId: product._id, tieredPricing: [] };
                                                                                     const tiers = [...(customization.tieredPricing || [])];
                                                                                     const tIdx = tiers.findIndex((t: any) => t.unitCount === units);
 
@@ -854,24 +849,22 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                                                         tiers.push({ unitCount: units, price: '', enabled });
                                                                                     }
 
-                                                                                    newProducts[idx].customization = { ...customization, tieredPricing: tiers };
+                                                                                    newProducts[pIdx].customization = { ...customization, tieredPricing: tiers };
                                                                                     setProducts(newProducts);
                                                                                 }}
-                                                                                className="h-4 w-4"
+                                                                                className="h-4 w-4 accent-amber-500"
                                                                             />
                                                                         </div>
                                                                         <div className="relative">
                                                                             <span className="absolute left-2 top-1.5 text-xs text-slate-400">$</span>
                                                                             <Input
-                                                                                size={1}
                                                                                 className="h-8 pl-5 text-sm font-bold bg-white"
                                                                                 value={tier.price || ''}
                                                                                 disabled={!tier.enabled}
                                                                                 onChange={(e) => {
                                                                                     const val = e.target.value;
                                                                                     const newProducts = [...products];
-                                                                                    const idx = newProducts.findIndex(p => p._id === product._id);
-                                                                                    const customization = newProducts[idx].customization || { productId: product._id, tieredPricing: [] };
+                                                                                    const customization = newProducts[pIdx].customization || { productId: product._id, tieredPricing: [] };
                                                                                     const tiers = [...(customization.tieredPricing || [])];
                                                                                     const tIdx = tiers.findIndex((t: any) => t.unitCount === units);
 
@@ -881,7 +874,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                                                         tiers.push({ unitCount: units, price: val, enabled: true });
                                                                                     }
 
-                                                                                    newProducts[idx].customization = { ...customization, tieredPricing: tiers };
+                                                                                    newProducts[pIdx].customization = { ...customization, tieredPricing: tiers };
                                                                                     setProducts(newProducts);
                                                                                 }}
                                                                                 placeholder="0.00"
@@ -894,20 +887,26 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                                     </div>
                                                 </CardContent>
                                             </Card>
-                                        ))}
-                                </div>
-                            )}
+                                        );
+                                    })}
+                            </div>
+                        </div>
+
+                        {/* ===== BOTONES DE ACCIÓN ===== */}
+                        <div className="pt-12 pb-24 flex justify-end gap-4">
+                            <Button variant="outline" size="lg" onClick={() => router.back()}>Cancelar</Button>
+                            <Button
+                                size="lg"
+                                className="px-10 h-14 text-lg font-bold gap-2 shadow-xl shadow-primary/20"
+                                onClick={handleSave}
+                                disabled={saving}
+                            >
+                                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                                {saving ? "Guardando..." : "Guardar Cambios"}
+                            </Button>
                         </div>
                     </div>
                 )}
-            </div>
-
-            <div className="mt-8 flex justify-end gap-3 pb-20">
-                <Button variant="outline" size="lg" onClick={() => router.back()}>Cancelar</Button>
-                <Button size="lg" onClick={handleSave} disabled={saving}>
-                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Guardar Cambios
-                </Button>
             </div>
         </div>
     );

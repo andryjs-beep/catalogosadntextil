@@ -94,24 +94,31 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
         const { assignments } = result.data;
 
-        // Eliminar asignaciones anteriores
-        await TenantCollection.deleteMany({ tenantId: id });
-
-        // Crear nuevas asignaciones
+        // ACTUALIZACIÓN ROBUSTA (UPSERT): No borramos nada, solo actualizamos lo que viene.
+        // Esto previene que un error en el frontend borre todas las landings configuradas.
         if (assignments.length > 0) {
-            const newAssignments = assignments.map((a, index) => ({
-                tenantId: id,
-                collectionId: a.collectionId,
-                persuasiveTextTop: a.persuasiveTextTop,
-                persuasiveTextBottom: a.persuasiveTextBottom,
-                ctaButtonText: a.ctaButtonText,
-                isPublished: a.isPublished,
-                order: a.order ?? index,
-                useLandingLayout: a.useLandingLayout,
-                landingPageSections: a.landingPageSections,
-            }));
+            const updatePromises = assignments.map((a, index) => {
+                // Asegurar que collectionId sea el ID string
+                const collectionId = typeof a.collectionId === 'object' ? (a.collectionId as any)._id : a.collectionId;
 
-            await TenantCollection.insertMany(newAssignments);
+                return TenantCollection.findOneAndUpdate(
+                    { tenantId: id, collectionId: collectionId },
+                    {
+                        $set: {
+                            persuasiveTextTop: a.persuasiveTextTop,
+                            persuasiveTextBottom: a.persuasiveTextBottom,
+                            ctaButtonText: a.ctaButtonText,
+                            isPublished: a.isPublished,
+                            order: a.order ?? index,
+                            useLandingLayout: a.useLandingLayout,
+                            landingPageSections: a.landingPageSections,
+                        }
+                    },
+                    { upsert: true, new: true }
+                );
+            });
+
+            await Promise.all(updatePromises);
         }
 
         // Devolver asignaciones actualizadas

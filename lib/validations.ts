@@ -181,7 +181,7 @@ export const landingPageSectionsSchema = z.object({
 
     showProductGallery: z.boolean().optional().default(true),
     showStickyCTA: z.boolean().optional().default(true),
-}).passthrough().optional();
+}).passthrough();
 
 // ============ ASIGNACIÓN COLECCIONES ============
 export const tenantCollectionSchema = z.object({
@@ -219,6 +219,24 @@ export const tenantProductSchema = z.object({
     ctaSubtext: z.string().max(200).default(''),
     footerNote: z.string().max(500).default(''),
     showLocation: z.boolean().default(true),
+    landingContent: z.object({
+        hero: z.object({
+            headline: z.string().default(''),
+            subheadline: z.string().default(''),
+            ctaText: z.string().default(''),
+            heroImage: z.string().default(''),
+            videoUrl: z.string().default(''),
+        }).optional(),
+        features: z.array(z.object({
+            icon: z.string().default('star'),
+            title: z.string().default(''),
+            description: z.string().default(''),
+        })).optional(),
+        faq: z.array(z.object({
+            question: z.string().default(''),
+            answer: z.string().default(''),
+        })).optional(),
+    }).passthrough().optional(),
 });
 
 export type TenantProductInput = z.infer<typeof tenantProductSchema>;
