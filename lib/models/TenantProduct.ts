@@ -7,21 +7,28 @@ import mongoose, { Schema, Document } from 'mongoose';
 export type GalleryMode = 'album' | 'slider-auto' | 'slider-manual';
 
 export interface ILandingContent {
-    headline: string;
-    subheadline: string;
+    hero: {
+        headline: string;
+        subheadline: string;
+        ctaText: string;
+        heroImage: string;
+        videoUrl: string;
+    };
     features: Array<{
         icon: string;
         title: string;
         description: string;
     }>;
     longDescription: string;
-    benefits: string[];
-    useCases: string[];
-    guarantees: string[];
     faq: Array<{
         question: string;
         answer: string;
     }>;
+    finalCTA: {
+        headline: string;
+        description: string;
+        ctaText: string;
+    };
 }
 
 export interface ITieredPrice {
@@ -141,25 +148,32 @@ const TenantProductSchema = new Schema<ITenantProduct>(
             default: true,
         },
         landingContent: {
-            headline: { type: String, default: '' },
-            subheadline: { type: String, default: '' },
+            hero: {
+                headline: { type: String, default: '' },
+                subheadline: { type: String, default: '' },
+                ctaText: { type: String, default: '' },
+                heroImage: { type: String, default: '' },
+                videoUrl: { type: String, default: '' },
+            },
             features: [
                 {
-                    icon: String,
-                    title: String,
-                    description: String,
+                    icon: { type: String, default: 'star' },
+                    title: { type: String, default: '' },
+                    description: { type: String, default: '' },
                 },
             ],
             longDescription: { type: String, default: '' },
-            benefits: [String],
-            useCases: [String],
-            guarantees: [String],
             faq: [
                 {
-                    question: String,
-                    answer: String,
+                    question: { type: String, default: '' },
+                    answer: { type: String, default: '' },
                 },
             ],
+            finalCTA: {
+                headline: { type: String, default: '' },
+                description: { type: String, default: '' },
+                ctaText: { type: String, default: '' },
+            },
         },
         aiGenerated: {
             type: Boolean,

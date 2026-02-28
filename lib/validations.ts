@@ -239,6 +239,7 @@ export const tenantProductSchema = z.object({
             question: z.string().default(''),
             answer: z.string().default(''),
         })).optional(),
+        longDescription: z.string().default(''),
         finalCTA: z.object({
             headline: z.string().default(''),
             description: z.string().default(''),

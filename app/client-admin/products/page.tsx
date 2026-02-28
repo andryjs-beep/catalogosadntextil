@@ -74,8 +74,10 @@ interface FormData {
     }>;
     useLandingLayout: boolean;
     landingContent: {
-        headline: string;
-        subheadline: string;
+        hero: {
+            headline: string;
+            subheadline: string;
+        };
         longDescription: string;
         features: Array<{
             icon: string;
@@ -123,8 +125,10 @@ export default function ClientProductsPage() {
             ],
             useLandingLayout: false,
             landingContent: {
-                headline: '',
-                subheadline: '',
+                hero: {
+                    headline: '',
+                    subheadline: '',
+                },
                 longDescription: '',
                 features: [],
                 faq: [],
@@ -179,8 +183,10 @@ export default function ClientProductsPage() {
             ],
             useLandingLayout: (c as any)?.useLandingLayout || false,
             landingContent: {
-                headline: (c as any)?.landingContent?.headline || '',
-                subheadline: (c as any)?.landingContent?.subheadline || '',
+                hero: {
+                    headline: (c as any)?.landingContent?.hero?.headline || (c as any)?.landingContent?.headline || '',
+                    subheadline: (c as any)?.landingContent?.hero?.subheadline || (c as any)?.landingContent?.subheadline || '',
+                },
                 longDescription: (c as any)?.landingContent?.longDescription || '',
                 features: (c as any)?.landingContent?.features || [],
                 faq: (c as any)?.landingContent?.faq || [],
@@ -537,19 +543,19 @@ export default function ClientProductsPage() {
                                                 });
                                                 const data = await res.json();
                                                 if (data.success) {
-                                                    form.setValue('landingContent.headline', data.content.headline);
-                                                    form.setValue('landingContent.subheadline', data.content.subheadline);
+                                                    form.setValue('landingContent.hero.headline', data.content.headline);
+                                                    form.setValue('landingContent.hero.subheadline', data.content.subheadline);
                                                 }
                                             }}
                                         >
                                             <Sparkles className="h-4 w-4" /> Generar con IA
                                         </Button>
                                     </div>
-                                    <Input {...form.register('landingContent.headline')} placeholder="Ej: La prenda que transformará tu armario" />
+                                    <Input {...form.register('landingContent.hero.headline')} placeholder="Ej: La prenda que transformará tu armario" />
 
                                     <Label>Subheadline Pro (Rich Text)</Label>
                                     <Controller
-                                        name="landingContent.subheadline"
+                                        name="landingContent.hero.subheadline"
                                         control={form.control}
                                         render={({ field }) => (
                                             <RichTextEditor
