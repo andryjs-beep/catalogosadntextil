@@ -57,14 +57,33 @@ NICHO: ${bNiche}
 ${MASTER_PROMPT_RULES}
 
 INSTRUCCIONES ESPECÍFICAS:
-1. Headline: Capturar ATENCIÓN (impactante).
-2. Subheadline: Generar INTERÉS y DESEO. Debe ser un texto persuasivo que resalte la calidad y durabilidad. USA HTML (<b> para negritas, <br/> para saltos).
+1. Headline: Capturar ATENCIÓN (impactante). USA EMOJIS PERSUASIVOS.
+2. Subheadline: Generar INTERÉS y DESEO. Texto altamente persuasivo. USA EMOJIS. USA HTML (<b> para negritas, <br/> para saltos).
 3. CTA: Impulsar ACCIÓN.
 
 Responde SOLO con JSON válido:
 {
   "headline": "...",
   "subheadline": "...",
+  "ctaText": "..."
+}`;
+        }
+
+        // PROMPT PARA FINAL CTA
+        else if (section === "finalCTA") {
+            prompt = `Genera un cierre de venta (Final CTA) IMPACTANTE para: ${pName}.
+            
+${MASTER_PROMPT_RULES}
+
+INSTRUCCIONES ESPECÍFICAS:
+1. Headline: Un gancho final (Ej: ¿Listo para el cambio? 🚀). USA EMOJIS.
+2. Description: Texto corto y potente que refuerce la garantía y el envío. USA EMOJIS.
+3. CTA Text: Debe ser "Adquiere ya tu [NOMBRE DEL PRODUCTO/COLECCIÓN]" o algo similarmente directo y vendedor.
+
+Responde SOLO con JSON válido:
+{
+  "headline": "...",
+  "description": "...",
   "ctaText": "..."
 }`;
         }

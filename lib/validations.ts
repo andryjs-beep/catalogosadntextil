@@ -239,6 +239,11 @@ export const tenantProductSchema = z.object({
             question: z.string().default(''),
             answer: z.string().default(''),
         })).optional(),
+        finalCTA: z.object({
+            headline: z.string().default(''),
+            description: z.string().default(''),
+            ctaText: z.string().default(''),
+        }).optional(),
     }).passthrough().optional(),
 });
 

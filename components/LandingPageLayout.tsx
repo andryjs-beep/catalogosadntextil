@@ -45,7 +45,8 @@ export function LandingPageLayout({
             ...landingPageSections,
             hero: productLanding.hero || landingPageSections?.hero,
             benefits: { items: productLanding.features || landingPageSections?.benefits?.items || [] },
-            faq: productLanding.faq || landingPageSections?.faq || []
+            faq: productLanding.faq || landingPageSections?.faq || [],
+            finalCTA: productLanding.finalCTA || landingPageSections?.finalCTA
         };
     }
 

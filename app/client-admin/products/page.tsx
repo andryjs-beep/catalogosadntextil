@@ -86,6 +86,11 @@ interface FormData {
             question: string;
             answer: string;
         }>;
+        finalCTA: {
+            headline: string;
+            description: string;
+            ctaText: string;
+        };
     }
 }
 
@@ -123,6 +128,11 @@ export default function ClientProductsPage() {
                 longDescription: '',
                 features: [],
                 faq: [],
+                finalCTA: {
+                    headline: '',
+                    description: '',
+                    ctaText: '',
+                },
             }
         },
     });
@@ -174,6 +184,11 @@ export default function ClientProductsPage() {
                 longDescription: (c as any)?.landingContent?.longDescription || '',
                 features: (c as any)?.landingContent?.features || [],
                 faq: (c as any)?.landingContent?.faq || [],
+                finalCTA: {
+                    headline: (c as any)?.landingContent?.finalCTA?.headline || '',
+                    description: (c as any)?.landingContent?.finalCTA?.description || '',
+                    ctaText: (c as any)?.landingContent?.finalCTA?.ctaText || '',
+                },
             }
         });
         setIsDialogOpen(true);
@@ -734,6 +749,57 @@ export default function ClientProductsPage() {
                                         >
                                             + Añadir Pregunta
                                         </Button>
+                                    </div>
+                                </div>
+
+                                {/* Sección: Final CTA */}
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4 text-green-500" /> Cierre de Venta (Final CTA)
+                                        </Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-primary border-primary/20"
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await fetch('/api/ai/generate-copy', {
+                                                        method: 'POST',
+                                                        body: JSON.stringify({
+                                                            type: 'product',
+                                                            section: 'finalCTA',
+                                                            productInfo: { name: editingProduct?.name },
+                                                            tenantInfo: { ...tenant?.businessInfo }
+                                                        })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        form.setValue('landingContent.finalCTA', data.content);
+                                                        toast.success('Cierre de venta generado con IA');
+                                                    }
+                                                } catch (e) {
+                                                    toast.error('Error al generar cierre de venta');
+                                                }
+                                            }}
+                                        >
+                                            Generar con IA
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Headline de Cierre</Label>
+                                            <Input {...form.register('landingContent.finalCTA.headline')} placeholder="Ej: ¿Listo para llevar tu estilo al siguiente nivel?" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Descripción de Cierre</Label>
+                                            <Textarea {...form.register('landingContent.finalCTA.description')} rows={3} placeholder="Texto persuasivo final..." />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Texto Botón Final</Label>
+                                            <Input {...form.register('landingContent.finalCTA.ctaText')} placeholder="Ej: Adquiere ya tu Uniforme por WhatsApp" />
+                                        </div>
                                     </div>
                                 </div>
                             </TabsContent>
