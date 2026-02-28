@@ -484,7 +484,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {(selectedProductId ? localProductContent?.benefits?.items : data.landingPageSections.benefits.items || []).map((benefit: any, index: number) => (
+                                {((selectedProductId ? localProductContent?.benefits?.items : data.landingPageSections.benefits.items) || []).map((benefit: any, index: number) => (
                                     <div key={index} className="p-4 border rounded-xl bg-slate-50 relative group">
                                         <Button
                                             variant="ghost"
@@ -609,7 +609,7 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {(selectedProductId ? localProductContent?.faq : data.landingPageSections?.faq || []).map((item: any, index: number) => (
+                                {((selectedProductId ? localProductContent?.faq : data.landingPageSections?.faq) || []).map((item: any, index: number) => (
                                     <div key={index} className="p-4 border rounded-xl relative group">
                                         <Button
                                             variant="ghost"
