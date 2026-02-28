@@ -77,6 +77,15 @@ interface FormData {
         headline: string;
         subheadline: string;
         longDescription: string;
+        features: Array<{
+            icon: string;
+            title: string;
+            description: string;
+        }>;
+        faq: Array<{
+            question: string;
+            answer: string;
+        }>;
     }
 }
 
@@ -112,6 +121,8 @@ export default function ClientProductsPage() {
                 headline: '',
                 subheadline: '',
                 longDescription: '',
+                features: [],
+                faq: [],
             }
         },
     });
@@ -161,6 +172,8 @@ export default function ClientProductsPage() {
                 headline: (c as any)?.landingContent?.headline || '',
                 subheadline: (c as any)?.landingContent?.subheadline || '',
                 longDescription: (c as any)?.landingContent?.longDescription || '',
+                features: (c as any)?.landingContent?.features || [],
+                faq: (c as any)?.landingContent?.faq || [],
             }
         });
         setIsDialogOpen(true);
@@ -559,6 +572,169 @@ export default function ClientProductsPage() {
                                         </Button>
                                     </div>
                                     <Textarea {...form.register('landingContent.longDescription')} rows={12} placeholder="Escribe una descripción completa siguiendo la fórmula AIDA..." />
+                                </div>
+
+                                {/* Sección: Beneficios (Features) */}
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4 text-blue-500" /> Beneficios Clave
+                                        </Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-primary border-primary/20"
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await fetch('/api/ai/generate-copy', {
+                                                        method: 'POST',
+                                                        body: JSON.stringify({
+                                                            type: 'product',
+                                                            section: 'benefits',
+                                                            productInfo: { name: editingProduct?.name },
+                                                            tenantInfo: { ...tenant?.businessInfo }
+                                                        })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        form.setValue('landingContent.features', data.content);
+                                                        toast.success('Beneficios generados con IA');
+                                                    }
+                                                } catch (e) {
+                                                    toast.error('Error al generar beneficios');
+                                                }
+                                            }}
+                                        >
+                                            Generar con IA
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {(form.watch('landingContent.features') || []).map((feature, idx) => (
+                                            <div key={idx} className="p-3 border rounded-lg bg-slate-50 relative group">
+                                                <button
+                                                    type="button"
+                                                    className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {
+                                                        const current = form.getValues('landingContent.features');
+                                                        form.setValue('landingContent.features', current.filter((_, i) => i !== idx));
+                                                    }}
+                                                >
+                                                    &times;
+                                                </button>
+                                                <div className="grid grid-cols-[30px_1fr] gap-3">
+                                                    <Input
+                                                        {...form.register(`landingContent.features.${idx}.icon` as any)}
+                                                        className="p-1 text-center h-8"
+                                                        placeholder="icon"
+                                                    />
+                                                    <div className="space-y-2">
+                                                        <Input
+                                                            {...form.register(`landingContent.features.${idx}.title` as any)}
+                                                            className="h-8 font-bold"
+                                                            placeholder="Título del beneficio"
+                                                        />
+                                                        <Textarea
+                                                            {...form.register(`landingContent.features.${idx}.description` as any)}
+                                                            className="text-xs"
+                                                            rows={2}
+                                                            placeholder="Descripción del beneficio"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full border-dashed border-2"
+                                            onClick={() => {
+                                                const current = form.getValues('landingContent.features') || [];
+                                                form.setValue('landingContent.features', [...current, { icon: 'star', title: '', description: '' }]);
+                                            }}
+                                        >
+                                            + Añadir Beneficio
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Sección: FAQ */}
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4 text-amber-500" /> Preguntas Frecuentes (FAQ)
+                                        </Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-primary border-primary/20"
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await fetch('/api/ai/generate-copy', {
+                                                        method: 'POST',
+                                                        body: JSON.stringify({
+                                                            type: 'product',
+                                                            section: 'faq',
+                                                            productInfo: { name: editingProduct?.name },
+                                                            tenantInfo: { ...tenant?.businessInfo }
+                                                        })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        form.setValue('landingContent.faq', data.content);
+                                                        toast.success('FAQ generado con IA');
+                                                    }
+                                                } catch (e) {
+                                                    toast.error('Error al generar FAQ');
+                                                }
+                                            }}
+                                        >
+                                            Generar con IA
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {(form.watch('landingContent.faq') || []).map((item, idx) => (
+                                            <div key={idx} className="p-3 border rounded-lg bg-slate-50 relative group">
+                                                <button
+                                                    type="button"
+                                                    className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {
+                                                        const current = form.getValues('landingContent.faq');
+                                                        form.setValue('landingContent.faq', current.filter((_, i) => i !== idx));
+                                                    }}
+                                                >
+                                                    &times;
+                                                </button>
+                                                <div className="space-y-2">
+                                                    <Input
+                                                        {...form.register(`landingContent.faq.${idx}.question` as any)}
+                                                        className="h-8 font-bold"
+                                                        placeholder="Pregunta"
+                                                    />
+                                                    <Textarea
+                                                        {...form.register(`landingContent.faq.${idx}.answer` as any)}
+                                                        className="text-xs"
+                                                        rows={2}
+                                                        placeholder="Respuesta"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full border-dashed border-2"
+                                            onClick={() => {
+                                                const current = form.getValues('landingContent.faq') || [];
+                                                form.setValue('landingContent.faq', [...current, { question: '', answer: '' }]);
+                                            }}
+                                        >
+                                            + Añadir Pregunta
+                                        </Button>
+                                    </div>
                                 </div>
                             </TabsContent>
                         </Tabs>

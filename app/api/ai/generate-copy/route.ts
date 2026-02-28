@@ -30,20 +30,32 @@ export async function POST(req: NextRequest) {
         const pName = productInfo?.name || "Colección";
         const pContext = productContext || productInfo?.description || '';
 
+        const MASTER_PROMPT_RULES = `
+📝 REGLAS DE ORO (Prompt Maestro):
+1. Tono: Energético, directo y que resalte la calidad (Cero "franelas desechables").
+2. Beneficios: Enfócate en la durabilidad, la fidelidad de los colores y que el producto no se daña con el uso.
+3. Estructura del Precio: Deja el espacio en blanco con un marcador tipo [INSERTAR PRECIO AQUÍ] para que yo lo rellene manualmente.
+4. Tallas: Incluye la sección de tallas ÚNICAMENTE si el producto es ropa (franelas, hoodies, etc.). Si es un objeto (tazas, coolers, llaveros), omítelo.
+5. Cierre Obligatorio (Garantía y Envíos): Siempre termina el copy con la siguiente información:
+🛡️ GARANTÍA Y ENVÍOS
+🤝 Pago contraentrega: En Maracaibo y San Francisco (Contamos con DELIVERY 🛵).
+🚚 Envíos Nacionales: Pago de contado para otras ciudades vía MRW o TEALCA.
+`;
+
         // PROMPT PARA HERO DE COLECCIÓN O PRODUCTO (Método AIDA)
         if ((type === "collection" || type === "product") && section === "hero") {
-            prompt = `Eres un copywriter experto. Genera contenido AIDA (Atención, Interés, Deseo, Acción) para el HERO de una landing.
+            prompt = `Actúa como un Copywriter experto en ventas por WhatsApp e Instagram. Genera contenido AIDA para el HERO de una landing.
+            
+PRODUCTO A PUBLICAR: ${pName}
+CARACTERÍSTICAS: ${pContext}
+NICHO: ${bNiche}
 
-CONTEXTO:
-- Negocio: ${bName}
-- Nicho: ${bNiche}
-- Tono: ${bTone}
-- Producto/Colección: ${pName}
-${pContext ? `- DATOS ADICIONALES:\n${pContext}\n` : ''}
-INSTRUCCIONES:
-1. Headline: Capturar ATENCIÓN (6-10 palabras max, impactante)
-2. Subheadline: Generar INTERÉS y DESEO (15-25 palabras, beneficio emocional)
-3. CTA: Impulsar ACCIÓN (3-5 palabras)
+${MASTER_PROMPT_RULES}
+
+INSTRUCCIONES ESPECÍFICAS:
+1. Headline: Capturar ATENCIÓN (impactante).
+2. Subheadline: Generar INTERÉS y DESEO. Debe ser un texto persuasivo que resalte la calidad y durabilidad. USA HTML (<b> para negritas, <br/> para saltos).
+3. CTA: Impulsar ACCIÓN.
 
 Responde SOLO con JSON válido:
 {
@@ -55,38 +67,32 @@ Responde SOLO con JSON válido:
 
         // PROMPT PARA BENEFITS
         else if (section === "benefits") {
-            prompt = `Genera 4 beneficios clave en JSON para el producto/colección: ${pName}
-
-Nicho/Audiencia: ${bNiche}
-Características clave: ${productInfo.description || 'Calidad premium'}
-
-Formato:
-[
-  {
-    "icon": "shield", 
-    "title": "Título 3-4 palabras",
-    "description": "Descripción persuasiva 15-20 palabras enfocada en resultado emocional"
-  }
-]
-Nota: Usa nombres de iconos de Lucide-react: shield, truck, star, zap, award, check-circle, heart, sparkles.
-
-Solo JSON, sin texto extra.`;
-        }
-
-        // PROMPT PARA FAQ
-        else if (section === "faq") {
-            prompt = `Genera 6 preguntas frecuentes con respuestas en JSON para eliminar objeciones de compra.
-
-Producto/Colección: ${pName}
-Nicho: ${bNiche}
-
-Incluye preguntas sobre: tiempos de entrega, envíos, métodos de pago, garantías y calidad.
+            prompt = `Genera 4 beneficios clave para: ${pName}.
+${MASTER_PROMPT_RULES}
 
 Formato JSON:
 [
   {
-    "question": "Pregunta directa",
-    "answer": "Respuesta clara y persuasiva"
+    "icon": "shield", 
+    "title": "...",
+    "description": "..."
+  }
+]
+Nota: Usa iconos de Lucide (shield, truck, star, zap, award, check-circle, heart, sparkles). Enfócate en la durabilidad y resistencia del producto.`;
+        }
+
+        // PROMPT PARA FAQ
+        else if (section === "faq") {
+            prompt = `Genera 6 FAQs para: ${pName}.
+${MASTER_PROMPT_RULES}
+
+OBLIGATORIO: Incluye preguntas sobre garantía por defectos de fábrica y envíos nacionales mencionados en las REGLAS DE ORO.
+
+Formato JSON:
+[
+  {
+    "question": "...",
+    "answer": "..."
   }
 ]`;
         }
@@ -95,9 +101,9 @@ Formato JSON:
         else if (type === "product" && section === "longDescription") {
             prompt = `Escribe una descripción de ventas persuasiva de 200-250 palabras para:
 
-Producto: ${pName}
-Nicho: ${bNiche}
-Tono: ${bTone}
+PRODUCTO A PUBLICAR: ${pName}
+NICHO: ${bNiche}
+TONO: ${bTone}
 
 Usa fórmula AIDA:
 1. ATENCIÓN: Gancho inicial
@@ -117,7 +123,10 @@ Responde solo con el texto plano.`;
             messages: [
                 {
                     role: "system",
-                    content: "Eres un copywriter experto en marketing digital de alta conversión. Respondes siempre en español con tono persuasivo y profesional."
+                    content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
+                    
+Sigue estrictamente estas pautas:
+${MASTER_PROMPT_RULES}`
                 },
                 {
                     role: "user",

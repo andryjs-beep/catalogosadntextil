@@ -13,12 +13,12 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     const editorRef = useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Sincronizar valor inicial
+    // Sincronizar valor inicial y actualizaciones externas
     useEffect(() => {
         if (editorRef.current && editorRef.current.innerHTML !== value) {
             editorRef.current.innerHTML = value || '';
         }
-    }, []);
+    }, [value]);
 
     const execCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
