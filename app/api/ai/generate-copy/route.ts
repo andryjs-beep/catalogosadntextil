@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getSession } from '@/lib/auth';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
 export async function POST(req: NextRequest) {
     try {
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            console.error('OPENAI_API_KEY no configurada');
+            return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
+        }
+
+        const openai = new OpenAI({ apiKey });
+
         const session = await getSession();
         if (!session.isAuthenticated) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
