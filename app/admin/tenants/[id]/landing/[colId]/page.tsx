@@ -207,10 +207,12 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
             const json = await res.json();
 
             const assignments = json.tenantCollections.map((tc: any) => {
-                const isCurrent = (tc.collectionId._id === colId || tc.collectionId === colId);
+                const tcColId = typeof tc.collectionId === 'object' ? tc.collectionId._id : tc.collectionId;
+                const isCurrent = (tcColId === colId);
+
                 if (isCurrent) {
                     return {
-                        collectionId: colId,
+                        collectionId: colId, // Usar el ID del parámetro de la ruta
                         persuasiveTextTop: data.persuasiveTextTop,
                         persuasiveTextBottom: data.persuasiveTextBottom,
                         ctaButtonText: data.ctaButtonText,
@@ -220,7 +222,12 @@ export default function LandingEditorPage({ params }: { params: Promise<{ id: st
                         landingPageSections: data.landingPageSections
                     };
                 }
-                return tc;
+
+                // Para los demás, normalizar el ID
+                return {
+                    ...tc,
+                    collectionId: tcColId
+                };
             });
 
             const saveRes = await fetch(`/api/admin/tenants/${tenantId}/assign`, {

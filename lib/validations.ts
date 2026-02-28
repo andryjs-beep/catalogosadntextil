@@ -185,7 +185,10 @@ export const landingPageSectionsSchema = z.object({
 
 // ============ ASIGNACIÓN COLECCIONES ============
 export const tenantCollectionSchema = z.object({
-    collectionId: z.string().min(1, 'El ID de colección es requerido'),
+    collectionId: z.union([
+        z.string().min(1),
+        z.object({ _id: z.string() }).transform(obj => obj._id)
+    ]),
     persuasiveTextTop: z.string().max(500).default(''),
     persuasiveTextBottom: z.string().max(500).default(''),
     ctaButtonText: z.string().max(50).default(''),
