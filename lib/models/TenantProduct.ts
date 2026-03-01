@@ -57,6 +57,8 @@ export interface ITenantProduct extends Document {
     // Footer
     footerNote: string; // Texto de disclaimer al final
     showLocation: boolean; // Mostrar sección "Ubícanos" en este producto
+    reviewName: string;
+    starRating: number;
     // Landing
     landingContent: ILandingContent;
     aiGenerated: boolean;
@@ -146,6 +148,18 @@ const TenantProductSchema = new Schema<ITenantProduct>(
         showLocation: {
             type: Boolean,
             default: true,
+        },
+        reviewName: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [100, 'El nombre de la reseña no puede exceder 100 caracteres'],
+        },
+        starRating: {
+            type: Number,
+            default: 5,
+            min: [1, 'La calificación mínima es 1'],
+            max: [5, 'La calificación máxima es 5'],
         },
         landingContent: {
             hero: {

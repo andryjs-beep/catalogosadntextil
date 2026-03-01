@@ -59,14 +59,14 @@ export function TickerBanner({
             `}</style>
             <div
                 ref={containerRef}
-                className="w-full overflow-hidden py-2.5 relative z-50"
-                style={{ backgroundColor: bgColor }}
+                className="w-full overflow-hidden py-2.5 relative z-50 ticker-container"
+                style={{ backgroundColor: 'var(--color-ticker-bg)' }}
             >
                 <div
                     className="whitespace-nowrap inline-flex"
                     style={{
                         ...animationStyle,
-                        color: textColor,
+                        color: 'var(--color-ticker-text)',
                     }}
                 >
                     <span className="inline-block text-sm font-medium tracking-wide px-4">

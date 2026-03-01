@@ -274,6 +274,8 @@ export default async function CollectionPage({
                             coverImage={product.coverImage}
                             tenantSlug={tenantSlug}
                             collectionSlug={collectionSlug}
+                            reviewName={product.reviewName}
+                            starRating={product.starRating}
                         />
                     ))}
                 </div>

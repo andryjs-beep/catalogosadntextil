@@ -222,6 +222,8 @@ export const tenantProductSchema = z.object({
     ctaSubtext: z.string().max(200).default(''),
     footerNote: z.string().max(500).default(''),
     showLocation: z.boolean().default(true),
+    reviewName: z.string().max(100).default(''),
+    starRating: z.number().min(1).max(5).default(5),
     useLandingLayout: z.boolean().optional().default(false),
     landingContent: z.object({
         hero: z.object({

@@ -71,6 +71,22 @@ export default async function TenantLayout({
                     dangerouslySetInnerHTML={{
                         __html: `
               :root {
+                --color-header-bg: ${branding.topBarBgColor || '#000000'};
+                --color-header-text: ${branding.topBarTextColor || '#ffffff'};
+                --color-primary: ${branding.primaryColor || '#1f1f91'};
+                --color-secondary: ${branding.secondaryColor || '#ffd400'};
+                --color-accent: ${branding.accentColor || '#25d366'};
+                --color-ticker-bg: ${branding.tickerBgColor || '#1f1f91'};
+                --color-ticker-text: ${branding.tickerTextColor || '#ffffff'};
+                --color-body-bg: #f9f9f9;
+                --color-card-bg: #ffffff;
+                --color-review-text: #666666;
+                --color-star-on: #ffd400;
+                --color-star-off: #dddddd;
+                --color-search-bg: #ffffff;
+                --color-search-border: #eeeeee;
+                
+                /* Keep legacy for safety */
                 --primary: ${branding.primaryColor};
                 --secondary: ${branding.secondaryColor};
                 --accent: ${branding.accentColor};
@@ -89,10 +105,8 @@ export default async function TenantLayout({
                     <Header
                         logo={branding.logo}
                         headerText={globalTexts.headerText}
-                        socialLinks={socialLinks}
                         tenantSlug={tenantSlug}
                         collections={collections}
-                        primaryColor={branding.primaryColor}
                     />
                     <main className="flex-1">{children}</main>
                     <WhatsAppButton
