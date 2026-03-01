@@ -69,8 +69,8 @@ export async function generateMetadata({
     }
 
     return {
-        title: data.tenant.globalTexts.headerText || `Catálogo - ${tenantSlug}`,
-        description: data.tenant.globalTexts.footerText || 'Explora nuestro catálogo de productos',
+        title: data.tenant.globalTexts?.headerText || `Catálogo - ${tenantSlug}`,
+        description: data.tenant.globalTexts?.footerText || 'Explora nuestro catálogo de productos',
     };
 }
 

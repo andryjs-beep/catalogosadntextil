@@ -196,7 +196,7 @@ export default async function ProductDetailPage({
         }))
         : [];
 
-    const ctaText = customization?.ctaText || tenant.globalTexts.ctaButtonText;
+    const ctaText = customization?.ctaText || tenant.globalTexts?.ctaButtonText || 'Contactar';
     const ctaSubtext = customization?.ctaSubtext || '';
     const footerNote = customization?.footerNote || '';
     const galleryMode = customization?.galleryMode || 'album';

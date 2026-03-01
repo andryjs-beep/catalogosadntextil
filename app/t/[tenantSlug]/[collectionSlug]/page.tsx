@@ -176,8 +176,8 @@ export async function generateMetadata({
 
     const { tenant, collection, products, isSingleProduct } = data;
     const title = isSingleProduct
-        ? `${products[0]?.customName || products[0]?.name} | ${tenant.globalTexts.headerText || tenantSlug}`
-        : `${collection.name} | ${tenant.globalTexts.headerText || tenantSlug}`;
+        ? `${products[0]?.customName || products[0]?.name} | ${tenant.globalTexts?.headerText || tenantSlug}`
+        : `${collection.name} | ${tenant.globalTexts?.headerText || tenantSlug}`;
 
     return {
         title,
@@ -198,7 +198,7 @@ export default async function CollectionPage({
     }
 
     const { tenant, collection, tenantCollection, products, isSingleProduct } = data;
-    const ctaText = tenantCollection.ctaButtonText || tenant.globalTexts.ctaButtonText;
+    const ctaText = tenantCollection.ctaButtonText || tenant.globalTexts?.ctaButtonText || 'Contactar';
 
     // PRIORIDAD 2026: Flujo de Catálogo -> Landing
     // Si es un producto único (acceso por slug de producto), usar LandingPageLayout
