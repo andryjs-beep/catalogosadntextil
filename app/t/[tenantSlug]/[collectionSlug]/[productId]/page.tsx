@@ -230,6 +230,8 @@ export default async function ProductDetailPage({
                     customName: productName,
                     customPrice: productPrice,
                     tieredPricing: customization.tieredPricing,
+                    landingContent: customization.landingContent,
+                    useLandingLayout: customization.useLandingLayout,
                     customDescription: finalDescription
                 }]}
                 tenantSlug={tenantSlug}

@@ -55,6 +55,8 @@ interface CustomizationData {
     customPrice?: string;
     tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>;
     customDescription?: string;
+    landingContent?: any;
+    useLandingLayout?: boolean;
 }
 
 async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug: string) {
@@ -139,6 +141,8 @@ async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug
             customPrice: displayPrice,
             customDescription: custom?.customDescription || '',
             tieredPricing: custom?.tieredPricing, // Pasar tieredPricing para el Hero
+            landingContent: custom?.landingContent || null,
+            useLandingLayout: custom?.useLandingLayout || false,
             coverImage: product.coverImage, // Pasar la nueva portada
         };
     });

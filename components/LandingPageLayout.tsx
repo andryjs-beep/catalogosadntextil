@@ -33,8 +33,8 @@ export function LandingPageLayout({
     const isSingleProduct = products.length === 1;
 
     // PRIORIDAD 2026: Si es producto único, usar su landingContent específico si existe
-    const productLanding = (isSingleProduct && products[0]?.customization?.landingContent)
-        ? products[0].customization.landingContent
+    const productLanding = (isSingleProduct && products[0]?.landingContent)
+        ? products[0].landingContent
         : null;
 
     let { landingPageSections } = tenantCollection;
@@ -178,6 +178,11 @@ export function LandingPageLayout({
             {/* Benefits Section */}
             {landingPageSections?.benefits?.items?.length > 0 && (
                 <BenefitsSection benefits={landingPageSections.benefits.items} />
+            )}
+
+            {/* FAQ Section */}
+            {landingPageSections?.faq?.length > 0 && (
+                <FAQSection faqs={landingPageSections.faq} />
             )}
 
             {/* Terms and Conditions */}
