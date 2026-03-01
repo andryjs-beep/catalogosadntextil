@@ -125,7 +125,7 @@ export function HeroSection({
                             </div>
                         )}
                         <div
-                            className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                            className="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 hero-subheadline-container"
                             dangerouslySetInnerHTML={{ __html: data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.' }}
                         />
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -158,6 +158,23 @@ export function HeroSection({
 
                 </div>
             </div>
+            <style jsx>{`
+                .hero-subheadline-container :global(ul) {
+                    list-style-type: none;
+                    padding: 0;
+                    margin: 1rem 0;
+                }
+                .hero-subheadline-container :global(li) {
+                    margin-bottom: 0.5rem;
+                }
+                /* Asegurar que si el HTML interno no tiene alineación, herede la del contenedor */
+                .hero-subheadline-container :global(p),
+                .hero-subheadline-container :global(div),
+                .hero-subheadline-container :global(ul),
+                .hero-subheadline-container :global(li) {
+                    text-align: inherit;
+                }
+            `}</style>
         </section>
     );
 }

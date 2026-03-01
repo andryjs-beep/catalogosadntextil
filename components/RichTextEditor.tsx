@@ -121,6 +121,10 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
                     margin: 1rem auto;
                     border-radius: 0.75rem;
                 }
+                /* Forzar que los elementos hereden el text-align si se aplica al div padre por execCommand */
+                [contenteditable] > * {
+                    text-align: inherit;
+                }
             `}</style>
         </div>
     );
