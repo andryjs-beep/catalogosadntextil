@@ -47,6 +47,8 @@ interface ProductWithCustom {
     customPrice?: string;
     tieredPricing?: Array<{ unitCount: number; price: string; enabled: boolean }>;
     customDescription?: string;
+    reviewName?: string;
+    starRating?: number;
 }
 
 interface CustomizationData {
@@ -57,6 +59,8 @@ interface CustomizationData {
     customDescription?: string;
     landingContent?: any;
     useLandingLayout?: boolean;
+    reviewName?: string;
+    starRating?: number;
 }
 
 async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug: string) {
@@ -144,6 +148,8 @@ async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug
             landingContent: custom?.landingContent || null,
             useLandingLayout: custom?.useLandingLayout || false,
             coverImage: product.coverImage, // Pasar la nueva portada
+            reviewName: custom?.reviewName || '',
+            starRating: custom?.starRating || 5,
         };
     });
 
