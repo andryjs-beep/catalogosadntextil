@@ -61,12 +61,14 @@ export default async function TenantLayout({
     }
 
     const { tenant, collections } = data;
-    const { branding, socialLinks, globalTexts } = tenant;
+    const branding = tenant.branding || {};
+    const socialLinks = tenant.socialLinks || {};
+    const globalTexts = tenant.globalTexts || {};
 
     return (
         <html lang="es">
             <head>
-                <title>{globalTexts.headerText || tenant.slug.toUpperCase()}</title>
+                <title>{globalTexts.headerText || tenant.slug?.toUpperCase() || 'Catálogo'}</title>
                 <meta name="description" content={`Catálogo de productos de ${tenant.slug}`} />
                 <style
                     dangerouslySetInnerHTML={{
@@ -77,7 +79,7 @@ export default async function TenantLayout({
                 --color-primary: ${branding.primaryColor || '#1f1f91'};
                 --color-secondary: ${branding.secondaryColor || '#ffd400'};
                 --color-accent: ${branding.accentColor || '#25d366'};
-                --color-ticker-bg: ${branding.tickerBgColor || '#1f1f91'};
+                --color-ticker-bg: ${branding.tickerBgColor || branding.primaryColor || '#1f1f91'};
                 --color-ticker-text: ${branding.tickerTextColor || '#ffffff'};
                 --color-body-bg: #f9f9f9;
                 --color-card-bg: #ffffff;
@@ -88,31 +90,31 @@ export default async function TenantLayout({
                 --color-search-border: #eeeeee;
                 
                 /* Keep legacy for safety */
-                --primary: ${branding.primaryColor};
-                --secondary: ${branding.secondaryColor};
-                --accent: ${branding.accentColor};
+                --primary: ${branding.primaryColor || '#1f1f91'};
+                --secondary: ${branding.secondaryColor || '#ffd400'};
+                --accent: ${branding.accentColor || '#25d366'};
               }
             `,
                     }}
                 />
                 {branding.favicon && <link rel="icon" href={branding.favicon} />}
                 <link
-                    href={`https://fonts.googleapis.com/css2?family=${branding.fontFamily.replace(' ', '+')}:wght@400;500;600;700&display=swap`}
+                    href={`https://fonts.googleapis.com/css2?family=${(branding.fontFamily || 'Inter').replace(' ', '+')}:wght@400;500;600;700&display=swap`}
                     rel="stylesheet"
                 />
             </head>
-            <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
+            <body style={{ fontFamily: `'${branding.fontFamily || 'Inter'}', sans-serif` }}>
                 <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
                     {branding.tickerEnabled && (
                         <TickerBanner
                             text={branding.tickerText || ''}
-                            speed={branding.tickerSpeed || 'normal'}
-                            direction={branding.tickerDirection || 'left'}
+                            speed={(branding.tickerSpeed as any) || 'normal'}
+                            direction={(branding.tickerDirection as any) || 'left'}
                         />
                     )}
                     <Header
-                        logo={branding.logo}
-                        headerText={globalTexts.headerText}
+                        logo={branding.logo || ''}
+                        headerText={globalTexts.headerText || ''}
                         tenantSlug={tenantSlug}
                         collections={collections}
                     />
@@ -120,7 +122,7 @@ export default async function TenantLayout({
                     <WhatsAppButton
                         href={socialLinks.whatsappLink || ''}
                         text="Contactar"
-                        tenantId={tenant._id.toString()}
+                        tenantId={tenant._id?.toString() || ''}
                         variant="floating"
                     />
                     <Footer

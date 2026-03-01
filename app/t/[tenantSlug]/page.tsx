@@ -91,6 +91,9 @@ export default async function TenantHomePage({
     }
 
     const { tenant, collections } = data;
+    const branding = tenant.branding || {};
+    const globalTexts = tenant.globalTexts || {};
+    const socialLinks = tenant.socialLinks || {};
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -98,12 +101,12 @@ export default async function TenantHomePage({
             <div className="text-center mb-12 animate-fade-in-up">
                 <h1
                     className="text-4xl md:text-5xl font-bold mb-4"
-                    style={{ color: tenant.branding?.primaryColor || '#1e40af' }}
+                    style={{ color: branding.primaryColor || '#1e40af' }}
                 >
-                    {tenant.globalTexts?.homeTitle || 'Bienvenido a nuestro catálogo'}
+                    {globalTexts.homeTitle || 'Bienvenido a nuestro catálogo'}
                 </h1>
                 <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                    {tenant.globalTexts?.homeSubtitle || 'Explora nuestras colecciones y encuentra lo que necesitas'}
+                    {globalTexts.homeSubtitle || 'Explora nuestras colecciones y encuentra lo que necesitas'}
                 </p>
             </div>
 
@@ -116,12 +119,12 @@ export default async function TenantHomePage({
                             className={`animate-fade-in-up animation-delay-${(index % 3) * 100 + 100}`}
                         >
                             <CollectionCard
-                                name={tc.collectionId.name}
-                                slug={tc.collectionId.slug}
-                                coverImage={tc.collectionId.coverImage}
+                                name={tc.collectionId?.name || 'Colección'}
+                                slug={tc.collectionId?.slug || ''}
+                                coverImage={tc.collectionId?.coverImage || ''}
                                 tenantSlug={tenantSlug}
-                                ctaText={tc.ctaButtonText || tenant.globalTexts.ctaButtonText}
-                                productCount={tc.collectionId.productIds?.length || 0}
+                                ctaText={tc.ctaButtonText || globalTexts.ctaButtonText || 'Ver catálogo'}
+                                productCount={tc.collectionId?.productIds?.length || 0}
                             />
                         </div>
                     ))}
@@ -133,9 +136,9 @@ export default async function TenantHomePage({
             )}
 
             {/* WhatsApp flotante */}
-            {tenant.socialLinks.whatsappLink && (
+            {socialLinks.whatsappLink && (
                 <WhatsAppButton
-                    href={tenant.socialLinks.whatsappLink}
+                    href={socialLinks.whatsappLink}
                     text=""
                     tenantId={tenant._id.toString()}
                     variant="floating"
