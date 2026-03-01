@@ -74,7 +74,7 @@ export default async function TenantLayout({
                     dangerouslySetInnerHTML={{
                         __html: `
               :root {
-                --color-header-bg: ${branding.topBarBgColor || '#000000'};
+                --color-header-bg: ${branding.topBarBgColor || branding.primaryColor || '#000000'};
                 --color-header-text: ${branding.topBarTextColor || '#ffffff'};
                 --color-primary: ${branding.primaryColor || '#1f1f91'};
                 --color-secondary: ${branding.secondaryColor || '#ffd400'};

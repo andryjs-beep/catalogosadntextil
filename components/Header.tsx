@@ -184,25 +184,27 @@ export function Header({
                     align-items: center;
                 }
                 nav ul { list-style: none; padding: 20px 0; margin: 0; overflow-y: auto; }
-                nav ul li { margin-bottom: 10px; padding: 0 15px; }
-                nav ul li a {
+                nav ul li { margin-bottom: 15px; padding: 0 15px; }
+                .menu-link {
                     display: block;
                     padding: 14px 20px;
                     text-decoration: none;
-                    color: white;
-                    background-color: var(--color-primary);
+                    color: var(--color-primary);
+                    background-color: transparent;
+                    border: 2px solid var(--color-primary);
                     border-radius: 12px;
-                    font-weight: 700;
-                    font-size: 14px;
+                    font-weight: 800;
+                    font-size: 13px;
                     text-align: center;
+                    letter-spacing: 0.5px;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                    text-transform: uppercase;
                 }
-                nav ul li a:hover { 
-                    background-color: var(--color-secondary);
-                    color: #000;
+                .menu-link:hover { 
+                    background-color: var(--color-primary);
+                    color: #fff;
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 }
 
                 @media (min-width: 768px) {
@@ -254,11 +256,11 @@ export function Header({
                     <span style={{ fontSize: '24px', cursor: 'pointer' }} onClick={() => setIsMenuOpen(false)}>×</span>
                 </div>
                 <ul>
-                    <li><Link href={`/t/${tenantSlug}`} onClick={() => setIsMenuOpen(false)}>INICIO</Link></li>
+                    <li><Link href={`/t/${tenantSlug}`} onClick={() => setIsMenuOpen(false)} className="menu-link">INICIO</Link></li>
                     {/* CATEGORÍAS REALES DEL CATÁLOGO */}
                     {collections.map(col => (
                         <li key={col._id}>
-                            <Link href={`/t/${tenantSlug}/${col.slug}`} onClick={() => setIsMenuOpen(false)}>
+                            <Link href={`/t/${tenantSlug}/${col.slug}`} onClick={() => setIsMenuOpen(false)} className="menu-link">
                                 {col.name.toUpperCase()}
                             </Link>
                         </li>
