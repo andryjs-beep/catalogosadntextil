@@ -252,17 +252,6 @@ export default async function CollectionPage({
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
                         {products.length} Referencias Disponibles
                     </span>
-                    {tenant.socialLinks.whatsappLink && (
-                        <div className="mt-1">
-                            <WhatsAppButton
-                                href={tenant.socialLinks.whatsappLink}
-                                text={ctaText}
-                                tenantId={tenant._id.toString()}
-                                collectionId={collection._id.toString()}
-                                className="text-xs py-2 px-4"
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -297,14 +286,6 @@ export default async function CollectionPage({
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-6">
                         {tenantCollection.persuasiveTextBottom}
                     </p>
-                    {tenant.socialLinks.whatsappLink && (
-                        <WhatsAppButton
-                            href={tenant.socialLinks.whatsappLink}
-                            text={ctaText}
-                            tenantId={tenant._id.toString()}
-                            collectionId={collection._id.toString()}
-                        />
-                    )}
                 </div>
             )}
 
