@@ -23,11 +23,11 @@ export function CollectionCard({
     productCount,
 }: CollectionCardProps) {
     return (
-        <Link href={`/t/${tenantSlug}/${slug}`}>
-            <div className="tenant-card group relative overflow-hidden rounded-2xl bg-white shadow-lg cursor-pointer">
+        <Link href={`/t/${tenantSlug}/${slug}`} className="collection-card group block">
+            <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                 {/* Imagen */}
-                <div className="aspect-square relative overflow-hidden">
-                    {coverImage ? (
+                <div className="aspect-square relative overflow-hidden bg-slate-100">
+                    {coverImage && coverImage.trim() !== '' ? (
                         <Image
                             src={coverImage}
                             alt={name}
@@ -36,12 +36,12 @@ export function CollectionCard({
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                     ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                            <FolderOpen className="h-16 w-16 text-slate-300" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                            <FolderOpen className="h-16 w-16 text-slate-400" />
                         </div>
                     )}
                     {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
                 {/* Contenido */}

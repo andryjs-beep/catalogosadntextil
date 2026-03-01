@@ -39,7 +39,7 @@ export function ProductCard({
 
     return (
         <Link href={`/t/${tenantSlug}/${slug || id}`}>
-            <div className="tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer flex flex-col h-full transition-transform hover:-translate-y-1">
+            <div className="product-card tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer flex flex-col h-full transition-transform hover:-translate-y-1">
                 {/* Imagen */}
                 <div className="aspect-square relative overflow-hidden">
                     {displayImage ? (

@@ -53,8 +53,8 @@ export function HeroSection({
 
             <div className="container mx-auto max-w-7xl relative z-10">
                 <div className="flex flex-col lg:flex-row gap-12 items-center">
-                    {/* Slider de Productos - AHORA PRIMERO (Arriba en móvil) */}
-                    <div className="w-full lg:w-1/2 relative animate-fade-in-up delay-200 group order-1 lg:order-2">
+                    {/* Slider de Productos */}
+                    <div className="w-full lg:w-1/2 relative animate-fade-in-up delay-200 group order-2 lg:order-2">
                         <ProductSlider
                             images={productImages}
                             productName={collectionName || 'Producto'}
@@ -76,7 +76,7 @@ export function HeroSection({
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-1/2 text-center lg:text-left animate-fade-in-up order-2 lg:order-1">
+                    <div className="w-full lg:w-1/2 text-center lg:text-left animate-fade-in-up order-1 lg:order-1">
                         <Badge className="mb-4 px-4 py-1 text-sm bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                             Colección Exclusiva
                         </Badge>

@@ -9,6 +9,7 @@ import type { ITenant } from '@/lib/models/Tenant';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { TickerBanner } from '@/components/TickerBanner';
 import './tenant.css';
 
 interface CollectionData {
@@ -102,6 +103,13 @@ export default async function TenantLayout({
             </head>
             <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
                 <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
+                    {branding.tickerEnabled && (
+                        <TickerBanner
+                            text={branding.tickerText || ''}
+                            speed={branding.tickerSpeed || 'normal'}
+                            direction={branding.tickerDirection || 'left'}
+                        />
+                    )}
                     <Header
                         logo={branding.logo}
                         headerText={globalTexts.headerText}

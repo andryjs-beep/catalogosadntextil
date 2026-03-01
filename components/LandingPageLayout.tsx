@@ -90,34 +90,6 @@ export function LandingPageLayout({
 
     return (
         <main className="min-h-screen tenant-font-body" style={{ backgroundColor: 'var(--color-body-bg)' }}>
-            <style jsx global>{`
-                :root {
-                    --color-header-bg: ${tenant.branding.topBarBgColor || '#000000'};
-                    --color-header-text: ${tenant.branding.topBarTextColor || '#ffffff'};
-                    --color-primary: ${tenant.branding.primaryColor || '#1f1f91'};
-                    --color-secondary: ${tenant.branding.secondaryColor || '#ffd400'};
-                    --color-accent: ${tenant.branding.accentColor || '#25d366'};
-                    --color-ticker-bg: ${tenant.branding.tickerBgColor || '#1f1f91'};
-                    --color-ticker-text: ${tenant.branding.tickerTextColor || '#ffffff'};
-                    --color-body-bg: #f9f9f9;
-                    --color-card-bg: #ffffff;
-                    --color-review-text: #666666;
-                    --color-star-on: #ffd400;
-                    --color-star-off: #dddddd;
-                    --color-search-bg: #ffffff;
-                    --color-search-border: #eeeeee;
-                }
-            `}</style>
-            {/* Ticker Banner Dinámico */}
-            {/* Ticker Banner (si está habilitado) */}
-            <TickerBanner
-                text={tenant.branding?.tickerText || ''}
-                bgColor={tenant.branding?.tickerBgColor}
-                textColor={tenant.branding?.tickerTextColor}
-                speed={tenant.branding?.tickerSpeed as 'slow' | 'normal' | 'fast'}
-                direction={tenant.branding?.tickerDirection as 'left' | 'right'}
-                enabled={tenant.branding?.tickerEnabled}
-            />
 
             {/* Badge Overlay (si está habilitado) */}
             {badge.enabled && (

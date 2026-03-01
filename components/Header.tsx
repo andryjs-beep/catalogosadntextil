@@ -29,18 +29,17 @@ export function Header({
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Filtrado de productos en el DOM (Real-time)
+    // Filtrado de productos y colecciones en el DOM (Real-time)
     useEffect(() => {
-        const productCards = document.querySelectorAll('.tenant-card');
-        productCards.forEach((card) => {
-            const titleElement = card.querySelector('h3');
+        const items = document.querySelectorAll('.product-card, .collection-card');
+        items.forEach((item) => {
+            const titleElement = item.querySelector('h3');
             if (!titleElement) return;
 
             const title = titleElement.innerText.toLowerCase();
             const matches = title.includes(searchQuery.toLowerCase());
 
-            // Usamos display: none/flex para ocultar/mostrar
-            (card as HTMLElement).style.display = matches ? 'flex' : 'none';
+            (item as HTMLElement).style.display = matches ? '' : 'none';
         });
     }, [searchQuery]);
 
@@ -184,18 +183,27 @@ export function Header({
                     justify-content: space-between;
                     align-items: center;
                 }
-                nav ul { list-style: none; padding: 10px 0; margin: 0; overflow-y: auto; }
+                nav ul { list-style: none; padding: 20px 0; margin: 0; overflow-y: auto; }
+                nav ul li { margin-bottom: 10px; padding: 0 15px; }
                 nav ul li a {
                     display: block;
-                    padding: 15px 25px;
+                    padding: 14px 20px;
                     text-decoration: none;
-                    color: #1a1a1a;
-                    font-weight: 600;
-                    font-size: 15px;
-                    border-bottom: 1px solid #f5f5f5;
-                    transition: 0.2s;
+                    color: white;
+                    background-color: var(--color-primary);
+                    border-radius: 12px;
+                    font-weight: 700;
+                    font-size: 14px;
+                    text-align: center;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
                 }
-                nav ul li a:hover { background-color: #f9f9f9; padding-left: 30px; }
+                nav ul li a:hover { 
+                    background-color: var(--color-secondary);
+                    color: #000;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+                }
 
                 @media (min-width: 768px) {
                     header { padding: 15px 40px; height: 80px; }
