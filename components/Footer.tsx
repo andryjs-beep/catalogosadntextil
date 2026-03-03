@@ -9,6 +9,20 @@ interface FooterProps {
     socialLinks: ISocialLinks;
 }
 
+function formatWhatsAppUrl(input: string): string {
+    if (!input) return '#';
+    let cleanNumber = '';
+    const waMatch = input.match(/wa\.me\/(\d+)/);
+    const apiMatch = input.match(/phone=(\d+)/);
+
+    if (waMatch) cleanNumber = waMatch[1];
+    else if (apiMatch) cleanNumber = apiMatch[1];
+    else cleanNumber = input.replace(/[^\d]/g, '');
+
+    if (!cleanNumber) return input;
+    return `https://wa.me/${cleanNumber}?text=${encodeURIComponent('Hola, quiero más información')}`;
+}
+
 export function Footer({ footerText, socialLinks }: FooterProps) {
     const currentYear = new Date().getFullYear();
 
@@ -68,7 +82,7 @@ export function Footer({ footerText, socialLinks }: FooterProps) {
                             </a>
                         )}
                         {socialLinks.whatsappLink && (
-                            <a href={socialLinks.whatsappLink} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 hover:scale-110 transition-transform">
+                            <a href={formatWhatsAppUrl(socialLinks.whatsappLink)} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 hover:scale-110 transition-transform">
                                 <svg width="32" height="32" viewBox="0 0 32 32">
                                     <rect width="32" height="32" rx="8" fill="#25D366" />
                                     <path fill="#ffffff" d="M16 6c-5.5 0-10 4.5-10 10 0 1.8.5 3.5 1.4 5l-1.5 4.6 4.8-1.5c1.4.8 3 1.3 4.8 1.3 5.5 0 10-4.5 10-10S21.5 6 16 6zm5.5 14.5c-.3.8-1.4 1.2-2 1.3-.5.1-1.2.1-3.4-.8-2.6-1.1-4.3-3.8-4.4-4-.1-.1-1.1-1.4-1.1-2.7 0-1.2.6-1.9.9-2.2.2-.2.5-.3.8-.3h.5c.2 0 .5-.1.7.5.3.7.8 1.9.8 2.1s-.1.4-.2.6c-.1.2-.2.3-.3.5s-.3.3-.4.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.5 1.3 1.2 2.5 1.6 2.8 1.7.3.1.5.1.7-.1.2-.2.8-1 1-1.3.2-.3.5-.3.7-.2.3.1 1.7.8 1.9 1 .2.1.4.2.4.3.1.2.1.8-.2 1.5z" />
