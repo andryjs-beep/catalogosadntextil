@@ -23,7 +23,8 @@ export function Header({
     logo,
     headerText,
     tenantSlug,
-    collections = []
+    collections = [],
+    socialLinks
 }: HeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -265,6 +266,13 @@ export function Header({
                             </Link>
                         </li>
                     ))}
+                    {socialLinks?.googleMapsLink && (
+                        <li>
+                            <Link href={socialLinks.googleMapsLink} target="_blank" rel="noopener noreferrer" onClick={() => setIsMenuOpen(false)} className="menu-link">
+                                UBICACIÓN
+                            </Link>
+                        </li>
+                    )}
                 </ul>
             </nav>
         </div>

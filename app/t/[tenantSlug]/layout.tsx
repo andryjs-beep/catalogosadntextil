@@ -117,6 +117,7 @@ export default async function TenantLayout({
                         headerText={globalTexts.headerText || ''}
                         tenantSlug={tenantSlug}
                         collections={collections}
+                        socialLinks={socialLinks}
                     />
                     <main className="flex-1">{children}</main>
                     <WhatsAppButton
