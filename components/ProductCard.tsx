@@ -38,10 +38,10 @@ export function ProductCard({
     const stars = Array.from({ length: 5 }, (_, i) => i < starRating);
 
     return (
-        <Link href={`/t/${tenantSlug}/${slug || id}`}>
-            <div className="product-card tenant-card group bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer flex flex-col h-full transition-transform hover:-translate-y-1">
+        <Link href={`/t/${tenantSlug}/${slug || id}`} className="group block h-full">
+            <div className="product-card bg-card rounded-[1.5rem] overflow-hidden premium-shadow premium-shadow-hover flex flex-col h-full transition-all duration-500">
                 {/* Imagen */}
-                <div className="aspect-square relative overflow-hidden">
+                <div className="aspect-square relative overflow-hidden bg-muted">
                     {displayImage ? (
                         <Image
                             src={displayImage}
@@ -52,47 +52,49 @@ export function ProductCard({
                         />
                     ) : (
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                            <Package className="h-12 w-12 text-slate-300" />
+                            <Package className="h-10 w-10 text-slate-300" />
                         </div>
                     )}
 
-                    {/* Badge de precio */}
+                    {/* Badge de precio refined with glassmorphism */}
                     {price && (
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-md">
-                            <span className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{price}</span>
+                        <div className="absolute top-3 right-3 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-white/20">
+                            <span className="font-black text-xs tracking-tight text-slate-900">{price}</span>
                         </div>
                     )}
                 </div>
 
                 {/* Contenido */}
-                <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="font-bold text-slate-800 transition-colors line-clamp-2 text-sm md:text-base mb-2 group-hover:text-[var(--color-primary)]">
+                <div className="p-5 flex flex-col flex-grow">
+                    <h3 className="font-black text-slate-900 transition-colors line-clamp-2 text-sm leading-snug mb-3 group-hover:text-primary">
                         {name}
                     </h3>
 
-                    <div className="mt-auto">
-                        {price && (
-                            <p className="font-extrabold text-lg mb-2" style={{ color: 'var(--color-primary)' }}>
-                                {price}
-                            </p>
-                        )}
-
-                        <div className="product-review pt-3 mr-2 border-t border-slate-100 border-dotted">
-                            <span className="review-name block text-[11px] font-medium mb-1" style={{ color: 'var(--color-review-text)' }}>
-                                {reviewName}
-                            </span>
-                            <div className="review-stars flex gap-0.5">
-                                {stars.map((isFull, i) => (
-                                    <span key={i} style={{ color: isFull ? 'var(--color-star-on)' : 'var(--color-star-off)', fontSize: '14px' }}>
-                                        {isFull ? '★' : '☆'}
-                                    </span>
-                                ))}
+                    <div className="mt-auto space-y-4">
+                        <div className="flex items-center justify-between border-t border-slate-100 border-dotted pt-3">
+                            <div className="product-review">
+                                <span className="review-name block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                    {reviewName}
+                                </span>
+                                <div className="review-stars flex gap-0.5">
+                                    {stars.map((isFull, i) => (
+                                        <span key={i} className={isFull ? "text-amber-400" : "text-slate-200"} style={{ fontSize: '12px' }}>
+                                            ★
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
+
+                            {price && (
+                                <p className="font-black text-lg text-primary leading-none">
+                                    {price}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="flex items-center text-[10px] font-black uppercase tracking-tighter mt-4 transition-transform group-hover:translate-x-1" style={{ color: 'var(--color-primary)' }}>
-                            {ctaText}
-                            <span className="ml-1">→</span>
+                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 group-hover:text-primary transition-all">
+                            <span>{ctaText}</span>
+                            <span className="transition-transform group-hover:translate-x-1">→</span>
                         </div>
                     </div>
                 </div>

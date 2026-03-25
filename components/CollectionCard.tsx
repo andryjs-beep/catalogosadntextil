@@ -24,44 +24,47 @@ export function CollectionCard({
 }: CollectionCardProps) {
     return (
         <Link href={`/t/${tenantSlug}/${slug}`} className="collection-card group block">
-            <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+            <div className="relative overflow-hidden rounded-[2rem] bg-card premium-shadow premium-shadow-hover transition-all duration-500">
                 {/* Imagen */}
-                <div className="aspect-square relative overflow-hidden bg-slate-100">
+                <div className="aspect-[4/5] relative overflow-hidden bg-muted">
                     {coverImage && coverImage.trim() !== '' ? (
                         <Image
                             src={coverImage}
                             alt={name}
                             fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                     ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                            <FolderOpen className="h-16 w-16 text-slate-400" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                            <FolderOpen className="h-12 w-12 text-slate-300" />
                         </div>
                     )}
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Overlay refined */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    {/* Badge for product count */}
+                    {productCount !== undefined && (
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 shadow-sm">
+                            {productCount} Items
+                        </div>
+                    )}
                 </div>
 
                 {/* Contenido */}
-                <div className="p-4">
-                    <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:tenant-text-primary transition-colors">
+                <div className="p-6">
+                    <h3 className="font-black text-xl text-slate-900 mb-2 group-hover:text-primary transition-colors leading-tight">
                         {name}
                     </h3>
-                    {productCount !== undefined && (
-                        <p className="text-sm text-slate-500 mb-3">
-                            {productCount} productos
-                        </p>
-                    )}
-                    <div className="flex items-center gap-2 text-sm font-medium tenant-text-primary">
-                        {ctaText || 'Ver Catálogo'}
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-primary/60 group-hover:text-primary transition-all">
+                        <span>{ctaText || 'Explorar'}</span>
+                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                     </div>
                 </div>
 
-                {/* Borde inferior con color accent */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 tenant-bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+                {/* Accent line - More subtle */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
             </div>
         </Link>
     );

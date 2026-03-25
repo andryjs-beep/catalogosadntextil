@@ -96,27 +96,35 @@ export default async function TenantHomePage({
     const socialLinks = tenant.socialLinks || {};
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Hero Section */}
-            <div className="text-center mb-12 animate-fade-in-up">
+        <div className="container mx-auto px-4 py-12 md:py-20 lg:py-28">
+            {/* Hero Section / Welcome */}
+            <div className="text-center mb-16 md:mb-24 animate-fade-in-up max-w-4xl mx-auto space-y-6">
+                <div className="inline-block px-4 py-1 rounded-full bg-primary/5 text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2">
+                    Bienvenido
+                </div>
                 <h1
-                    className="text-4xl md:text-5xl font-bold mb-4"
-                    style={{ color: branding.primaryColor || '#1e40af' }}
+                    className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] text-balance"
+                    style={{ color: branding.primaryColor || '#0f172a' }}
                 >
-                    {globalTexts.homeTitle || 'Bienvenido a nuestro catálogo'}
+                    {globalTexts.homeTitle || 'Explora Nuestras Colecciones'}
                 </h1>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                    {globalTexts.homeSubtitle || 'Explora nuestras colecciones y encuentra lo que necesitas'}
+                <p className="text-base md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed text-balance">
+                    {globalTexts.homeSubtitle || 'Diseños exclusivos y calidad garantizada en cada una de nuestras piezas.'}
                 </p>
+
+                <div className="flex justify-center pt-4">
+                    <div className="h-1 w-20 bg-primary/20 rounded-full" />
+                </div>
             </div>
 
             {/* Grid de colecciones */}
             {collections.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                     {collections.map((tc, index) => (
                         <div
                             key={tc._id.toString()}
-                            className={`animate-fade-in-up animation-delay-${(index % 3) * 100 + 100}`}
+                            className="animate-fade-in-up"
+                            style={{ animationDelay: `${(index % 3) * 100}ms` }}
                         >
                             <CollectionCard
                                 name={tc.collectionId?.name || 'Colección'}
@@ -130,8 +138,9 @@ export default async function TenantHomePage({
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-16 text-slate-500">
-                    <p>No hay colecciones disponibles</p>
+                <div className="text-center py-32 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                    <div className="text-4xl mb-4">📦</div>
+                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No hay colecciones disponibles en este momento</p>
                 </div>
             )}
 

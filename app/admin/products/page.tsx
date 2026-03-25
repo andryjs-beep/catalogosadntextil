@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Package, Upload, X, AlignLeft } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, Upload, X, AlignLeft, ArrowLeftRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 
@@ -116,6 +116,15 @@ export default function ProductsPage() {
         const newImages = uploadedImages.filter((_, i) => i !== index);
         setUploadedImages(newImages);
         form.setValue('images', newImages);
+    };
+
+    const moveImageToTop = (index: number) => {
+        const newImages = [...uploadedImages];
+        const [movedImage] = newImages.splice(index, 1);
+        newImages.unshift(movedImage);
+        setUploadedImages(newImages);
+        form.setValue('images', newImages);
+        toast.success('Imagen movida al principio');
     };
 
     const openDialog = (product?: Product) => {
@@ -357,7 +366,17 @@ export default function ProductsPage() {
 
                                         {/* Overlay always partially visible for context, fully on hover */}
                                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex flex-col justify-between p-1.5">
-                                            <div className="flex justify-end">
+                                            <div className="flex justify-end gap-1.5">
+                                                {index > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveImageToTop(index)}
+                                                        className="bg-black/80 hover:bg-black text-white rounded-lg p-1 transition-all shadow-sm"
+                                                        title="Mover al principio"
+                                                    >
+                                                        <ArrowLeftRight className="h-3.5 w-3.5" />
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
                                                     onClick={() => removeImage(index)}

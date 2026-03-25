@@ -66,8 +66,8 @@ export function Header({
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    padding: 12px 15px;
-                    height: 60px;
+                    padding: 8px 15px;
+                    height: 70px;
                     box-sizing: border-box;
                     max-width: 1400px;
                     margin: 0 auto;
@@ -103,7 +103,7 @@ export function Header({
                     fill: currentColor;
                 }
                 #logo-img {
-                    max-height: 36px;
+                    max-height: 52px;
                     width: auto;
                     object-fit: contain;
                 }
@@ -123,7 +123,7 @@ export function Header({
                     position: absolute;
                     width: 100%;
                     left: 0;
-                    top: 60px;
+                    top: 70px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
                     display: ${isSearchOpen ? 'block' : 'none'};
                     animation: slideIn 0.3s ease-out;
@@ -209,9 +209,9 @@ export function Header({
                 }
 
                 @media (min-width: 768px) {
-                    header { padding: 15px 40px; height: 80px; }
-                    #search-panel { top: 80px; }
-                    #logo-img { max-height: 45px; }
+                    header { padding: 12px 40px; height: 95px; }
+                    #search-panel { top: 95px; }
+                    #logo-img { max-height: 65px; }
                 }
             `}</style>
 
