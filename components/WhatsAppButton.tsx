@@ -109,7 +109,7 @@ export function WhatsAppButton({
                 className={`fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full p-4 shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 premium-shadow ${className}`}
                 aria-label="Contactar por WhatsApp"
             >
-                <WhatsAppIcon className="h-8 w-8" />
+                <WhatsAppIcon className="h-10 w-10" />
             </a>
         );
     }
@@ -121,14 +121,14 @@ export function WhatsAppButton({
             rel="noopener noreferrer"
             onClick={handleClick}
             className={`
-                inline-flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white 
-                font-black rounded-full transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] 
-                shadow-lg hover:shadow-xl premium-shadow text-center
-                ${variant === 'large' ? 'w-full py-5 px-10 text-xl' : 'py-4 px-8 text-lg'}
+                inline-flex items-center justify-center gap-4 bg-[#25D366] hover:bg-[#128C7E] text-white 
+                font-black rounded-[2rem] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] 
+                shadow-2xl hover:shadow-[#25D366]/20 premium-shadow text-center leading-tight
+                ${variant === 'large' ? 'w-full py-7 px-8 text-2xl md:text-3xl lg:text-4xl' : 'py-5 px-10 text-xl md:text-2xl'}
                 ${className}
             `}
         >
-            <WhatsAppIcon className="h-6 w-6" />
+            <WhatsAppIcon className={`${variant === 'large' ? 'h-10 w-10 md:h-12 md:w-12' : 'h-7 w-7'} flex-shrink-0`} />
             <span className="flex-1">{text}</span>
         </a>
     );
