@@ -428,7 +428,8 @@ export default async function ProductDetailPage({
                                     tenantId={tenant._id.toString()}
                                     productId={product._id.toString()}
                                     collectionId={collection._id.toString()}
-                                    className="w-full justify-center text-lg py-4 font-semibold"
+                                    variant="large"
+                                    className="justify-center"
                                 />
                                 {ctaSubtext && (
                                     <p className="text-center text-sm text-slate-500">

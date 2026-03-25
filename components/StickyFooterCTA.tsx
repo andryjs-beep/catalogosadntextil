@@ -1,7 +1,8 @@
 'use client';
 
+import { WhatsAppButton, WhatsAppIcon } from './WhatsAppButton';
 import { useState, useEffect } from 'react';
-import { MessageCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface StickyFooterCTAProps {
     phoneNumber: string;
@@ -79,10 +80,10 @@ export function StickyFooterCTA({
                             href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-1 flex items-center justify-center gap-2 font-bold py-4 px-6 rounded-2xl shadow-2xl transition-all active:scale-95"
+                            className="flex-1 flex items-center justify-center gap-2 font-black py-4 px-6 rounded-2xl shadow-2xl transition-all active:scale-95"
                             style={{ backgroundColor: textColor, color: bgColor }}
                         >
-                            <MessageCircle className="h-6 w-6" />
+                            <WhatsAppIcon className="h-6 w-6" />
                             <span className="text-lg">{ctaText}</span>
                         </a>
 

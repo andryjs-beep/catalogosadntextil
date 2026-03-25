@@ -228,16 +228,15 @@ export function LandingPageLayout({
                                 </p>
                             </div>
 
-                            <div className="flex flex-col items-center gap-6 pt-4">
-                                <a
-                                    href={`https://wa.me/${(tenant.socialLinks?.whatsappLink || '').replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hola, me interesa la colección: ${collectionName}`)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-4 font-black py-5 px-12 rounded-full transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-white/10 group/btn bg-white text-slate-900 text-lg md:text-xl"
-                                >
-                                    <span>{landingPageSections?.finalCTA?.ctaText || 'Contactar Ahora'}</span>
-                                    <span className="text-2xl transition-transform group-hover/btn:translate-x-2">→</span>
-                                </a>
+                            <div className="flex flex-col items-center gap-6 pt-4 w-full">
+                                <WhatsAppButton
+                                    href={tenant.socialLinks?.whatsappLink || ''}
+                                    text={landingPageSections?.finalCTA?.ctaText || 'Contactar Ahora'}
+                                    collectionName={collectionName}
+                                    tenantId={tenant._id.toString()}
+                                    variant="large"
+                                    className="!bg-white !text-slate-900 hover:!bg-slate-100"
+                                />
 
                                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] opacity-40">
                                     Respuesta inmediata garantizada
