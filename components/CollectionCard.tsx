@@ -23,7 +23,7 @@ export function CollectionCard({
     productCount,
 }: CollectionCardProps) {
     return (
-        <Link href={`/t/${tenantSlug}/${slug}`} className="collection-card group block">
+        <Link href={`/${slug}`} className="collection-card group block">
             <div className="relative overflow-hidden rounded-[2rem] bg-card premium-shadow premium-shadow-hover transition-all duration-500">
                 {/* Imagen */}
                 <div className="aspect-[4/5] relative overflow-hidden bg-muted">

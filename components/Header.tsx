@@ -222,7 +222,7 @@ export function Header({
                     </button>
                 </div>
                 <div className="header-center">
-                    <Link href={`/t/${tenantSlug}`}>
+                    <Link href={`/`}>
                         {logo ? (
                             <img id="logo-img" src={logo} alt={headerText} />
                         ) : (
@@ -257,11 +257,11 @@ export function Header({
                     <span style={{ fontSize: '24px', cursor: 'pointer' }} onClick={() => setIsMenuOpen(false)}>×</span>
                 </div>
                 <ul>
-                    <li><Link href={`/t/${tenantSlug}`} onClick={() => setIsMenuOpen(false)} className="menu-link">INICIO</Link></li>
+                    <li><Link href={`/`} onClick={() => setIsMenuOpen(false)} className="menu-link">INICIO</Link></li>
                     {/* CATEGORÍAS REALES DEL CATÁLOGO */}
                     {collections.map(col => (
                         <li key={col._id}>
-                            <Link href={`/t/${tenantSlug}/${col.slug}`} onClick={() => setIsMenuOpen(false)} className="menu-link">
+                            <Link href={`/${col.slug}`} onClick={() => setIsMenuOpen(false)} className="menu-link">
                                 {col.name.toUpperCase()}
                             </Link>
                         </li>

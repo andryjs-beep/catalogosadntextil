@@ -269,7 +269,7 @@ export default async function ProductDetailPage({
             <div className="container mx-auto px-4 py-6">
                 {/* Navegación */}
                 <Link
-                    href={`/t/${tenantSlug}/${collectionSlug}`}
+                    href={`/${collectionSlug}`}
                     className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors"
                 >
                     <ArrowLeft className="h-4 w-4" />

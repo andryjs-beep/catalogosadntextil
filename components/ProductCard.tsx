@@ -38,7 +38,7 @@ export function ProductCard({
     const stars = Array.from({ length: 5 }, (_, i) => i < starRating);
 
     return (
-        <Link href={`/t/${tenantSlug}/${slug || id}`} className="group block h-full">
+        <Link href={`/${slug || id}`} className="group block h-full">
             <div className="product-card bg-card rounded-[1.5rem] overflow-hidden premium-shadow premium-shadow-hover flex flex-col h-full transition-all duration-500">
                 {/* Imagen */}
                 <div className="aspect-square relative overflow-hidden bg-muted">

@@ -225,7 +225,7 @@ export default async function CollectionPage({
 
             {/* Navegación */}
             <Link
-                href={`/t/${tenantSlug}`}
+                href={`/`}
                 className="inline-flex items-center gap-2 text-slate-600 hover:tenant-text-primary mb-6 transition-colors"
             >
                 <ArrowLeft className="h-4 w-4" />
