@@ -42,7 +42,7 @@ export default async function ResellerHomePage({
         tenantId: tenant._id,
         isPublished: true,  // Solo colecciones publicadas
     })
-        .populate('collectionId', 'slug name description image isActive')
+        .populate('collectionId', 'slug name description coverImage isActive')
         .sort({ order: 1 })
         .lean();
 
@@ -54,7 +54,7 @@ export default async function ResellerHomePage({
             slug: tc.collectionId.slug,
             name: tc.collectionId.name,
             description: tc.collectionId.description || '',
-            image: tc.collectionId.coverImage || tc.collectionId.image || '',
+            image: tc.collectionId.coverImage || '',
         }));
 
     if (collections.length === 0) {

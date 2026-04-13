@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Store, Settings, ExternalLink, Boxes } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Store, Settings, ExternalLink, Boxes, Users } from 'lucide-react';
 import Link from 'next/link';
 
 const createTenantSchema = z.object({
@@ -224,6 +224,11 @@ export default function TenantsPage() {
                                                 <Link href={`/admin/tenants/${tenant._id}/assign`}>
                                                     <Button size="icon" variant="ghost" title="Asignar colecciones">
                                                         <Boxes className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
+                                                <Link href={`/admin/tenants/${tenant._id}/reseller`}>
+                                                    <Button size="icon" variant="ghost" title="Modo Revendedor">
+                                                        <Users className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
                                                 <a
