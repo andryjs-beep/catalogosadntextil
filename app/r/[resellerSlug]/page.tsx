@@ -9,6 +9,7 @@ import dbConnect from '@/lib/db';
 import { Tenant, TenantCollection, Collection } from '@/lib/models';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Grid3X3, ArrowRight } from 'lucide-react';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 interface CollectionData {
     _id: string;
@@ -38,7 +39,7 @@ export async function generateMetadata({
 
     const title = `${tenant.resellerConfig.headerTitle} | Catálogo Oficial`;
     const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium en cada prenda. ¡Haz tu pedido ahora!`;
-    const logoUrl = tenant.branding.logo;
+    const logoUrl = await getAbsoluteImageUrl(tenant.branding.logo);
 
     return {
         title,

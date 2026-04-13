@@ -9,6 +9,7 @@ import { Tenant, TenantCollection, Collection, Product } from '@/lib/models';
 import type { ITenant } from '@/lib/models/Tenant';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { ImageGallery } from '@/components/ImageGallery';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 export async function generateMetadata({
     params,
@@ -34,7 +35,10 @@ export async function generateMetadata({
     const productName = (product as any).name;
     const title = `${productName} | ${tenant.resellerConfig.headerTitle}`;
     const description = (product as any).description || `Descubre ${productName}. Calidad garantizada. Haz tu pedido ahora desde el catálogo oficial.`;
-    const image = (product as any).coverImage || ((product as any).images && (product as any).images[0]);
+
+    const imagePath = (product as any).coverImage || ((product as any).images && (product as any).images[0]);
+    const imageUrl = await getAbsoluteImageUrl(imagePath);
+    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding.logo);
 
     return {
         title,
@@ -42,7 +46,7 @@ export async function generateMetadata({
         openGraph: {
             title,
             description,
-            images: image ? [image] : (tenant.branding.logo ? [tenant.branding.logo] : []),
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
         },
     };
 }

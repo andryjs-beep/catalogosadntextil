@@ -11,6 +11,7 @@ import { ArrowLeft, CheckCircle, MapPin, ExternalLink } from 'lucide-react';
 import { LandingPageLayout } from '@/components/LandingPageLayout';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 import type { GalleryMode } from '@/lib/models/TenantProduct';
 
 // Tipos para los datos con lean()
@@ -24,7 +25,11 @@ interface TenantData {
         locationImage?: string;
     };
     globalTexts: { ctaButtonText: string };
-    branding: { primaryColor: string; secondaryColor: string };
+    branding: {
+        primaryColor: string;
+        secondaryColor: string;
+        logo?: string;
+    };
 }
 
 interface CollectionData {
@@ -144,13 +149,29 @@ export async function generateMetadata({
         return { title: 'Producto no encontrado' };
     }
 
-    const productName = data.customization?.customName || data.product.name;
+    const { tenant, product, customization, collection } = data;
+    const productName = customization?.customName || product.name;
+    const title = `${productName} | ${collection.name}`;
+    const description = customization?.customDescription || `Ver detalles de ${productName}`;
+
+    // URLs absolutas
+    const imagePath = product.images[0];
+    const imageUrl = await getAbsoluteImageUrl(imagePath);
+    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding?.logo);
 
     return {
-        title: `${productName} | ${data.collection.name}`,
-        description: data.customization?.customDescription || `Ver detalles de ${productName}`,
+        title,
+        description,
         openGraph: {
-            images: data.product.images[0] ? [data.product.images[0]] : [],
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
         },
     };
 }

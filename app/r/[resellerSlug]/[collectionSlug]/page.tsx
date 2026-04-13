@@ -10,6 +10,7 @@ import dbConnect from '@/lib/db';
 import { Tenant, TenantCollection, Collection, Product } from '@/lib/models';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Package, ChevronLeft, ArrowRight } from 'lucide-react';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 interface ProductData {
     _id: string;
@@ -42,7 +43,10 @@ export async function generateMetadata({
     const collectionName = (collection as any)?.name || 'Colección';
     const title = `${collectionName} | ${tenant.resellerConfig.headerTitle}`;
     const description = (collection as any)?.description || `Mira los mejores productos de la colección ${collectionName} en nuestro catálogo oficial.`;
-    const imageUrl = (collection as any)?.coverImage;
+
+    // Obtener URLs absolutas
+    const imageUrl = await getAbsoluteImageUrl((collection as any)?.coverImage);
+    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding.logo);
 
     return {
         title,
@@ -50,7 +54,7 @@ export async function generateMetadata({
         openGraph: {
             title,
             description,
-            images: imageUrl ? [imageUrl] : (tenant.branding.logo ? [tenant.branding.logo] : []),
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
         },
     };
 }

@@ -6,6 +6,7 @@ import { Tenant, TenantCollection } from '@/lib/models';
 import { CollectionCard } from '@/components/CollectionCard';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import type { Metadata } from 'next';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 // Tipos para datos con lean()
 interface TenantData {
@@ -18,7 +19,10 @@ interface TenantData {
         homeSubtitle?: string;
     };
     socialLinks: { whatsappLink: string };
-    branding?: { primaryColor?: string };
+    branding?: {
+        primaryColor?: string;
+        logo?: string;
+    };
 }
 
 interface TenantCollectionPopulated {
@@ -68,9 +72,25 @@ export async function generateMetadata({
         return { title: 'Tienda no encontrada' };
     }
 
+    const { tenant } = data;
+    const title = tenant.globalTexts?.headerText || `Catálogo - ${tenantSlug}`;
+    const description = tenant.globalTexts?.homeSubtitle || tenant.globalTexts?.footerText || 'Explora nuestro catálogo de productos';
+    const logoUrl = await getAbsoluteImageUrl(tenant.branding?.logo);
+
     return {
-        title: data.tenant.globalTexts?.headerText || `Catálogo - ${tenantSlug}`,
-        description: data.tenant.globalTexts?.footerText || 'Explora nuestro catálogo de productos',
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: logoUrl ? [logoUrl] : [],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: logoUrl ? [logoUrl] : [],
+        },
     };
 }
 

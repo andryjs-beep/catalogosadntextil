@@ -14,12 +14,14 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 // Tipos para los datos con lean()
 interface TenantData {
     _id: { toString(): string };
     globalTexts: { headerText: string; ctaButtonText: string };
     socialLinks: { whatsappLink: string };
+    branding?: { logo?: string };
 }
 
 interface CollectionData {
@@ -174,14 +176,35 @@ export async function generateMetadata({
         return { title: 'No encontrado' };
     }
 
-    const { tenant, collection, products, isSingleProduct } = data;
+    const { tenant, collection, products, isSingleProduct, tenantCollection } = data;
     const title = isSingleProduct
         ? `${products[0]?.customName || products[0]?.name} | ${tenant.globalTexts?.headerText || tenantSlug}`
         : `${collection.name} | ${tenant.globalTexts?.headerText || tenantSlug}`;
 
+    const description = tenantCollection.persuasiveTextTop || `Explora ${collection.name}`;
+
+    // Imagen absoluta
+    const imagePath = isSingleProduct
+        ? (products[0]?.coverImage || products[0]?.images[0])
+        : collection.coverImage;
+
+    const imageUrl = await getAbsoluteImageUrl(imagePath);
+    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding?.logo);
+
     return {
         title,
-        description: data.tenantCollection.persuasiveTextTop || `Explora ${data.collection.name}`,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
+        },
     };
 }
 
