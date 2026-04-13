@@ -29,9 +29,21 @@ export async function generateMetadata({
     }
 
     const product = await Product.findOne({ slug: productSlug }).lean();
+    if (!product) return { title: 'Producto no encontrado' };
+
+    const productName = (product as any).name;
+    const title = `${productName} | ${tenant.resellerConfig.headerTitle}`;
+    const description = (product as any).description || `Descubre ${productName}. Calidad garantizada. Haz tu pedido ahora desde el catálogo oficial.`;
+    const image = (product as any).coverImage || ((product as any).images && (product as any).images[0]);
 
     return {
-        title: product ? `${(product as any).name} | ${tenant.resellerConfig.headerTitle}` : 'Producto',
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: image ? [image] : (tenant.branding.logo ? [tenant.branding.logo] : []),
+        },
     };
 }
 

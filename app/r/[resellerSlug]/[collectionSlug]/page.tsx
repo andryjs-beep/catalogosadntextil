@@ -38,10 +38,20 @@ export async function generateMetadata({
         return { title: 'Colección no encontrada' };
     }
 
-    const collection = await Collection.findOne({ slug: collectionSlug }).lean() as { name: string } | null;
+    const collection = await Collection.findOne({ slug: collectionSlug }).lean();
+    const collectionName = (collection as any)?.name || 'Colección';
+    const title = `${collectionName} | ${tenant.resellerConfig.headerTitle}`;
+    const description = (collection as any)?.description || `Mira los mejores productos de la colección ${collectionName} en nuestro catálogo oficial.`;
+    const imageUrl = (collection as any)?.coverImage;
 
     return {
-        title: collection ? `${collection.name} | ${tenant.resellerConfig.headerTitle}` : 'Colección',
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : (tenant.branding.logo ? [tenant.branding.logo] : []),
+        },
     };
 }
 

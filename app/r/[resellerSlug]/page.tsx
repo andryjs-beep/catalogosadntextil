@@ -18,6 +18,45 @@ interface CollectionData {
     image: string;
 }
 
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ resellerSlug: string }>;
+}) {
+    const { resellerSlug } = await params;
+    await dbConnect();
+
+    const tenant = await Tenant.findOne({
+        'resellerConfig.slug': resellerSlug,
+        'resellerConfig.enabled': true,
+        isActive: true,
+    }).lean<ITenant>();
+
+    if (!tenant) {
+        return { title: 'Catálogo no encontrado' };
+    }
+
+    const title = `${tenant.resellerConfig.headerTitle} | Catálogo Oficial`;
+    const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium en cada prenda. ¡Haz tu pedido ahora!`;
+    const logoUrl = tenant.branding.logo;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: logoUrl ? [logoUrl] : [],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: logoUrl ? [logoUrl] : [],
+        },
+    };
+}
+
 export default async function ResellerHomePage({
     params,
 }: {
