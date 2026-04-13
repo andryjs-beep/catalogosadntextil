@@ -95,46 +95,57 @@ export default async function ResellerLayout({
             </head>
             <body style={{ fontFamily: `'${branding.fontFamily}', sans-serif` }}>
                 <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-hidden">
-                    {/* Header Neutro - Premium */}
-                    <header className="sticky top-0 z-50 bg-white/98 backdrop-blur-lg border-b border-slate-100 shadow-sm">
-                        <div className="max-w-7xl mx-auto px-4 pt-4 pb-3">
-                            {/* Título */}
-                            <div className="flex items-center justify-center mb-3">
-                                <div className="text-center">
-                                    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
-                                        {resellerConfig.headerTitle || 'Catálogo Online'}
-                                    </h1>
-                                    {resellerConfig.headerSubtitle && (
-                                        <p className="text-xs text-slate-400 mt-0.5 font-medium uppercase tracking-widest">
-                                            {resellerConfig.headerSubtitle}
-                                        </p>
-                                    )}
-                                </div>
+                    {/* Header Neutro - Rediseño Vibrant Premium */}
+                    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm">
+                        <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">
+                            {/* Título y Branding */}
+                            <div className="flex flex-col items-center justify-center mb-6 text-center">
+                                <span className="inline-block px-3 py-0.5 rounded-full bg-slate-900 text-[9px] font-black uppercase tracking-[0.4em] text-white mb-2 shadow-glow-primary">
+                                    Catálogo Oficial
+                                </span>
+                                <h1 className="text-3xl md:text-4xl font-black tracking-tighter-extra text-slate-900 leading-none">
+                                    {resellerConfig.headerTitle || 'Catálogo Online'}
+                                </h1>
+                                {resellerConfig.headerSubtitle && (
+                                    <p className="text-xs text-slate-400 mt-2 font-bold uppercase tracking-[0.2em] max-w-[250px] mx-auto opacity-70">
+                                        {resellerConfig.headerSubtitle}
+                                    </p>
+                                )}
                             </div>
 
-                            {/* Navegación de colecciones - Premium */}
+                            {/* Navegación de colecciones - Cards Vibrantes */}
                             {collections.length > 0 && (
-                                <div className="relative">
-                                    {/* Fade edges en mobile */}
-                                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white to-transparent z-10 md:hidden" />
-                                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent z-10 md:hidden" />
-                                    <nav className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-start md:justify-center px-2">
+                                <div className="relative group/nav">
+                                    {/* Scroll horizontal con máscara de desvanecimiento */}
+                                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 md:hidden" />
+                                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 md:hidden" />
+
+                                    <nav className="flex gap-3 overflow-x-auto scrollbar-hide py-2 px-1 justify-start md:justify-center">
+                                        {/* Botón TODO con gradiente primario */}
                                         <a
                                             href={`/r/${resellerSlug}`}
-                                            className="flex-shrink-0 group flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                                            className="flex-shrink-0 group flex flex-col items-center justify-center px-6 py-3 rounded-2xl vibrant-grad-1 text-white shadow-glow-primary hover:scale-105 transition-all duration-300 min-w-[100px]"
                                         >
-                                            <span>✦</span>
-                                            <span>Todo</span>
+                                            <span className="text-sm font-black uppercase tracking-widest">Todo</span>
+                                            <span className="text-[10px] opacity-70 font-bold uppercase mt-0.5">Categorías</span>
                                         </a>
-                                        {collections.map((col) => (
-                                            <a
-                                                key={col._id.toString()}
-                                                href={`/r/${resellerSlug}/${col.slug}`}
-                                                className="flex-shrink-0 group flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-slate-900 hover:text-white hover:border-slate-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                                            >
-                                                <span>{col.name}</span>
-                                            </a>
-                                        ))}
+
+                                        {collections.map((col, idx) => {
+                                            // Asignar un gradiente basado en el índice para variedad visual
+                                            const grads = ['vibrant-grad-2', 'vibrant-grad-3', 'vibrant-grad-4', 'vibrant-grad-1'];
+                                            const gradClass = grads[idx % grads.length];
+
+                                            return (
+                                                <a
+                                                    key={col._id.toString()}
+                                                    href={`/r/${resellerSlug}/${col.slug}`}
+                                                    className={`flex-shrink-0 flex flex-col items-center justify-center px-6 py-3 rounded-2xl bg-white border border-slate-100 text-slate-800 shadow-sm hover:border-transparent hover:text-white hover:${gradClass} hover:shadow-lg hover:-translate-y-1 transition-all duration-300 min-w-[120px]`}
+                                                >
+                                                    <span className="text-sm font-black uppercase tracking-widest">{col.name}</span>
+                                                    <span className="text-[10px] text-slate-400 group-hover:text-white/70 font-bold uppercase mt-0.5">Explorar</span>
+                                                </a>
+                                            );
+                                        })}
                                     </nav>
                                 </div>
                             )}

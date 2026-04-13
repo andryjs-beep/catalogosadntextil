@@ -1,7 +1,77 @@
-/* Estilos base para el catálogo de revendedor */
-@import url('../../globals.css');
+/* Estilos vibrantes para el Catálogo Revendedor */
 
-/* Sin elementos premium o marcas */
-.reseller-mode {
-    /* Modo limpio */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Gradientes Vibrantes */
+.vibrant-grad-1 {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.vibrant-grad-2 {
+    background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+}
+
+.vibrant-grad-3 {
+    background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%);
+}
+
+.vibrant-grad-4 {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+}
+
+.vibrant-grad-dark {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Sombras Premium */
+.shadow-premium {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-glow-primary {
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -4px rgba(99, 102, 241, 0.3);
+}
+
+/* Animaciones */
+@keyframes lift {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-5px);
+    }
+}
+
+.animate-lift:hover {
+    animation: lift 0.3s ease forwards;
+}
+
+/* Vidrio (Glassmorphism) */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tipografía de Alto Impacto */
+.font-black {
+    font-weight: 900;
+}
+
+.tracking-tighter-extra {
+    letter-spacing: -0.05em;
 }
