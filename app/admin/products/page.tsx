@@ -321,117 +321,119 @@ export default function ProductsPage() {
                     </DialogHeader>
 
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Nombre del producto</Label>
-                                <Input
-                                    id="name"
-                                    {...form.register('name')}
-                                    placeholder="Ej: Gorra personalizada"
-                                />
-                                {form.formState.errors.name && (
-                                    <p className="text-sm text-red-500">
-                                        {form.formState.errors.name.message}
-                                    </p>
-                                )}
+                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Nombre del producto</Label>
+                                    <Input
+                                        id="name"
+                                        {...form.register('name')}
+                                        placeholder="Ej: Gorra personalizada"
+                                    />
+                                    {form.formState.errors.name && (
+                                        <p className="text-sm text-red-500">
+                                            {form.formState.errors.name.message}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="slug">Slug (URL amigable)</Label>
+                                    <Input
+                                        id="slug"
+                                        {...form.register('slug')}
+                                        placeholder="ej-mi-producto"
+                                    />
+                                    {form.formState.errors.slug && (
+                                        <p className="text-sm text-red-500">
+                                            {form.formState.errors.slug.message}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="slug">Slug (URL amigable)</Label>
-                                <Input
-                                    id="slug"
-                                    {...form.register('slug')}
-                                    placeholder="ej-mi-producto"
-                                />
-                                {form.formState.errors.slug && (
-                                    <p className="text-sm text-red-500">
-                                        {form.formState.errors.slug.message}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
+                                <Label>Imágenes</Label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {uploadedImages.map((url, index) => (
+                                        <div key={url} className={`relative group rounded-xl overflow-hidden border-2 transition-all ${form.watch('coverImage') === url ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-slate-200 hover:border-slate-300'}`}>
+                                            <Image
+                                                src={url}
+                                                alt={`Imagen ${index + 1}`}
+                                                width={100}
+                                                height={100}
+                                                className="object-cover w-full aspect-square"
+                                            />
 
-                        <div className="space-y-2">
-                            <Label>Imágenes</Label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {uploadedImages.map((url, index) => (
-                                    <div key={url} className={`relative group rounded-xl overflow-hidden border-2 transition-all ${form.watch('coverImage') === url ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-slate-200 hover:border-slate-300'}`}>
-                                        <Image
-                                            src={url}
-                                            alt={`Imagen ${index + 1}`}
-                                            width={100}
-                                            height={100}
-                                            className="object-cover w-full aspect-square"
-                                        />
-
-                                        {/* Overlay always partially visible for context, fully on hover */}
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex flex-col justify-between p-1.5">
-                                            <div className="flex justify-end gap-1.5">
-                                                {index > 0 && (
+                                            {/* Overlay always partially visible for context, fully on hover */}
+                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex flex-col justify-between p-1.5">
+                                                <div className="flex justify-end gap-1.5">
+                                                    {index > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveImageToTop(index)}
+                                                            className="bg-black/80 hover:bg-black text-white rounded-lg p-1 transition-all shadow-sm"
+                                                            title="Mover al principio"
+                                                        >
+                                                            <ArrowLeftRight className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         type="button"
-                                                        onClick={() => moveImageToTop(index)}
-                                                        className="bg-black/80 hover:bg-black text-white rounded-lg p-1 transition-all shadow-sm"
-                                                        title="Mover al principio"
+                                                        onClick={() => removeImage(index)}
+                                                        className="bg-white/90 hover:bg-red-500 hover:text-white text-red-500 rounded-lg p-1 transition-all shadow-sm"
+                                                        title="Eliminar imagen"
                                                     >
-                                                        <ArrowLeftRight className="h-3.5 w-3.5" />
+                                                        <X className="h-3.5 w-3.5" />
                                                     </button>
-                                                )}
+                                                </div>
+
                                                 <button
                                                     type="button"
-                                                    onClick={() => removeImage(index)}
-                                                    className="bg-white/90 hover:bg-red-500 hover:text-white text-red-500 rounded-lg p-1 transition-all shadow-sm"
-                                                    title="Eliminar imagen"
+                                                    onClick={() => form.setValue('coverImage', url)}
+                                                    className={`w-full py-1 rounded-lg text-[9px] font-bold uppercase transition-all shadow-sm ${form.watch('coverImage') === url ? 'bg-primary text-white' : 'bg-white/90 text-slate-700 hover:bg-white'}`}
                                                 >
-                                                    <X className="h-3.5 w-3.5" />
+                                                    {form.watch('coverImage') === url ? 'Portada Actual' : 'Usar como Portada'}
                                                 </button>
                                             </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => form.setValue('coverImage', url)}
-                                                className={`w-full py-1 rounded-lg text-[9px] font-bold uppercase transition-all shadow-sm ${form.watch('coverImage') === url ? 'bg-primary text-white' : 'bg-white/90 text-slate-700 hover:bg-white'}`}
-                                            >
-                                                {form.watch('coverImage') === url ? 'Portada Actual' : 'Usar como Portada'}
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
-                                <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                                    {isUploading ? (
-                                        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                                    ) : (
-                                        <>
-                                            <Upload className="h-6 w-6 text-slate-400" />
-                                            <span className="text-xs text-slate-500 mt-1">Subir</span>
-                                        </>
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={handleImageUpload}
-                                        disabled={isUploading}
-                                    />
-                                </label>
+                                    ))}
+                                    <label className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+                                        {isUploading ? (
+                                            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                        ) : (
+                                            <>
+                                                <Upload className="h-6 w-6 text-slate-400" />
+                                                <span className="text-xs text-slate-500 mt-1">Subir</span>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                            disabled={isUploading}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="tags">Tags (separados por coma)</Label>
+                                <Input
+                                    id="tags"
+                                    placeholder="gorras, personalizado, algodón"
+                                    onChange={(e) => {
+                                        const tags = e.target.value.split(',').map((t) => t.trim()).filter(Boolean);
+                                        form.setValue('tags', tags);
+                                    }}
+                                    defaultValue={editingProduct?.tags.join(', ')}
+                                />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="tags">Tags (separados por coma)</Label>
-                            <Input
-                                id="tags"
-                                placeholder="gorras, personalizado, algodón"
-                                onChange={(e) => {
-                                    const tags = e.target.value.split(',').map((t) => t.trim()).filter(Boolean);
-                                    form.setValue('tags', tags);
-                                }}
-                                defaultValue={editingProduct?.tags.join(', ')}
-                            />
-                        </div>
-
-                        <DialogFooter>
+                        <DialogFooter className="pt-4 border-t">
                             <Button type="button" variant="outline" onClick={closeDialog}>
                                 Cancelar
                             </Button>
