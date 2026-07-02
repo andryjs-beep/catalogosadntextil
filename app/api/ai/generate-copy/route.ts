@@ -165,11 +165,33 @@ ${MASTER_PROMPT_RULES}`
         let result = generatedContent;
         if (section !== "longDescription") {
             try {
-                // Limpiar posible formato markdown de bloque de código
-                const cleanContent = generatedContent.replace(/```json\n?|```/g, '').trim();
-                result = JSON.parse(cleanContent);
+                let jsonStr = generatedContent.trim();
+
+                // Buscar el inicio de un bloque JSON (objeto o array)
+                const firstBrace = jsonStr.indexOf('{');
+                const firstBracket = jsonStr.indexOf('[');
+                let startIndex = -1;
+                let endIndex = -1;
+
+                if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+                    startIndex = firstBrace;
+                    endIndex = jsonStr.lastIndexOf('}');
+                } else if (firstBracket !== -1) {
+                    startIndex = firstBracket;
+                    endIndex = jsonStr.lastIndexOf(']');
+                }
+
+                if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                    jsonStr = jsonStr.substring(startIndex, endIndex + 1);
+                }
+
+                result = JSON.parse(jsonStr);
             } catch (e) {
-                console.error('Error parseando JSON de OpenAI:', e);
+                console.error('Error parseando JSON de Groq/OpenAI:', e);
+                return NextResponse.json({
+                    success: false,
+                    error: 'La IA no devolvió un formato válido. Por favor, intenta de nuevo.'
+                }, { status: 422 });
             }
         }
 
