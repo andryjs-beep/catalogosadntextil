@@ -4,22 +4,21 @@ import { getSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.OPENAI_API_KEY;
+        const apiKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY;
         if (!apiKey) {
-            console.error('OPENAI_API_KEY no configurada');
+            console.error('Ni GROQ_API_KEY ni OPENAI_API_KEY configuradas');
             return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
         }
 
-        const openai = new OpenAI({ apiKey });
+        const isGroq = !!process.env.GROQ_API_KEY;
+        const openai = new OpenAI({
+            apiKey,
+            baseURL: isGroq ? 'https://api.groq.com/openai/v1' : undefined
+        });
 
         const session = await getSession();
         if (!session.isAuthenticated) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
-
-        if (!process.env.OPENAI_API_KEY) {
-            console.error('OPENAI_API_KEY no configurada');
-            return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
         }
 
         const body = await req.json();
@@ -141,8 +140,9 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
+        const model = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model,
             messages: [
                 {
                     role: "system",
