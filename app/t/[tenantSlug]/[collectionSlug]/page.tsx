@@ -115,7 +115,19 @@ async function getCollectionData(tenantSlug: string, collectionSlugOrProductSlug
         ? { _id: singleProductId }
         : { _id: { $in: collection.productIds } };
 
-    const products = (await Product.find(productQuery).lean()) as unknown as ProductWithCustom[];
+    const rawProducts = (await Product.find(productQuery).lean()) as unknown as ProductWithCustom[];
+
+    // Respetar el orden definido en el admin (el array productIds es el orden exacto)
+    const products = singleProductId
+        ? rawProducts
+        : (() => {
+            const idOrder = (collection.productIds || []).map((id: any) => id.toString());
+            return [...rawProducts].sort((a, b) => {
+                const ai = idOrder.indexOf(a._id.toString());
+                const bi = idOrder.indexOf(b._id.toString());
+                return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+            });
+        })();
 
     // Obtener personalizaciones
     const customizations = (await TenantProduct.find({

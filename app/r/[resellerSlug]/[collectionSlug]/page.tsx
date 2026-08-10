@@ -99,12 +99,19 @@ export default async function ResellerCollectionPage({
         typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id
     );
 
-    const products = await Product.find({
+    const rawProducts = await Product.find({
         _id: { $in: productIds },
     })
         .select('_id slug name images coverImage description')
-        .sort({ order: 1 })
         .lean<ProductData[]>();
+
+    // Respetar el orden definido en el admin (productIds es el orden exacto)
+    const idOrder = (collection.productIds || []).map((id: any) => id.toString());
+    const products = [...rawProducts].sort((a, b) => {
+        const ai = idOrder.indexOf((a._id as any).toString());
+        const bi = idOrder.indexOf((b._id as any).toString());
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">

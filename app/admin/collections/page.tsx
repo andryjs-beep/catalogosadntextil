@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload, ArrowUp, ArrowDown, X, GripVertical } from 'lucide-react';
 import Image from 'next/image';
 
 interface Collection {
@@ -37,7 +37,7 @@ interface Collection {
     slug: string;
     name: string;
     coverImage: string;
-    productIds: { _id: string; name: string }[];
+    productIds: { _id: string; name: string; images?: string[] }[];
     order: number;
     createdAt: string;
 }
@@ -56,7 +56,8 @@ export default function CollectionsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
     const [coverImage, setCoverImage] = useState('');
-    const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+    // selectedProducts preserva el ORDEN: el array es la secuencia exacta de aparición
+    const [selectedProducts, setSelectedProducts] = useState<{ _id: string; name: string }[]>([]);
     const [isUploading, setIsUploading] = useState(false);
 
     const form = useForm<CollectionInput>({
@@ -138,12 +139,13 @@ export default function CollectionsPage() {
                 order: collection.order,
             });
             setCoverImage(collection.coverImage);
-            setSelectedProductIds(collection.productIds.map((p) => p._id));
+            // Preservar el orden de productIds tal como está guardado
+            setSelectedProducts(collection.productIds.map((p) => ({ _id: p._id, name: p.name })));
         } else {
             setEditingCollection(null);
             form.reset({ slug: '', name: '', coverImage: '', productIds: [], order: collections.length });
             setCoverImage('');
-            setSelectedProductIds([]);
+            setSelectedProducts([]);
         }
         setIsDialogOpen(true);
     };
@@ -153,15 +155,28 @@ export default function CollectionsPage() {
         setEditingCollection(null);
         form.reset();
         setCoverImage('');
-        setSelectedProductIds([]);
+        setSelectedProducts([]);
     };
 
-    const toggleProduct = (productId: string) => {
-        setSelectedProductIds((prev) =>
-            prev.includes(productId)
-                ? prev.filter((id) => id !== productId)
-                : [...prev, productId]
+    // Agregar producto al final de la lista ordenada
+    const addProduct = (product: { _id: string; name: string }) => {
+        setSelectedProducts((prev) =>
+            prev.some((p) => p._id === product._id) ? prev : [...prev, product]
         );
+    };
+
+    // Quitar producto de la lista
+    const removeProduct = (productId: string) => {
+        setSelectedProducts((prev) => prev.filter((p) => p._id !== productId));
+    };
+
+    // Mover producto arriba o abajo en la lista
+    const moveProduct = (index: number, direction: 'up' | 'down') => {
+        const newList = [...selectedProducts];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newList.length) return;
+        [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
+        setSelectedProducts(newList);
     };
 
     const onSubmit = async (data: CollectionInput) => {
@@ -178,7 +193,8 @@ export default function CollectionsPage() {
                 body: JSON.stringify({
                     ...data,
                     coverImage,
-                    productIds: selectedProductIds,
+                    // Enviar productIds EN EL ORDEN que el usuario definió
+                    productIds: selectedProducts.map((p) => p._id),
                 }),
             });
 
@@ -216,6 +232,19 @@ export default function CollectionsPage() {
     };
 
     const handleMove = async (collectionId: string, direction: 'up' | 'down') => {
+        // Actualización optimista: reordenar localmente de inmediato
+        const currentIndex = collections.findIndex(c => c._id === collectionId);
+        const neighborIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+        if (neighborIndex < 0 || neighborIndex >= collections.length) return;
+
+        const newCollections = [...collections];
+        [newCollections[currentIndex], newCollections[neighborIndex]] = [
+            newCollections[neighborIndex],
+            newCollections[currentIndex],
+        ];
+        setCollections(newCollections);
+
         try {
             const response = await fetch('/api/admin/collections/reorder', {
                 method: 'POST',
@@ -223,14 +252,15 @@ export default function CollectionsPage() {
                 body: JSON.stringify({ collectionId, direction }),
             });
 
-            if (response.ok) {
-                fetchCollections();
-            } else {
+            if (!response.ok) {
                 const error = await response.json();
                 toast.error(error.error || 'Error al reordenar');
+                // Revertir si hubo error
+                fetchCollections();
             }
         } catch {
             toast.error('Error al reordenar');
+            fetchCollections();
         }
     };
 
@@ -403,22 +433,81 @@ export default function CollectionsPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>Productos ({selectedProductIds.length} seleccionados)</Label>
-                            <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto border rounded-lg p-2">
-                                {products.map((product) => (
-                                    <button
-                                        key={product._id}
-                                        type="button"
-                                        onClick={() => toggleProduct(product._id)}
-                                        className={`p-2 rounded-lg text-left text-sm transition-colors ${selectedProductIds.includes(product._id)
-                                            ? 'bg-blue-100 border-blue-500 border-2'
-                                            : 'bg-slate-50 border border-slate-200 hover:bg-slate-100'
-                                            }`}
-                                    >
-                                        <div className="truncate">{product.name}</div>
-                                    </button>
-                                ))}
+                        <div className="space-y-3">
+                            {/* ── Productos seleccionados en orden ── */}
+                            <div>
+                                <Label className="flex items-center gap-1 mb-2">
+                                    <GripVertical className="h-4 w-4 text-slate-400" />
+                                    Productos en la colección ({selectedProducts.length}) — arrastra con ↑↓ para reordenar
+                                </Label>
+                                {selectedProducts.length === 0 ? (
+                                    <div className="text-center py-4 text-slate-400 text-sm border border-dashed rounded-lg">
+                                        Añade productos desde la sección de abajo
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-lg divide-y max-h-52 overflow-y-auto">
+                                        {selectedProducts.map((p, index) => (
+                                            <div key={p._id} className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                                <span className="text-xs font-bold text-blue-400 w-5 text-center">{index + 1}</span>
+                                                <span className="flex-1 text-sm font-medium text-slate-800 truncate">{p.name}</span>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveProduct(index, 'up')}
+                                                        disabled={index === 0}
+                                                        className="p-1 rounded hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                        title="Subir"
+                                                    >
+                                                        <ArrowUp className="h-3.5 w-3.5 text-blue-600" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveProduct(index, 'down')}
+                                                        disabled={index === selectedProducts.length - 1}
+                                                        className="p-1 rounded hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                        title="Bajar"
+                                                    >
+                                                        <ArrowDown className="h-3.5 w-3.5 text-blue-600" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeProduct(p._id)}
+                                                        className="p-1 rounded hover:bg-red-100 transition-colors"
+                                                        title="Quitar de la colección"
+                                                    >
+                                                        <X className="h-3.5 w-3.5 text-red-500" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ── Productos disponibles para añadir ── */}
+                            <div>
+                                <Label className="mb-2 block text-slate-600">
+                                    Añadir productos — clic para agregar al final
+                                </Label>
+                                <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto border rounded-lg p-2 bg-slate-50">
+                                    {products
+                                        .filter((product) => !selectedProducts.some((s) => s._id === product._id))
+                                        .map((product) => (
+                                            <button
+                                                key={product._id}
+                                                type="button"
+                                                onClick={() => addProduct({ _id: product._id, name: product.name })}
+                                                className="p-2 rounded-lg text-left text-xs bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors truncate"
+                                                title={product.name}
+                                            >
+                                                + {product.name}
+                                            </button>
+                                        ))
+                                    }
+                                    {products.filter((product) => !selectedProducts.some((s) => s._id === product._id)).length === 0 && (
+                                        <p className="col-span-3 text-center text-slate-400 text-xs py-3">Todos los productos están en la colección</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
