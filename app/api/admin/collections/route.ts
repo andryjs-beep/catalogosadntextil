@@ -78,7 +78,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const collection = await Collection.create(result.data);
+        // Normalizar orders existentes y ubicar la nueva colección al inicio
+        const existingCollections = await Collection.find().sort({ order: 1, createdAt: 1 });
+
+        // Re-indexar todos los existentes empezando en 1 (para dar espacio al nuevo en 0)
+        for (let i = 0; i < existingCollections.length; i++) {
+            existingCollections[i].order = i + 1;
+            await existingCollections[i].save();
+        }
+
+        // La nueva colección queda en la posición 0 (primera)
+        const collection = await Collection.create({ ...result.data, order: 0 });
 
         return NextResponse.json({ collection }, { status: 201 });
     } catch (error) {

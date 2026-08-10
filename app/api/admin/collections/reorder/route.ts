@@ -18,53 +18,44 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
         }
 
-        const currentCollection = await Collection.findById(collectionId);
-        if (!currentCollection) {
+        // Primero: normalizar todos los orders para tenerlos únicos y consecutivos
+        const allCollections = await Collection.find().sort({ order: 1, createdAt: 1 });
+        for (let i = 0; i < allCollections.length; i++) {
+            if (allCollections[i].order !== i) {
+                allCollections[i].order = i;
+                await allCollections[i].save();
+            }
+        }
+
+        // Refrescar datos después de normalizar
+        const sortedCollections = await Collection.find().sort({ order: 1 });
+        const currentIndex = sortedCollections.findIndex(c => c._id.toString() === collectionId);
+
+        if (currentIndex === -1) {
             return NextResponse.json({ error: 'Colección no encontrada' }, { status: 404 });
         }
 
-        const currentOrder = currentCollection.order || 0;
-
-        // Buscar la colección vecina
-        let neighbor;
+        let neighborIndex: number;
         if (direction === 'up') {
-            neighbor = await Collection.findOne({ order: { $lt: currentOrder } }).sort({ order: -1 });
+            neighborIndex = currentIndex - 1;
         } else {
-            neighbor = await Collection.findOne({ order: { $gt: currentOrder } }).sort({ order: 1 });
+            neighborIndex = currentIndex + 1;
         }
 
-        if (neighbor) {
-            // Intercambiar órdenes
-            const tempOrder = neighbor.order;
-            neighbor.order = currentOrder;
-            currentCollection.order = tempOrder;
-
-            await Promise.all([neighbor.save(), currentCollection.save()]);
-        } else {
-            // Si no hay vecino, tal vez necesitemos reinicializar órdenes si todos son 0
-            const allCollections = await Collection.find().sort({ order: 1, createdAt: 1 });
-
-            // Si la mayoría tiene orden 0 o hay duplicados, normalizamos
-            let hasDuplicates = false;
-            const seenOrders = new Set();
-            for (const col of allCollections) {
-                if (seenOrders.has(col.order)) {
-                    hasDuplicates = true;
-                    break;
-                }
-                seenOrders.add(col.order);
-            }
-
-            if (hasDuplicates || allCollections.every(c => c.order === 0)) {
-                // Normalizar órdenes
-                for (let i = 0; i < allCollections.length; i++) {
-                    allCollections[i].order = i;
-                    await allCollections[i].save();
-                }
-                // Reintentar encontrar vecino después de normalizar (opcional, pero mejor informamos para que refresque)
-                return NextResponse.json({ success: true, normalized: true });
-            }
+        if (neighborIndex < 0 || neighborIndex >= sortedCollections.length) {
+            // Ya está en el límite, no hay nada que mover
+            return NextResponse.json({ success: true });
         }
+
+        // Intercambiar orders
+        const current = sortedCollections[currentIndex];
+        const neighbor = sortedCollections[neighborIndex];
+
+        const tempOrder = current.order;
+        current.order = neighbor.order;
+        neighbor.order = tempOrder;
+
+        await Promise.all([current.save(), neighbor.save()]);
 
         return NextResponse.json({ success: true });
     } catch (error) {

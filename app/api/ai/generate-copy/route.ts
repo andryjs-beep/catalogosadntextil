@@ -4,16 +4,27 @@ import { getSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY;
+        const apiKey = process.env.OPENCODE_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
         if (!apiKey) {
-            console.error('Ni GROQ_API_KEY ni OPENAI_API_KEY configuradas');
+            console.error('Ni OPENCODE_API_KEY, GROQ_API_KEY ni OPENAI_API_KEY configuradas');
             return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
         }
 
-        const isGroq = !!process.env.GROQ_API_KEY;
+        const isOpenCode = !!process.env.OPENCODE_API_KEY;
+        const isGroq = !isOpenCode && !!process.env.GROQ_API_KEY;
+
+        let baseURL = process.env.AI_BASE_URL;
+        if (!baseURL) {
+            if (isOpenCode) {
+                baseURL = 'https://opencode.ai/zen/go/v1';
+            } else if (isGroq) {
+                baseURL = 'https://api.groq.com/openai/v1';
+            }
+        }
+
         const openai = new OpenAI({
             apiKey,
-            baseURL: isGroq ? 'https://api.groq.com/openai/v1' : undefined
+            baseURL: baseURL || undefined
         });
 
         const session = await getSession();
@@ -140,7 +151,17 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const model = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+        let model = process.env.AI_MODEL;
+        if (!model) {
+            if (isOpenCode) {
+                model = 'llama-3.3-70b';
+            } else if (isGroq) {
+                model = 'llama-3.3-70b-versatile';
+            } else {
+                model = 'gpt-4o-mini';
+            }
+        }
+
         const completion = await openai.chat.completions.create({
             model,
             messages: [
