@@ -377,9 +377,9 @@ export default function CollectionsPage() {
             </Card>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col overflow-hidden p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+                        <DialogTitle className="text-xl">
                             {editingCollection ? 'Editar Colección' : 'Nueva Colección'}
                         </DialogTitle>
                         <DialogDescription>
@@ -387,131 +387,139 @@ export default function CollectionsPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Nombre</Label>
-                                <Input id="name" {...form.register('name')} placeholder="Gorras" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="slug">Slug (URL)</Label>
-                                <Input id="slug" {...form.register('slug')} placeholder="gorras" />
-                            </div>
-                        </div>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+                        {/* Layout dos columnas */}
+                        <div className="flex flex-1 overflow-hidden">
 
-                        <div className="space-y-2">
-                            <Label>Imagen de portada</Label>
-                            <div className="flex items-center gap-4">
-                                {coverImage ? (
-                                    <Image
-                                        src={coverImage}
-                                        alt="Cover"
-                                        width={100}
-                                        height={100}
-                                        className="rounded-lg object-cover"
-                                    />
-                                ) : (
-                                    <div className="h-24 w-24 rounded-lg bg-slate-100 flex items-center justify-center">
-                                        <FolderOpen className="h-8 w-8 text-slate-400" />
-                                    </div>
-                                )}
-                                <label className="cursor-pointer">
-                                    <Button type="button" variant="outline" className="gap-2" asChild>
-                                        <span>
-                                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                            Subir imagen
-                                        </span>
-                                    </Button>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleCoverUpload}
-                                        disabled={isUploading}
-                                    />
-                                </label>
-                            </div>
-                        </div>
+                            {/* Columna izquierda: datos básicos */}
+                            <div className="w-[320px] shrink-0 border-r flex flex-col gap-4 p-6 overflow-y-auto">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Nombre</Label>
+                                    <Input id="name" {...form.register('name')} placeholder="Gorras" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="slug">Slug (URL)</Label>
+                                    <Input id="slug" {...form.register('slug')} placeholder="gorras" />
+                                </div>
 
-                        <div className="space-y-3">
-                            {/* ── Productos seleccionados en orden ── */}
-                            <div>
-                                <Label className="flex items-center gap-1 mb-2">
-                                    <GripVertical className="h-4 w-4 text-slate-400" />
-                                    Productos en la colección ({selectedProducts.length}) — arrastra con ↑↓ para reordenar
-                                </Label>
-                                {selectedProducts.length === 0 ? (
-                                    <div className="text-center py-4 text-slate-400 text-sm border border-dashed rounded-lg">
-                                        Añade productos desde la sección de abajo
-                                    </div>
-                                ) : (
-                                    <div className="border rounded-lg divide-y max-h-52 overflow-y-auto">
-                                        {selectedProducts.map((p, index) => (
-                                            <div key={p._id} className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 transition-colors">
-                                                <span className="text-xs font-bold text-blue-400 w-5 text-center">{index + 1}</span>
-                                                <span className="flex-1 text-sm font-medium text-slate-800 truncate">{p.name}</span>
-                                                <div className="flex items-center gap-1 shrink-0">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => moveProduct(index, 'up')}
-                                                        disabled={index === 0}
-                                                        className="p-1 rounded hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                        title="Subir"
-                                                    >
-                                                        <ArrowUp className="h-3.5 w-3.5 text-blue-600" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => moveProduct(index, 'down')}
-                                                        disabled={index === selectedProducts.length - 1}
-                                                        className="p-1 rounded hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                        title="Bajar"
-                                                    >
-                                                        <ArrowDown className="h-3.5 w-3.5 text-blue-600" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeProduct(p._id)}
-                                                        className="p-1 rounded hover:bg-red-100 transition-colors"
-                                                        title="Quitar de la colección"
-                                                    >
-                                                        <X className="h-3.5 w-3.5 text-red-500" />
-                                                    </button>
-                                                </div>
+                                <div className="space-y-2">
+                                    <Label>Imagen de portada</Label>
+                                    <div className="flex items-center gap-4">
+                                        {coverImage ? (
+                                            <Image
+                                                src={coverImage}
+                                                alt="Cover"
+                                                width={100}
+                                                height={100}
+                                                className="rounded-lg object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-24 w-24 rounded-lg bg-slate-100 flex items-center justify-center">
+                                                <FolderOpen className="h-8 w-8 text-slate-400" />
                                             </div>
-                                        ))}
+                                        )}
+                                        <label className="cursor-pointer">
+                                            <Button type="button" variant="outline" className="gap-2" asChild>
+                                                <span>
+                                                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                    Subir imagen
+                                                </span>
+                                            </Button>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleCoverUpload}
+                                                disabled={isUploading}
+                                            />
+                                        </label>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            {/* ── Productos disponibles para añadir ── */}
-                            <div>
-                                <Label className="mb-2 block text-slate-600">
-                                    Añadir productos — clic para agregar al final
-                                </Label>
-                                <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto border rounded-lg p-2 bg-slate-50">
-                                    {products
-                                        .filter((product) => !selectedProducts.some((s) => s._id === product._id))
-                                        .map((product) => (
-                                            <button
-                                                key={product._id}
-                                                type="button"
-                                                onClick={() => addProduct({ _id: product._id, name: product.name })}
-                                                className="p-2 rounded-lg text-left text-xs bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors truncate"
-                                                title={product.name}
-                                            >
-                                                + {product.name}
-                                            </button>
-                                        ))
-                                    }
-                                    {products.filter((product) => !selectedProducts.some((s) => s._id === product._id)).length === 0 && (
-                                        <p className="col-span-3 text-center text-slate-400 text-xs py-3">Todos los productos están en la colección</p>
+                            {/* Columna derecha: productos */}
+                            <div className="flex-1 flex flex-col gap-4 p-6 overflow-hidden">
+
+                                {/* Panel superior: seleccionados con orden */}
+                                <div className="flex flex-col flex-1 min-h-0">
+                                    <Label className="flex items-center gap-2 mb-3 text-base font-semibold">
+                                        <GripVertical className="h-5 w-5 text-slate-400" />
+                                        Productos en la colección ({selectedProducts.length}) — usa ↑↓ para reordenar
+                                    </Label>
+                                    {selectedProducts.length === 0 ? (
+                                        <div className="flex-1 flex items-center justify-center border-2 border-dashed rounded-xl text-slate-400 text-sm">
+                                            Añade productos desde la sección de abajo
+                                        </div>
+                                    ) : (
+                                        <div className="border rounded-xl divide-y overflow-y-auto flex-1">
+                                            {selectedProducts.map((p, index) => (
+                                                <div key={p._id} className="flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                                    <span className="text-sm font-black text-blue-400 w-7 text-center">{index + 1}</span>
+                                                    <span className="flex-1 text-base font-medium text-slate-800">{p.name}</span>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveProduct(index, 'up')}
+                                                            disabled={index === 0}
+                                                            className="p-2 rounded-lg hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                            title="Subir"
+                                                        >
+                                                            <ArrowUp className="h-5 w-5 text-blue-600" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveProduct(index, 'down')}
+                                                            disabled={index === selectedProducts.length - 1}
+                                                            className="p-2 rounded-lg hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                            title="Bajar"
+                                                        >
+                                                            <ArrowDown className="h-5 w-5 text-blue-600" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeProduct(p._id)}
+                                                            className="p-2 rounded-lg hover:bg-red-100 transition-colors"
+                                                            title="Quitar de la colección"
+                                                        >
+                                                            <X className="h-5 w-5 text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     )}
+                                </div>
+
+                                {/* Panel inferior: disponibles para añadir */}
+                                <div className="shrink-0">
+                                    <Label className="mb-3 block text-sm font-semibold text-slate-600">
+                                        Añadir productos — clic en un producto para agregarlo
+                                    </Label>
+                                    <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto border rounded-xl p-3 bg-slate-50">
+                                        {products
+                                            .filter((product) => !selectedProducts.some((s) => s._id === product._id))
+                                            .map((product) => (
+                                                <button
+                                                    key={product._id}
+                                                    type="button"
+                                                    onClick={() => addProduct({ _id: product._id, name: product.name })}
+                                                    className="p-3 rounded-xl text-left text-sm bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors font-medium"
+                                                    title={product.name}
+                                                >
+                                                    <span className="text-blue-500 mr-1">+</span>{product.name}
+                                                </button>
+                                            ))
+                                        }
+                                        {products.filter((product) => !selectedProducts.some((s) => s._id === product._id)).length === 0 && (
+                                            <p className="col-span-3 text-center text-slate-400 text-sm py-4">Todos los productos están en la colección</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <DialogFooter>
+                        {/* Footer */}
+                        <DialogFooter className="px-6 py-4 border-t shrink-0">
                             <Button type="button" variant="outline" onClick={closeDialog}>
                                 Cancelar
                             </Button>
