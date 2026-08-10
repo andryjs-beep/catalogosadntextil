@@ -128,7 +128,10 @@ export default function CollectionsPage() {
         }
     };
 
+    const [productSearch, setProductSearch] = useState('');
+
     const openDialog = (collection?: Collection) => {
+        setProductSearch('');
         if (collection) {
             setEditingCollection(collection);
             form.reset({
@@ -377,156 +380,212 @@ export default function CollectionsPage() {
             </Card>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col overflow-hidden p-0">
-                    <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-                        <DialogTitle className="text-xl">
-                            {editingCollection ? 'Editar Colección' : 'Nueva Colección'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {editingCollection ? 'Modifica los datos' : 'Crea una nueva colección'}
-                        </DialogDescription>
+                <DialogContent className="sm:max-w-[95vw] sm:w-[95vw] w-[95vw] max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col overflow-hidden p-0 rounded-2xl">
+                    <DialogHeader className="px-6 py-4 border-b shrink-0 bg-slate-50 flex-row items-center justify-between">
+                        <div>
+                            <DialogTitle className="text-xl font-bold text-slate-800">
+                                {editingCollection ? 'Editar Colección' : 'Nueva Colección'}
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-slate-500">
+                                {editingCollection ? 'Configura los datos y el orden de los productos' : 'Crea una nueva colección y asigna productos'}
+                            </DialogDescription>
+                        </div>
                     </DialogHeader>
 
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-                        {/* Layout dos columnas */}
-                        <div className="flex flex-1 overflow-hidden">
-
-                            {/* Columna izquierda: datos básicos */}
-                            <div className="w-[320px] shrink-0 border-r flex flex-col gap-4 p-6 overflow-y-auto">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Nombre</Label>
-                                    <Input id="name" {...form.register('name')} placeholder="Gorras" />
+                        {/* Seccion 1: Datos basicos de la Colección */}
+                        <div className="px-6 py-3 bg-white border-b shrink-0 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                            <div className="space-y-1">
+                                <Label htmlFor="name" className="text-xs font-semibold text-slate-700">Nombre de la colección</Label>
+                                <Input id="name" {...form.register('name')} placeholder="Ej: Franelas Emprendedores" className="h-9 text-sm" />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="slug" className="text-xs font-semibold text-slate-700">Slug (URL)</Label>
+                                <Input id="slug" {...form.register('slug')} placeholder="catalogo-franelas" className="h-9 text-sm" />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold text-slate-700 block">Imagen de portada</Label>
+                                <div className="flex items-center gap-3">
+                                    {coverImage ? (
+                                        <Image
+                                            src={coverImage}
+                                            alt="Cover"
+                                            width={36}
+                                            height={36}
+                                            className="rounded-md object-cover h-9 w-9 border"
+                                        />
+                                    ) : (
+                                        <div className="h-9 w-9 rounded-md bg-slate-100 border flex items-center justify-center">
+                                            <FolderOpen className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    )}
+                                    <label className="cursor-pointer flex-1">
+                                        <Button type="button" variant="outline" size="sm" className="w-full h-9 text-xs gap-1.5" asChild>
+                                            <span>
+                                                {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                                                {coverImage ? 'Cambiar Imagen' : 'Subir Imagen'}
+                                            </span>
+                                        </Button>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleCoverUpload}
+                                            disabled={isUploading}
+                                        />
+                                    </label>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="slug">Slug (URL)</Label>
-                                    <Input id="slug" {...form.register('slug')} placeholder="gorras" />
-                                </div>
+                            </div>
+                        </div>
 
-                                <div className="space-y-2">
-                                    <Label>Imagen de portada</Label>
-                                    <div className="flex items-center gap-4">
-                                        {coverImage ? (
-                                            <Image
-                                                src={coverImage}
-                                                alt="Cover"
-                                                width={100}
-                                                height={100}
-                                                className="rounded-lg object-cover"
-                                            />
-                                        ) : (
-                                            <div className="h-24 w-24 rounded-lg bg-slate-100 flex items-center justify-center">
-                                                <FolderOpen className="h-8 w-8 text-slate-400" />
-                                            </div>
-                                        )}
-                                        <label className="cursor-pointer">
-                                            <Button type="button" variant="outline" className="gap-2" asChild>
-                                                <span>
-                                                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                                    Subir imagen
-                                                </span>
-                                            </Button>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleCoverUpload}
-                                                disabled={isUploading}
-                                            />
-                                        </label>
+                        {/* Seccion 2: Paneles Side-by-Side para Productos */}
+                        <div className="flex flex-1 min-h-0 overflow-hidden bg-slate-100/60 p-4 gap-4">
+                            {/* Panel Izquierdo: Productos en la Colección */}
+                            <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden">
+                                <div className="px-4 py-3 border-b bg-blue-50/50 flex items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <GripVertical className="h-4 w-4 text-blue-600" />
+                                        <span className="font-bold text-sm text-slate-800">
+                                            Productos en esta colección ({selectedProducts.length})
+                                        </span>
                                     </div>
+                                    <span className="text-xs text-blue-600 font-medium">
+                                        Usa las flechas ↑ ↓ para mover la posición
+                                    </span>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-3 divide-y divide-slate-100">
+                                    {selectedProducts.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm gap-2">
+                                            <FolderOpen className="h-10 w-10 text-slate-300" />
+                                            <span>Esta colección no tiene productos aún.</span>
+                                            <span className="text-xs text-slate-400">Añádelos desde el panel de la derecha 👉</span>
+                                        </div>
+                                    ) : (
+                                        selectedProducts.map((p, index) => (
+                                            <div key={p._id} className="flex items-center gap-3 py-2.5 px-3 hover:bg-slate-50 rounded-lg transition-colors group">
+                                                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0 shadow-xs">
+                                                    {index + 1}
+                                                </span>
+                                                <span className="flex-1 text-sm font-semibold text-slate-800 truncate">
+                                                    {p.name}
+                                                </span>
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveProduct(index, 'up')}
+                                                        disabled={index === 0}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-bold text-xs hover:bg-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1 shadow-2xs"
+                                                        title="Subir posición"
+                                                    >
+                                                        <ArrowUp className="h-4 w-4 text-blue-700" />
+                                                        <span>Subir</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveProduct(index, 'down')}
+                                                        disabled={index === selectedProducts.length - 1}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-bold text-xs hover:bg-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1 shadow-2xs"
+                                                        title="Bajar posición"
+                                                    >
+                                                        <ArrowDown className="h-4 w-4 text-blue-700" />
+                                                        <span>Bajar</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeProduct(p._id)}
+                                                        className="p-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all ml-1"
+                                                        title="Quitar de la colección"
+                                                    >
+                                                        <X className="h-4 w-4 text-red-600" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Columna derecha: productos */}
-                            <div className="flex-1 flex flex-col gap-4 p-6 overflow-hidden">
-
-                                {/* Panel superior: seleccionados con orden */}
-                                <div className="flex flex-col flex-1 min-h-0">
-                                    <Label className="flex items-center gap-2 mb-3 text-base font-semibold">
-                                        <GripVertical className="h-5 w-5 text-slate-400" />
-                                        Productos en la colección ({selectedProducts.length}) — usa ↑↓ para reordenar
-                                    </Label>
-                                    {selectedProducts.length === 0 ? (
-                                        <div className="flex-1 flex items-center justify-center border-2 border-dashed rounded-xl text-slate-400 text-sm">
-                                            Añade productos desde la sección de abajo
-                                        </div>
-                                    ) : (
-                                        <div className="border rounded-xl divide-y overflow-y-auto flex-1">
-                                            {selectedProducts.map((p, index) => (
-                                                <div key={p._id} className="flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors">
-                                                    <span className="text-sm font-black text-blue-400 w-7 text-center">{index + 1}</span>
-                                                    <span className="flex-1 text-base font-medium text-slate-800">{p.name}</span>
-                                                    <div className="flex items-center gap-2 shrink-0">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => moveProduct(index, 'up')}
-                                                            disabled={index === 0}
-                                                            className="p-2 rounded-lg hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                            title="Subir"
-                                                        >
-                                                            <ArrowUp className="h-5 w-5 text-blue-600" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => moveProduct(index, 'down')}
-                                                            disabled={index === selectedProducts.length - 1}
-                                                            className="p-2 rounded-lg hover:bg-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                            title="Bajar"
-                                                        >
-                                                            <ArrowDown className="h-5 w-5 text-blue-600" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeProduct(p._id)}
-                                                            className="p-2 rounded-lg hover:bg-red-100 transition-colors"
-                                                            title="Quitar de la colección"
-                                                        >
-                                                            <X className="h-5 w-5 text-red-500" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Panel inferior: disponibles para añadir */}
-                                <div className="shrink-0">
-                                    <Label className="mb-3 block text-sm font-semibold text-slate-600">
-                                        Añadir productos — clic en un producto para agregarlo
-                                    </Label>
-                                    <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto border rounded-xl p-3 bg-slate-50">
-                                        {products
-                                            .filter((product) => !selectedProducts.some((s) => s._id === product._id))
-                                            .map((product) => (
-                                                <button
-                                                    key={product._id}
-                                                    type="button"
-                                                    onClick={() => addProduct({ _id: product._id, name: product.name })}
-                                                    className="p-3 rounded-xl text-left text-sm bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors font-medium"
-                                                    title={product.name}
-                                                >
-                                                    <span className="text-blue-500 mr-1">+</span>{product.name}
-                                                </button>
-                                            ))
-                                        }
-                                        {products.filter((product) => !selectedProducts.some((s) => s._id === product._id)).length === 0 && (
-                                            <p className="col-span-3 text-center text-slate-400 text-sm py-4">Todos los productos están en la colección</p>
+                            {/* Panel Derecho: Productos Disponibles para Añadir */}
+                            <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden">
+                                <div className="px-4 py-3 border-b bg-slate-50 flex items-center justify-between shrink-0 gap-3">
+                                    <span className="font-bold text-sm text-slate-800 shrink-0">
+                                        Catálogo de Productos
+                                    </span>
+                                    <div className="relative flex-1 max-w-xs">
+                                        <Input
+                                            type="text"
+                                            placeholder="🔍 Buscar por nombre..."
+                                            value={productSearch}
+                                            onChange={(e) => setProductSearch(e.target.value)}
+                                            className="h-8 text-xs pr-7"
+                                        />
+                                        {productSearch && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setProductSearch('')}
+                                                className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
                                         )}
                                     </div>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-3">
+                                    {(() => {
+                                        const available = products.filter(
+                                            (product) =>
+                                                !selectedProducts.some((s) => s._id === product._id) &&
+                                                product.name.toLowerCase().includes(productSearch.toLowerCase())
+                                        );
+
+                                        if (available.length === 0) {
+                                            return (
+                                                <div className="h-full flex items-center justify-center text-slate-400 text-xs py-8">
+                                                    {productSearch ? 'No se encontraron productos con esa búsqueda' : 'Todos los productos ya están en la colección'}
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                {available.map((product) => (
+                                                    <button
+                                                        key={product._id}
+                                                        type="button"
+                                                        onClick={() => addProduct({ _id: product._id, name: product.name })}
+                                                        className="p-3 rounded-lg text-left bg-slate-50 border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center justify-between group shadow-2xs"
+                                                    >
+                                                        <span className="text-xs font-semibold text-slate-700 group-hover:text-blue-900 truncate">
+                                                            {product.name}
+                                                        </span>
+                                                        <span className="text-xs font-bold text-blue-600 bg-blue-100 group-hover:bg-blue-600 group-hover:text-white px-2 py-0.5 rounded-full transition-colors shrink-0 ml-2">
+                                                            + Añadir
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>
 
                         {/* Footer */}
-                        <DialogFooter className="px-6 py-4 border-t shrink-0">
-                            <Button type="button" variant="outline" onClick={closeDialog}>
-                                Cancelar
-                            </Button>
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Guardar
-                            </Button>
+                        <DialogFooter className="px-6 py-3 border-t shrink-0 bg-white flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                                Recuerda hacer clic en <strong>Guardar</strong> para aplicar los cambios de orden.
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <Button type="button" variant="outline" size="sm" onClick={closeDialog}>
+                                    Cancelar
+                                </Button>
+                                <Button type="submit" size="sm" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Guardar Cambios
+                                </Button>
+                            </div>
                         </DialogFooter>
                     </form>
                 </DialogContent>
