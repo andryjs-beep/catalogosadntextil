@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         let baseURL = process.env.AI_BASE_URL;
         if (!baseURL) {
             if (isOpenCode) {
-                baseURL = 'https://opencode.ai/zen/go/v1';
+                baseURL = 'https://opencode.ai/zen/v1';
             } else if (isGroq) {
                 baseURL = 'https://api.groq.com/openai/v1';
             }
@@ -154,7 +154,7 @@ Responde solo con el texto plano.`;
         let model = process.env.AI_MODEL;
         if (!model) {
             if (isOpenCode) {
-                model = 'llama-3.3-70b';
+                model = 'deepseek-v4-flash-free';
             } else if (isGroq) {
                 model = 'llama-3.3-70b-versatile';
             } else {

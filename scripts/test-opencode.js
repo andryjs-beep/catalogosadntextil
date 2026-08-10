@@ -11,8 +11,8 @@ async function main() {
         process.exit(1);
     }
 
-    const baseURL = process.env.AI_BASE_URL || (process.env.OPENCODE_API_KEY ? 'https://opencode.ai/zen/go/v1' : 'https://api.groq.com/openai/v1');
-    const model = process.env.AI_MODEL || (process.env.OPENCODE_API_KEY ? 'llama-3.3-70b' : 'llama-3.3-70b-versatile');
+    const baseURL = process.env.AI_BASE_URL || (process.env.OPENCODE_API_KEY ? 'https://opencode.ai/zen/v1' : 'https://api.groq.com/openai/v1');
+    const model = process.env.AI_MODEL || (process.env.OPENCODE_API_KEY ? 'deepseek-v4-flash-free' : 'llama-3.3-70b-versatile');
 
     console.log(`🤖 Probando conexión con la IA en ${baseURL} usando el modelo ${model}...`);
 
