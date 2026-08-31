@@ -85,6 +85,7 @@ export function ProductSlider({
                                 fill
                                 className="object-cover"
                                 priority={index === 0}
+                                unoptimized
                             />
                         </div>
                     ))}

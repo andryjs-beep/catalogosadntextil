@@ -78,6 +78,7 @@ export function ImageGallery({
                                 fill
                                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                                 sizes={index === 0 ? '100vw' : '50vw'}
+                                unoptimized
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                                 <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -114,6 +115,7 @@ export function ImageGallery({
                         className="object-cover"
                         priority
                         sizes="100vw"
+                        unoptimized
                     />
 
                     {/* Gradient overlay */}
@@ -183,6 +185,7 @@ export function ImageGallery({
                                     fill
                                     className="object-cover"
                                     sizes="64px"
+                                    unoptimized
                                 />
                             </button>
                         ))}

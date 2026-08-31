@@ -129,6 +129,7 @@ export function Lightbox({
                         priority
                         sizes="100vw"
                         quality={90}
+                        unoptimized
                     />
                 </div>
             </div>
@@ -172,6 +173,7 @@ export function Lightbox({
                                     fill
                                     className="object-cover"
                                     sizes="80px"
+                                    unoptimized
                                 />
                             </button>
                         ))}

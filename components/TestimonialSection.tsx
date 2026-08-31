@@ -45,8 +45,8 @@ export function TestimonialSection({
                                         <Star
                                             key={i}
                                             className={`h-5 w-5 ${i < testimonial.rating!
-                                                    ? 'text-yellow-400 fill-yellow-400'
-                                                    : 'text-slate-200'
+                                                ? 'text-yellow-400 fill-yellow-400'
+                                                : 'text-slate-200'
                                                 }`}
                                         />
                                     ))}
@@ -65,6 +65,7 @@ export function TestimonialSection({
                                             alt={testimonial.name}
                                             fill
                                             className="object-cover"
+                                            unoptimized
                                         />
                                     </div>
                                 ) : (

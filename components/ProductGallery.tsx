@@ -39,6 +39,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                 fill
                                 className={`object-cover transition-transform duration-500 ${isZoomed ? 'scale-150' : 'scale-100'}`}
                                 priority
+                                unoptimized
                             />
 
                             {/* Indicador de zoom */}
@@ -75,8 +76,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                         key={index}
                                         onClick={() => setCurrentIndex(index)}
                                         className={`w-3 h-3 rounded-full transition-all ${index === currentIndex
-                                                ? 'bg-primary w-8'
-                                                : 'bg-slate-300 hover:bg-slate-400'
+                                            ? 'bg-primary w-8'
+                                            : 'bg-slate-300 hover:bg-slate-400'
                                             }`}
                                         aria-label={`Ir a imagen ${index + 1}`}
                                     />
@@ -93,8 +94,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                     key={index}
                                     onClick={() => setCurrentIndex(index)}
                                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${index === currentIndex
-                                            ? 'border-primary ring-2 ring-primary/30'
-                                            : 'border-transparent hover:border-slate-300'
+                                        ? 'border-primary ring-2 ring-primary/30'
+                                        : 'border-transparent hover:border-slate-300'
                                         }`}
                                 >
                                     <Image
@@ -102,6 +103,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                         alt={`${productName} - Miniatura ${index + 1}`}
                                         fill
                                         className="object-cover"
+                                        unoptimized
                                     />
                                 </button>
                             ))}

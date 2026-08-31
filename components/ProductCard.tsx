@@ -49,6 +49,7 @@ export function ProductCard({
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            unoptimized
                         />
                     ) : (
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
