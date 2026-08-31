@@ -261,8 +261,28 @@ export default async function ProductDetailPage({
         );
     }
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: productName,
+        description: finalDescription,
+        image: product.images,
+        offers: {
+            '@type': 'Offer',
+            priceCurrency: 'USD',
+            price: productPrice ? productPrice.replace(/[^0-9.]/g, '') || '0' : '0',
+            availability: 'https://schema.org/InStock',
+        },
+    };
+
     return (
         <div className="min-h-screen bg-slate-50">
+            {/* Schema.org Structured Data for Google Rich Snippets */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+
             {/* Analytics Tracker */}
             <AnalyticsTracker
                 tenantId={tenant._id.toString()}
