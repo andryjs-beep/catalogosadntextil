@@ -319,6 +319,7 @@ export default function CollectionsPage() {
                                                     alt={col.name}
                                                     width={48}
                                                     height={48}
+                                                    unoptimized
                                                     className="rounded-lg object-cover"
                                                 />
                                             ) : (
@@ -412,6 +413,7 @@ export default function CollectionsPage() {
                                             alt="Cover"
                                             width={36}
                                             height={36}
+                                            unoptimized
                                             className="rounded-md object-cover h-9 w-9 border"
                                         />
                                     ) : (

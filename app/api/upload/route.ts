@@ -15,7 +15,13 @@ export async function POST(request: NextRequest) {
         }
 
         const formData = await request.formData();
-        const files = formData.getAll('files') as File[];
+        let files = formData.getAll('files') as File[];
+        if (!files || files.length === 0) {
+            files = formData.getAll('file') as File[];
+        }
+
+        // Filter out any non-File values or invalid files
+        files = files.filter((f) => f && typeof f === 'object' && f.name);
 
         if (files.length === 0) {
             return NextResponse.json(
@@ -54,6 +60,7 @@ export async function POST(request: NextRequest) {
         const results = await uploadMultipleImages(buffers);
 
         return NextResponse.json({
+            url: results[0]?.url || '',
             urls: results.map((r) => r.url),
             images: results,
         });

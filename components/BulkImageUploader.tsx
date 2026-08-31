@@ -74,7 +74,7 @@ export function BulkImageUploader({
 
             try {
                 const formData = new FormData();
-                formData.append('file', files[i].file);
+                formData.append('files', files[i].file);
 
                 const res = await fetch('/api/upload', {
                     method: 'POST',
@@ -84,7 +84,9 @@ export function BulkImageUploader({
                 if (!res.ok) throw new Error('Error al subir imagen');
 
                 const data = await res.json();
-                const url = data.url;
+                const url = data.url || data.urls?.[0];
+
+                if (!url) throw new Error('No se recibió la URL de la imagen');
 
                 // Actualizar estado a "success"
                 setFiles(prev => {

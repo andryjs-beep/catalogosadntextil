@@ -98,9 +98,17 @@ export default function ProductsPage() {
                 body: formData,
             });
             const data = await response.json();
-            if (response.ok) {
-                setUploadedImages((prev) => [...prev, ...data.urls]);
-                form.setValue('images', [...uploadedImages, ...data.urls]);
+            if (response.ok && Array.isArray(data.urls)) {
+                const validUrls = data.urls.filter((u: string) => u && typeof u === 'string' && u !== 'undefined');
+                setUploadedImages((prev) => {
+                    const cleanPrev = prev.filter((u) => u && typeof u === 'string' && u !== 'undefined');
+                    const updated = [...cleanPrev, ...validUrls];
+                    form.setValue('images', updated);
+                    if (!form.getValues('coverImage') && updated.length > 0) {
+                        form.setValue('coverImage', updated[0]);
+                    }
+                    return updated;
+                });
                 toast.success('Imágenes subidas correctamente');
             } else {
                 toast.error(data.error || 'Error al subir imágenes');
@@ -113,9 +121,13 @@ export default function ProductsPage() {
     };
 
     const removeImage = (index: number) => {
+        const removedUrl = uploadedImages[index];
         const newImages = uploadedImages.filter((_, i) => i !== index);
         setUploadedImages(newImages);
         form.setValue('images', newImages);
+        if (form.getValues('coverImage') === removedUrl) {
+            form.setValue('coverImage', newImages[0] || '');
+        }
     };
 
     const moveImageToTop = (index: number) => {
@@ -130,15 +142,18 @@ export default function ProductsPage() {
     const openDialog = (product?: Product) => {
         if (product) {
             setEditingProduct(product);
+            const cleanImages = (product.images || []).filter(
+                (img) => img && typeof img === 'string' && img !== 'undefined'
+            );
             form.reset({
                 slug: product.slug || '',
                 name: product.name,
                 description: product.description || '',
-                images: product.images,
-                tags: product.tags,
-                coverImage: product.coverImage || '',
+                images: cleanImages,
+                tags: product.tags || [],
+                coverImage: product.coverImage || cleanImages[0] || '',
             });
-            setUploadedImages(product.images);
+            setUploadedImages(cleanImages);
         } else {
             setEditingProduct(null);
             form.reset({ slug: '', name: '', description: '', images: [], tags: [], coverImage: '' });
@@ -250,12 +265,13 @@ export default function ProductsPage() {
                                 {products.map((product) => (
                                     <TableRow key={product._id}>
                                         <TableCell>
-                                            {product.images[0] ? (
+                                            {product.coverImage || product.images?.[0] ? (
                                                 <Image
-                                                    src={product.images[0]}
+                                                    src={product.coverImage || product.images[0]}
                                                     alt={product.name}
                                                     width={48}
                                                     height={48}
+                                                    unoptimized
                                                     className="rounded-lg object-cover"
                                                 />
                                             ) : (
@@ -356,12 +372,13 @@ export default function ProductsPage() {
                                 <Label>Imágenes</Label>
                                 <div className="grid grid-cols-4 gap-2">
                                     {uploadedImages.map((url, index) => (
-                                        <div key={url} className={`relative group rounded-xl overflow-hidden border-2 transition-all ${form.watch('coverImage') === url ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-slate-200 hover:border-slate-300'}`}>
+                                        <div key={`${url}-${index}`} className={`relative group rounded-xl overflow-hidden border-2 transition-all ${form.watch('coverImage') === url ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-slate-200 hover:border-slate-300'}`}>
                                             <Image
                                                 src={url}
                                                 alt={`Imagen ${index + 1}`}
                                                 width={100}
                                                 height={100}
+                                                unoptimized
                                                 className="object-cover w-full aspect-square"
                                             />
 
