@@ -1,56 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+import OpenAI from 'openai';
 
 /**
- * Consulta la API REST de Google Gemini probando primero la API v1 (Producción GA) y luego v1beta como fallback.
+ * Genera contenido utilizando el SDK de OpenAI conectado nativamente al endpoint de compatibilidad de Google Gemini.
+ * Endpoint oficial de Google: https://generativelanguage.googleapis.com/v1beta/openai/
  */
-async function fetchGeminiContent(model: string, apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    const versions = ['v1', 'v1beta'];
-    let lastErrorMsg = '';
+async function callGeminiOpenAI(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+    const openai = new OpenAI({
+        apiKey: apiKey,
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/'
+    });
 
-    for (const version of versions) {
-        const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
+    const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    let lastError: any = null;
 
+    for (const model of candidateModels) {
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.7 }
-                })
+            const completion = await openai.chat.completions.create({
+                model: model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) return text;
-            }
-
-            lastErrorMsg = data?.error?.message || `Error HTTP ${response.status} en ${version}/${model}`;
+            const content = completion.choices[0]?.message?.content;
+            if (content) return content;
         } catch (err: any) {
-            lastErrorMsg = err.message || `Error al conectar con ${version}/${model}`;
+            console.warn(`Error probando modelo ${model} en Gemini OpenAI Endpoint:`, err?.message || err);
+            lastError = err;
         }
     }
 
-    throw new Error(lastErrorMsg);
-}
-
-/**
- * Genera el contenido con Google Gemini probando en paralelo los modelos de producción principales.
- */
-async function generateWithGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    try {
-        return await Promise.any([
-            fetchGeminiContent('gemini-1.5-flash', apiKey, prompt, systemPrompt),
-            fetchGeminiContent('gemini-2.0-flash', apiKey, prompt, systemPrompt)
-        ]);
-    } catch (parallelErr) {
-        console.warn('Peticiones paralelas fallaron, utilizando respaldo con gemini-1.5-pro');
-        return await fetchGeminiContent('gemini-1.5-pro', apiKey, prompt, systemPrompt);
-    }
+    throw new Error(lastError?.message || 'No se pudo generar contenido con Google Gemini API.');
 }
 
 export async function POST(req: NextRequest) {
@@ -176,7 +160,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const rawContent = await generateWithGemini(apiKey, prompt, systemPrompt);
+        const rawContent = await callGeminiOpenAI(apiKey, prompt, systemPrompt);
 
         let result: any = rawContent;
         if (section !== "longDescription") {
