@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Llama a la API REST de Google Gemini de forma ultra rápida, con timeout de 8s y sin recursividad.
+ * Llama a la API REST de Google Gemini usando gemini-3.8-flash como modelo primario con timeout de 12s.
  */
 async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
     const candidateModels = [
         preferredModel,
-        'gemini-1.5-flash',
+        'gemini-3.8-flash',
         'gemini-2.0-flash',
-        'gemini-2.5-flash'
-    ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i);
+        'gemini-1.5-flash'
+    ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i && m !== 'gemini-2.5-flash');
 
     let lastErrorMsg = '';
 
@@ -20,7 +20,7 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -44,12 +44,12 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
             lastErrorMsg = data?.error?.message || `Error HTTP ${response.status} en modelo ${cleanModel}`;
             console.warn(`Modelo ${cleanModel} no disponible: ${lastErrorMsg}. Probando siguiente candidato...`);
         } catch (err: any) {
-            lastErrorMsg = err.name === 'AbortError' ? `Timeout de 8s en modelo ${cleanModel}` : err.message;
+            lastErrorMsg = err.name === 'AbortError' ? `Timeout de 12s en modelo ${cleanModel}` : err.message;
             console.warn(`Error llamando a ${cleanModel}: ${lastErrorMsg}`);
         }
     }
 
-    throw new Error(lastErrorMsg || 'No se pudo generar contenido con los modelos de Gemini disponibles.');
+    throw new Error(lastErrorMsg || 'No se pudo generar contenido con Gemini.');
 }
 
 export async function POST(req: NextRequest) {
@@ -176,7 +176,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const preferredModel = process.env.AI_MODEL || 'gemini-1.5-flash';
+        const preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
         const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
 
         let result: any = rawContent;
