@@ -2,52 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Consulta en tiempo real la lista de modelos habilitados para generateContent en la API Key dada.
- */
-async function getAvailableGeminiModel(apiKey: string): Promise<string> {
-    try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        if (!res.ok) return 'gemini-2.0-flash';
-
-        const data = await res.json();
-        const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
-
-        const validModel = models.find(m =>
-            m.supportedGenerationMethods?.includes('generateContent') &&
-            (m.name.includes('flash') || m.name.includes('gemini'))
-        ) || models.find(m => m.supportedGenerationMethods?.includes('generateContent'));
-
-        if (validModel) {
-            return validModel.name.replace(/^models\//, '');
-        }
-    } catch (e) {
-        console.warn('Error consultando ListModels de Gemini:', e);
-    }
-
-    return 'gemini-2.0-flash';
-}
-
-/**
- * Llama a la API REST de Google Gemini intentando candidatos estáticos, tolerancia a sobredemanda (High Demand Fallback) y ListModels dinámico.
+ * Llama a la API REST de Google Gemini de forma ultra rápida, con timeout de 8s y sin recursividad.
  */
 async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
     const candidateModels = [
         preferredModel,
-        'gemini-3.8-flash',
+        'gemini-1.5-flash',
         'gemini-2.0-flash',
-        'gemini-1.5-flash-latest'
+        'gemini-2.5-flash'
     ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i);
 
-    let lastError: Error | null = null;
+    let lastErrorMsg = '';
 
     for (const modelName of candidateModels) {
+        const cleanModel = modelName.replace(/^models\//, '');
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
+
         try {
-            const cleanModel = modelName.replace(/^models\//, '');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
 
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
                 body: JSON.stringify({
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                     contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -55,87 +33,23 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
                 })
             });
 
+            clearTimeout(timeoutId);
             const data = await response.json();
 
-            if (!response.ok) {
-                const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
-
-                // Si la API sugiere explícitamente usar otro modelo
-                const suggestedMatch = errorMsg.match(/use\s+models\/([a-zA-Z0-9\.\-]+)/i);
-                if (suggestedMatch && suggestedMatch[1] && suggestedMatch[1] !== cleanModel) {
-                    const suggestedModel = suggestedMatch[1];
-                    console.warn(`Gemini sugiere usar ${suggestedModel}. Reintentando automáticamente con modelo sugerido...`);
-                    return await callGeminiApi(apiKey, prompt, systemPrompt, suggestedModel);
-                }
-
-                // Detectar sobredemanda (High Demand / Spikes in demand), 503, 429, 404 o not found/unavailable
-                const isOverloadedOrUnavailable =
-                    response.status === 503 ||
-                    response.status === 429 ||
-                    response.status === 404 ||
-                    errorMsg.toLowerCase().includes('high demand') ||
-                    errorMsg.toLowerCase().includes('overloaded') ||
-                    errorMsg.toLowerCase().includes('not available') ||
-                    errorMsg.toLowerCase().includes('not found') ||
-                    errorMsg.toLowerCase().includes('try again later');
-
-                if (isOverloadedOrUnavailable) {
-                    console.warn(`Modelo ${cleanModel} no disponible o con alta demanda (${errorMsg}). Alternando automáticamente al siguiente candidato...`);
-                    lastError = new Error(errorMsg);
-                    continue;
-                }
-
-                throw new Error(errorMsg);
+            if (response.ok) {
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) return text;
             }
 
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error('La API de Gemini no devolvió contenido.');
-
-            return text;
+            lastErrorMsg = data?.error?.message || `Error HTTP ${response.status} en modelo ${cleanModel}`;
+            console.warn(`Modelo ${cleanModel} no disponible: ${lastErrorMsg}. Probando siguiente candidato...`);
         } catch (err: any) {
-            const msg = err.message?.toLowerCase() || '';
-            if (
-                msg.includes('high demand') ||
-                msg.includes('overloaded') ||
-                msg.includes('not available') ||
-                msg.includes('not found') ||
-                msg.includes('try again later') ||
-                msg.includes('404') ||
-                msg.includes('503') ||
-                msg.includes('429')
-            ) {
-                lastError = err;
-                continue;
-            }
-            throw err;
+            lastErrorMsg = err.name === 'AbortError' ? `Timeout de 8s en modelo ${cleanModel}` : err.message;
+            console.warn(`Error llamando a ${cleanModel}: ${lastErrorMsg}`);
         }
     }
 
-    // Fallback dinámico a ListModels
-    console.warn('Candidatos estáticos no disponibles. Consultando ListModels de Gemini en tiempo real...');
-    const dynamicModel = await getAvailableGeminiModel(apiKey);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${dynamicModel}:generateContent?key=${apiKey}`;
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7 }
-        })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data?.error?.message || lastError?.message || `Error HTTP ${response.status} de Gemini API`);
-    }
-
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('La API de Gemini no devolvió contenido.');
-
-    return text;
+    throw new Error(lastErrorMsg || 'No se pudo generar contenido con los modelos de Gemini disponibles.');
 }
 
 export async function POST(req: NextRequest) {
@@ -262,7 +176,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
+        const preferredModel = process.env.AI_MODEL || 'gemini-1.5-flash';
         const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
 
         let result: any = rawContent;
