@@ -1,34 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { getSession } from '@/lib/auth';
+
+/**
+ * Llama directamente a la API REST oficial de Google Gemini.
+ * Sin dependencias de terceros ni proxies intermediarios.
+ */
+async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, modelName = 'gemini-1.5-flash') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            systemInstruction: {
+                parts: [{ text: systemPrompt }]
+            },
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: prompt }]
+                }
+            ],
+            generationConfig: {
+                temperature: 0.7
+            }
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
+        throw new Error(errorMsg);
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+        throw new Error('La API de Gemini no devolvió ningún contenido.');
+    }
+
+    return text;
+}
 
 export async function POST(req: NextRequest) {
     try {
-        const isGemini = !!process.env.GEMINI_API_KEY;
-        const isOpenCode = !isGemini && !!process.env.OPENCODE_API_KEY;
-        const isGroq = !isGemini && !isOpenCode && !!process.env.GROQ_API_KEY;
-
-        const apiKey = process.env.GEMINI_API_KEY || process.env.OPENCODE_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
         if (!apiKey) {
-            console.error('Ni GEMINI_API_KEY, OPENCODE_API_KEY, GROQ_API_KEY ni OPENAI_API_KEY configuradas');
-            return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
+            console.error('Clave GEMINI_API_KEY no configurada en el servidor.');
+            return NextResponse.json({
+                error: 'Configuración de IA incompleta: Registra la variable GEMINI_API_KEY en Vercel.'
+            }, { status: 500 });
         }
-
-        let baseURL = process.env.AI_BASE_URL;
-        if (!baseURL) {
-            if (isGemini) {
-                baseURL = 'https://generativelanguage.googleapis.com/v1beta/openai/';
-            } else if (isOpenCode) {
-                baseURL = 'https://opencode.ai/zen/v1';
-            } else if (isGroq) {
-                baseURL = 'https://api.groq.com/openai/v1';
-            }
-        }
-
-        const openai = new OpenAI({
-            apiKey,
-            baseURL: baseURL || undefined
-        });
 
         const session = await getSession();
         if (!session.isAuthenticated) {
@@ -40,8 +64,6 @@ export async function POST(req: NextRequest) {
 
         let prompt = "";
 
-        // Extraer con valores por defecto para evitar fallos de lectura
-        const bName = tenantInfo?.businessName || "Negocio";
         const bNiche = tenantInfo?.niche || "Ventas";
         const bTone = tenantInfo?.tone || "profesional";
         const pName = productInfo?.name || "Colección";
@@ -59,7 +81,11 @@ export async function POST(req: NextRequest) {
 🚚 Envíos Nacionales: Pago de contado para otras ciudades vía MRW o TEALCA.
 `;
 
-        // PROMPT PARA HERO DE COLECCIÓN O PRODUCTO (Método AIDA)
+        const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
+
+Sigue strictly estas pautas:
+${MASTER_PROMPT_RULES}`;
+
         if ((type === "collection" || type === "product") && section === "hero") {
             prompt = `Actúa como un Copywriter experto en ventas por WhatsApp e Instagram. Genera contenido AIDA para el HERO de una landing.
             
@@ -80,10 +106,7 @@ Responde SOLO con JSON válido:
   "subheadline": "...",
   "ctaText": "..."
 }`;
-        }
-
-        // PROMPT PARA FINAL CTA
-        else if (section === "finalCTA") {
+        } else if (section === "finalCTA") {
             prompt = `Genera un cierre de venta (Final CTA) IMPACTANTE para: ${pName}.
             
 ${MASTER_PROMPT_RULES}
@@ -99,10 +122,7 @@ Responde SOLO con JSON válido:
   "description": "...",
   "ctaText": "..."
 }`;
-        }
-
-        // PROMPT PARA BENEFITS
-        else if (section === "benefits") {
+        } else if (section === "benefits") {
             prompt = `Genera 4 beneficios clave para: ${pName}.
 ${MASTER_PROMPT_RULES}
 
@@ -115,10 +135,7 @@ Formato JSON:
   }
 ]
 Nota: Usa iconos de Lucide (shield, truck, star, zap, award, check-circle, heart, sparkles). Enfócate en la durabilidad y resistencia del producto.`;
-        }
-
-        // PROMPT PARA FAQ
-        else if (section === "faq") {
+        } else if (section === "faq") {
             prompt = `Genera 6 FAQs para: ${pName}.
 ${MASTER_PROMPT_RULES}
 
@@ -131,10 +148,7 @@ Formato JSON:
     "answer": "..."
   }
 ]`;
-        }
-
-        // PROMPT PARA DESCRIPCIÓN LARGA
-        else if (type === "product" && section === "longDescription") {
+        } else if (type === "product" && section === "longDescription") {
             prompt = `Escribe una descripción de ventas persuasiva de 200-250 palabras para:
 
 PRODUCTO A PUBLICAR: ${pName}
@@ -154,72 +168,30 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        let model = process.env.AI_MODEL;
-        if (!model) {
-            if (isOpenCode) {
-                model = 'deepseek-v4.1-flash';
-            } else if (isGemini) {
-                model = 'gemini-1.5-flash';
-            } else if (isGroq) {
-                model = 'llama-3.3-70b-versatile';
-            } else {
-                model = 'gpt-4o-mini';
-            }
-        }
+        const model = process.env.AI_MODEL || 'gemini-1.5-flash';
+        let rawContent = '';
 
-        let completion;
         try {
-            completion = await openai.chat.completions.create({
-                model,
-                messages: [
-                    {
-                        role: "system",
-                        content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
-                        
-Sigue estrictamente estas pautas:
-${MASTER_PROMPT_RULES}`
-                    },
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
-                temperature: 0.7,
-            });
-        } catch (apiErr: any) {
-            if (isGemini && (apiErr.status === 404 || apiErr?.message?.includes('404')) && model !== 'gemini-1.5-flash') {
-                console.warn(`Modelo ${model} no disponible en Gemini (404). Reintentando con gemini-1.5-flash...`);
-                completion = await openai.chat.completions.create({
-                    model: 'gemini-1.5-flash',
-                    messages: [
-                        {
-                            role: "system",
-                            content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
-                            
-Sigue estrictamente estas pautas:
-${MASTER_PROMPT_RULES}`
-                        },
-                        {
-                            role: "user",
-                            content: prompt
-                        }
-                    ],
-                    temperature: 0.7,
-                });
+            rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, model);
+        } catch (err: any) {
+            if (model !== 'gemini-1.5-flash') {
+                console.warn(`Fallback a gemini-1.5-flash tras error: ${err.message}`);
+                rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, 'gemini-1.5-flash');
             } else {
-                throw apiErr;
+                throw err;
             }
         }
 
-        const generatedContent = completion.choices[0].message.content || "";
-
-        // Intentar parsear si es JSON
-        let result = generatedContent;
+        let result: any = rawContent;
         if (section !== "longDescription") {
             try {
-                let jsonStr = generatedContent.trim();
+                let jsonStr = rawContent.trim();
 
-                // Buscar el inicio de un bloque JSON (objeto o array)
+                // Eliminar envoltorios Markdown ```json ... ``` si la respuesta los incluye
+                if (jsonStr.startsWith('```')) {
+                    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+                }
+
                 const firstBrace = jsonStr.indexOf('{');
                 const firstBracket = jsonStr.indexOf('[');
                 let startIndex = -1;
@@ -239,10 +211,10 @@ ${MASTER_PROMPT_RULES}`
 
                 result = JSON.parse(jsonStr);
             } catch (e) {
-                console.error('Error parseando JSON de Groq/OpenAI:', e);
+                console.error('Error parseando JSON de Gemini:', e, 'Raw:', rawContent);
                 return NextResponse.json({
                     success: false,
-                    error: 'La IA no devolvió un formato válido. Por favor, intenta de nuevo.'
+                    error: 'La IA devolvió un formato de respuesta no válido.'
                 }, { status: 422 });
             }
         }
@@ -253,20 +225,9 @@ ${MASTER_PROMPT_RULES}`
         });
 
     } catch (error: any) {
-        console.error('Error OpenAI Route:', error);
-
-        let errorMessage = 'Error al generar contenido con la IA.';
-        if (error.status === 402 || error?.message?.includes('Insufficient account funds')) {
-            errorMessage = 'La cuenta de OpenCode AI no tiene saldo/fondos suficientes (Error 402).';
-        } else if (error.status === 403 || error?.message?.includes('Country, region, or territory not supported')) {
-            errorMessage = 'El proveedor de IA ha rechazado la solicitud (Error 403 / Región no soportada).';
-        } else if (error?.message) {
-            errorMessage = `Error de IA: ${error.message}`;
-        }
-
+        console.error('Error Gemini Route:', error);
         return NextResponse.json({
-            error: errorMessage,
-            details: error.message
+            error: error.message || 'Error al generar contenido con Google Gemini'
         }, { status: 500 });
     }
 }
