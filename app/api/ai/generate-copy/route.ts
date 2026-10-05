@@ -2,32 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Llama a la API REST de Google Gemini usando gemini-3.8-flash como modelo primario.
- * Sanitiza automáticamente cualquier variable de entorno antigua como gemini-2.5-flash.
+ * Llama a los modelos oficiales más estables de Google Gemini v1beta en PARALELO.
+ * Usa 'gemini-2.0-flash', 'gemini-1.5-flash-latest' y 'gemini-2.0-flash-lite'.
+ * El primer modelo que responda con éxito entrega el resultado inmediatamente (Promise.any).
  */
-async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
-    let initialModel = preferredModel || 'gemini-3.8-flash';
-    if (initialModel.includes('2.5')) {
-        initialModel = 'gemini-3.8-flash';
-    }
+async function callGeminiApiParallel(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-lite'];
 
-    const candidateModels = [
-        initialModel,
-        'gemini-3.8-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash'
-    ].filter((m, i, self): m is string => Boolean(m) && !m.includes('2.5') && self.indexOf(m) === i);
-
-    let lastErrorMsg = '';
-
-    for (const modelName of candidateModels) {
-        const cleanModel = modelName.replace(/^models\//, '');
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
+    const requests = models.map(async (modelName) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
 
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
-
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -46,16 +33,35 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
                 const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) return text;
             }
-
-            lastErrorMsg = data?.error?.message || `Error HTTP ${response.status} en modelo ${cleanModel}`;
-            console.warn(`Modelo ${cleanModel} no disponible: ${lastErrorMsg}. Probando siguiente candidato...`);
+            throw new Error(data?.error?.message || `Modelo ${modelName} sin respuesta válida.`);
         } catch (err: any) {
-            lastErrorMsg = err.name === 'AbortError' ? `Timeout de 12s en modelo ${cleanModel}` : err.message;
-            console.warn(`Error llamando a ${cleanModel}: ${lastErrorMsg}`);
+            clearTimeout(timeoutId);
+            throw err;
         }
-    }
+    });
 
-    throw new Error(lastErrorMsg || 'No se pudo generar contenido con Gemini.');
+    try {
+        return await Promise.any(requests);
+    } catch (err: any) {
+        console.warn('Peticiones paralelas fallaron, intentando respaldo con gemini-1.5-pro-latest...');
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7 }
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        throw new Error(data?.error?.message || 'Error al comunicar con la IA de Google Gemini.');
+    }
 }
 
 export async function POST(req: NextRequest) {
@@ -182,12 +188,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        let preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
-        if (preferredModel.includes('2.5')) {
-            preferredModel = 'gemini-3.8-flash';
-        }
-
-        const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
+        const rawContent = await callGeminiApiParallel(apiKey, prompt, systemPrompt);
 
         let result: any = rawContent;
         if (section !== "longDescription") {
