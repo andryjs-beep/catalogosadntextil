@@ -2,65 +2,48 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Llama a los modelos oficiales más estables de Google Gemini v1beta en PARALELO.
- * Usa 'gemini-2.0-flash', 'gemini-1.5-flash-latest' y 'gemini-2.0-flash-lite'.
- * El primer modelo que responda con éxito entrega el resultado inmediatamente (Promise.any).
+ * Petición ultra rápida a la API REST de Google Gemini.
+ * Ejecuta en paralelo los modelos más estables (gemini-2.0-flash y gemini-1.5-flash)
+ * y retorna la primera respuesta exitosa inmediatamente.
  */
-async function callGeminiApiParallel(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-lite'];
+async function fetchGeminiContent(model: string, apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const requests = models.map(async (modelName) => {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                signal: controller.signal,
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.7 }
-                })
-            });
-
-            clearTimeout(timeoutId);
-            const data = await response.json();
-
-            if (response.ok) {
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) return text;
-            }
-            throw new Error(data?.error?.message || `Modelo ${modelName} sin respuesta válida.`);
-        } catch (err: any) {
-            clearTimeout(timeoutId);
-            throw err;
-        }
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7 }
+        })
     });
 
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data?.error?.message || `Error HTTP ${response.status} en ${model}`);
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+        throw new Error(`El modelo ${model} no devolvió texto.`);
+    }
+
+    return text;
+}
+
+async function generateWithGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+    // Intentar en paralelo los dos modelos principales de Google Gemini
     try {
-        return await Promise.any(requests);
-    } catch (err: any) {
-        console.warn('Peticiones paralelas fallaron, intentando respaldo con gemini-1.5-pro-latest...');
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7 }
-            })
-        });
-
-        const data = await response.json();
-        if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        throw new Error(data?.error?.message || 'Error al comunicar con la IA de Google Gemini.');
+        return await Promise.any([
+            fetchGeminiContent('gemini-2.0-flash', apiKey, prompt, systemPrompt),
+            fetchGeminiContent('gemini-1.5-flash', apiKey, prompt, systemPrompt)
+        ]);
+    } catch (parallelErr) {
+        // Respaldo de seguridad con gemini-1.5-pro si ambos modelos en paralelo fallaron
+        console.warn('Peticiones paralelas fallaron, utilizando fallback gemini-1.5-pro');
+        return await fetchGeminiContent('gemini-1.5-pro', apiKey, prompt, systemPrompt);
     }
 }
 
@@ -68,9 +51,8 @@ export async function POST(req: NextRequest) {
     try {
         const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
         if (!apiKey) {
-            console.error('Clave GEMINI_API_KEY no configurada en el servidor.');
             return NextResponse.json({
-                error: 'Configuración de IA incompleta: Registra la variable GEMINI_API_KEY en Vercel.'
+                error: 'Configuración de IA incompleta: Falta GEMINI_API_KEY en las variables de entorno de Vercel.'
             }, { status: 500 });
         }
 
@@ -103,7 +85,7 @@ export async function POST(req: NextRequest) {
 
         const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
 
-Sigue estrictamente estas pautas:
+Sigue strictly estas pautas:
 ${MASTER_PROMPT_RULES}`;
 
         if ((type === "collection" || type === "product") && section === "hero") {
@@ -188,7 +170,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const rawContent = await callGeminiApiParallel(apiKey, prompt, systemPrompt);
+        const rawContent = await generateWithGemini(apiKey, prompt, systemPrompt);
 
         let result: any = rawContent;
         if (section !== "longDescription") {
