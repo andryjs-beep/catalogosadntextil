@@ -159,7 +159,7 @@ Responde solo con el texto plano.`;
             if (isOpenCode) {
                 model = 'deepseek-v4.1-flash';
             } else if (isGemini) {
-                model = 'gemini-2.0-flash';
+                model = 'gemini-1.5-flash';
             } else if (isGroq) {
                 model = 'llama-3.3-70b-versatile';
             } else {
@@ -167,23 +167,49 @@ Responde solo con el texto plano.`;
             }
         }
 
-        const completion = await openai.chat.completions.create({
-            model,
-            messages: [
-                {
-                    role: "system",
-                    content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
-                    
+        let completion;
+        try {
+            completion = await openai.chat.completions.create({
+                model,
+                messages: [
+                    {
+                        role: "system",
+                        content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
+                        
 Sigue estrictamente estas pautas:
 ${MASTER_PROMPT_RULES}`
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ],
-            temperature: 0.7,
-        });
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.7,
+            });
+        } catch (apiErr: any) {
+            if (isGemini && (apiErr.status === 404 || apiErr?.message?.includes('404')) && model !== 'gemini-1.5-flash') {
+                console.warn(`Modelo ${model} no disponible en Gemini (404). Reintentando con gemini-1.5-flash...`);
+                completion = await openai.chat.completions.create({
+                    model: 'gemini-1.5-flash',
+                    messages: [
+                        {
+                            role: "system",
+                            content: `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión. 
+                            
+Sigue estrictamente estas pautas:
+${MASTER_PROMPT_RULES}`
+                        },
+                        {
+                            role: "user",
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.7,
+                });
+            } else {
+                throw apiErr;
+            }
+        }
 
         const generatedContent = completion.choices[0].message.content || "";
 
