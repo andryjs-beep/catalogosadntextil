@@ -2,47 +2,53 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Petición ultra rápida a la API REST de Google Gemini.
- * Ejecuta en paralelo los modelos más estables (gemini-2.0-flash y gemini-1.5-flash)
- * y retorna la primera respuesta exitosa inmediatamente.
+ * Consulta la API REST de Google Gemini probando primero la API v1 (Producción GA) y luego v1beta como fallback.
  */
 async function fetchGeminiContent(model: string, apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const versions = ['v1', 'v1beta'];
+    let lastErrorMsg = '';
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7 }
-        })
-    });
+    for (const version of versions) {
+        const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
 
-    const data = await response.json();
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7 }
+                })
+            });
 
-    if (!response.ok) {
-        throw new Error(data?.error?.message || `Error HTTP ${response.status} en ${model}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) return text;
+            }
+
+            lastErrorMsg = data?.error?.message || `Error HTTP ${response.status} en ${version}/${model}`;
+        } catch (err: any) {
+            lastErrorMsg = err.message || `Error al conectar con ${version}/${model}`;
+        }
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-        throw new Error(`El modelo ${model} no devolvió texto.`);
-    }
-
-    return text;
+    throw new Error(lastErrorMsg);
 }
 
+/**
+ * Genera el contenido con Google Gemini probando en paralelo los modelos de producción principales.
+ */
 async function generateWithGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    // Intentar en paralelo los dos modelos principales de Google Gemini
     try {
         return await Promise.any([
-            fetchGeminiContent('gemini-2.0-flash', apiKey, prompt, systemPrompt),
-            fetchGeminiContent('gemini-1.5-flash', apiKey, prompt, systemPrompt)
+            fetchGeminiContent('gemini-1.5-flash', apiKey, prompt, systemPrompt),
+            fetchGeminiContent('gemini-2.0-flash', apiKey, prompt, systemPrompt)
         ]);
     } catch (parallelErr) {
-        // Respaldo de seguridad con gemini-1.5-pro si ambos modelos en paralelo fallaron
-        console.warn('Peticiones paralelas fallaron, utilizando fallback gemini-1.5-pro');
+        console.warn('Peticiones paralelas fallaron, utilizando respaldo con gemini-1.5-pro');
         return await fetchGeminiContent('gemini-1.5-pro', apiKey, prompt, systemPrompt);
     }
 }
@@ -85,7 +91,7 @@ export async function POST(req: NextRequest) {
 
         const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
 
-Sigue strictly estas pautas:
+Sigue estrictamente estas pautas:
 ${MASTER_PROMPT_RULES}`;
 
         if ((type === "collection" || type === "product") && section === "hero") {
