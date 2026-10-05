@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 async function getAvailableGeminiModel(apiKey: string): Promise<string> {
     try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        if (!res.ok) return 'gemini-3.8-flash';
+        if (!res.ok) return 'gemini-2.0-flash';
 
         const data = await res.json();
         const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
@@ -24,11 +24,11 @@ async function getAvailableGeminiModel(apiKey: string): Promise<string> {
         console.warn('Error consultando ListModels de Gemini:', e);
     }
 
-    return 'gemini-3.8-flash';
+    return 'gemini-2.0-flash';
 }
 
 /**
- * Llama a la API REST de Google Gemini intentando candidatos estáticos, extracción de sugerencias y ListModels dinámico.
+ * Llama a la API REST de Google Gemini intentando candidatos estáticos, tolerancia a sobredemanda (High Demand Fallback) y ListModels dinámico.
  */
 async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
     const candidateModels = [
@@ -60,7 +60,7 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
             if (!response.ok) {
                 const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
 
-                // Si la API sugiere explícitamente usar otro modelo (ej. "Please update your code to use models/gemini-3.8-flash")
+                // Si la API sugiere explícitamente usar otro modelo
                 const suggestedMatch = errorMsg.match(/use\s+models\/([a-zA-Z0-9\.\-]+)/i);
                 if (suggestedMatch && suggestedMatch[1] && suggestedMatch[1] !== cleanModel) {
                     const suggestedModel = suggestedMatch[1];
@@ -68,11 +68,23 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
                     return await callGeminiApi(apiKey, prompt, systemPrompt, suggestedModel);
                 }
 
-                if (response.status === 404 || errorMsg.toLowerCase().includes('not available') || errorMsg.toLowerCase().includes('not found')) {
-                    console.warn(`Modelo ${cleanModel} no disponible (${errorMsg}). Probando siguiente candidato...`);
+                // Detectar sobredemanda (High Demand / Spikes in demand), 503, 429, 404 o not found/unavailable
+                const isOverloadedOrUnavailable =
+                    response.status === 503 ||
+                    response.status === 429 ||
+                    response.status === 404 ||
+                    errorMsg.toLowerCase().includes('high demand') ||
+                    errorMsg.toLowerCase().includes('overloaded') ||
+                    errorMsg.toLowerCase().includes('not available') ||
+                    errorMsg.toLowerCase().includes('not found') ||
+                    errorMsg.toLowerCase().includes('try again later');
+
+                if (isOverloadedOrUnavailable) {
+                    console.warn(`Modelo ${cleanModel} no disponible o con alta demanda (${errorMsg}). Alternando automáticamente al siguiente candidato...`);
                     lastError = new Error(errorMsg);
                     continue;
                 }
+
                 throw new Error(errorMsg);
             }
 
@@ -82,7 +94,16 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
             return text;
         } catch (err: any) {
             const msg = err.message?.toLowerCase() || '';
-            if (msg.includes('not available') || msg.includes('not found') || msg.includes('404')) {
+            if (
+                msg.includes('high demand') ||
+                msg.includes('overloaded') ||
+                msg.includes('not available') ||
+                msg.includes('not found') ||
+                msg.includes('try again later') ||
+                msg.includes('404') ||
+                msg.includes('503') ||
+                msg.includes('429')
+            ) {
                 lastError = err;
                 continue;
             }
@@ -156,7 +177,7 @@ export async function POST(req: NextRequest) {
 
         const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
 
-Sigue strictly estas pautas:
+Sigue estrictamente estas pautas:
 ${MASTER_PROMPT_RULES}`;
 
         if ((type === "collection" || type === "product") && section === "hero") {
