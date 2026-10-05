@@ -2,15 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Llama a la API REST de Google Gemini usando gemini-3.8-flash como modelo primario con timeout de 12s.
+ * Llama a la API REST de Google Gemini usando gemini-3.8-flash como modelo primario.
+ * Sanitiza automáticamente cualquier variable de entorno antigua como gemini-2.5-flash.
  */
 async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
+    let initialModel = preferredModel || 'gemini-3.8-flash';
+    if (initialModel.includes('2.5')) {
+        initialModel = 'gemini-3.8-flash';
+    }
+
     const candidateModels = [
-        preferredModel,
+        initialModel,
         'gemini-3.8-flash',
         'gemini-2.0-flash',
         'gemini-1.5-flash'
-    ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i && m !== 'gemini-2.5-flash');
+    ].filter((m, i, self): m is string => Boolean(m) && !m.includes('2.5') && self.indexOf(m) === i);
 
     let lastErrorMsg = '';
 
@@ -176,7 +182,11 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
+        let preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
+        if (preferredModel.includes('2.5')) {
+            preferredModel = 'gemini-3.8-flash';
+        }
+
         const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
 
         let result: any = rawContent;
