@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 async function getAvailableGeminiModel(apiKey: string): Promise<string> {
     try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        if (!res.ok) return 'gemini-2.5-flash';
+        if (!res.ok) return 'gemini-3.8-flash';
 
         const data = await res.json();
         const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
@@ -24,19 +24,18 @@ async function getAvailableGeminiModel(apiKey: string): Promise<string> {
         console.warn('Error consultando ListModels de Gemini:', e);
     }
 
-    return 'gemini-2.5-flash';
+    return 'gemini-3.8-flash';
 }
 
 /**
- * Llama a la API REST de Google Gemini intentando candidatos estáticos y fallback a ListModels dinámico.
+ * Llama a la API REST de Google Gemini intentando candidatos estáticos, extracción de sugerencias y ListModels dinámico.
  */
-async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string) {
+async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string): Promise<string> {
     const candidateModels = [
         preferredModel,
-        'gemini-2.5-flash',
+        'gemini-3.8-flash',
         'gemini-2.0-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-2.5-pro'
+        'gemini-1.5-flash-latest'
     ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i);
 
     let lastError: Error | null = null;
@@ -60,8 +59,17 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
 
             if (!response.ok) {
                 const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
-                if (response.status === 404 || errorMsg.toLowerCase().includes('not found') || errorMsg.toLowerCase().includes('is not found')) {
-                    console.warn(`Modelo ${cleanModel} no disponible (${errorMsg}). Probando siguiente modelo...`);
+
+                // Si la API sugiere explícitamente usar otro modelo (ej. "Please update your code to use models/gemini-3.8-flash")
+                const suggestedMatch = errorMsg.match(/use\s+models\/([a-zA-Z0-9\.\-]+)/i);
+                if (suggestedMatch && suggestedMatch[1] && suggestedMatch[1] !== cleanModel) {
+                    const suggestedModel = suggestedMatch[1];
+                    console.warn(`Gemini sugiere usar ${suggestedModel}. Reintentando automáticamente con modelo sugerido...`);
+                    return await callGeminiApi(apiKey, prompt, systemPrompt, suggestedModel);
+                }
+
+                if (response.status === 404 || errorMsg.toLowerCase().includes('not available') || errorMsg.toLowerCase().includes('not found')) {
+                    console.warn(`Modelo ${cleanModel} no disponible (${errorMsg}). Probando siguiente candidato...`);
                     lastError = new Error(errorMsg);
                     continue;
                 }
@@ -74,7 +82,7 @@ async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: strin
             return text;
         } catch (err: any) {
             const msg = err.message?.toLowerCase() || '';
-            if (msg.includes('not found') || msg.includes('404')) {
+            if (msg.includes('not available') || msg.includes('not found') || msg.includes('404')) {
                 lastError = err;
                 continue;
             }
@@ -148,7 +156,7 @@ export async function POST(req: NextRequest) {
 
         const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
 
-Sigue estrictamente estas pautas:
+Sigue strictly estas pautas:
 ${MASTER_PROMPT_RULES}`;
 
         if ((type === "collection" || type === "product") && section === "hero") {
@@ -233,7 +241,7 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const preferredModel = process.env.AI_MODEL;
+        const preferredModel = process.env.AI_MODEL || 'gemini-3.8-flash';
         const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
 
         let result: any = rawContent;
