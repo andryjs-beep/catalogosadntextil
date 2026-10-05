@@ -2,44 +2,109 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 /**
- * Llama directamente a la API REST oficial de Google Gemini.
- * Sin dependencias de terceros ni proxies intermediarios.
+ * Consulta en tiempo real la lista de modelos habilitados para generateContent en la API Key dada.
  */
-async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, modelName = 'gemini-1.5-flash') {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+async function getAvailableGeminiModel(apiKey: string): Promise<string> {
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (!res.ok) return 'gemini-2.5-flash';
+
+        const data = await res.json();
+        const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
+
+        const validModel = models.find(m =>
+            m.supportedGenerationMethods?.includes('generateContent') &&
+            (m.name.includes('flash') || m.name.includes('gemini'))
+        ) || models.find(m => m.supportedGenerationMethods?.includes('generateContent'));
+
+        if (validModel) {
+            return validModel.name.replace(/^models\//, '');
+        }
+    } catch (e) {
+        console.warn('Error consultando ListModels de Gemini:', e);
+    }
+
+    return 'gemini-2.5-flash';
+}
+
+/**
+ * Llama a la API REST de Google Gemini intentando candidatos estáticos y fallback a ListModels dinámico.
+ */
+async function callGeminiApi(apiKey: string, prompt: string, systemPrompt: string, preferredModel?: string) {
+    const candidateModels = [
+        preferredModel,
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-2.5-pro'
+    ].filter((m, i, self): m is string => Boolean(m) && self.indexOf(m) === i);
+
+    let lastError: Error | null = null;
+
+    for (const modelName of candidateModels) {
+        try {
+            const cleanModel = modelName.replace(/^models\//, '');
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7 }
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
+                if (response.status === 404 || errorMsg.toLowerCase().includes('not found') || errorMsg.toLowerCase().includes('is not found')) {
+                    console.warn(`Modelo ${cleanModel} no disponible (${errorMsg}). Probando siguiente modelo...`);
+                    lastError = new Error(errorMsg);
+                    continue;
+                }
+                throw new Error(errorMsg);
+            }
+
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error('La API de Gemini no devolvió contenido.');
+
+            return text;
+        } catch (err: any) {
+            const msg = err.message?.toLowerCase() || '';
+            if (msg.includes('not found') || msg.includes('404')) {
+                lastError = err;
+                continue;
+            }
+            throw err;
+        }
+    }
+
+    // Fallback dinámico a ListModels
+    console.warn('Candidatos estáticos no disponibles. Consultando ListModels de Gemini en tiempo real...');
+    const dynamicModel = await getAvailableGeminiModel(apiKey);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${dynamicModel}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            systemInstruction: {
-                parts: [{ text: systemPrompt }]
-            },
-            contents: [
-                {
-                    role: 'user',
-                    parts: [{ text: prompt }]
-                }
-            ],
-            generationConfig: {
-                temperature: 0.7
-            }
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7 }
         })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-        const errorMsg = data?.error?.message || `Error HTTP ${response.status} de Gemini API`;
-        throw new Error(errorMsg);
+        throw new Error(data?.error?.message || lastError?.message || `Error HTTP ${response.status} de Gemini API`);
     }
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-        throw new Error('La API de Gemini no devolvió ningún contenido.');
-    }
+    if (!text) throw new Error('La API de Gemini no devolvió contenido.');
 
     return text;
 }
@@ -83,7 +148,7 @@ export async function POST(req: NextRequest) {
 
         const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización (estampado y sublimación). Tu objetivo es crear textos persuasivos de alta conversión.
 
-Sigue strictly estas pautas:
+Sigue estrictamente estas pautas:
 ${MASTER_PROMPT_RULES}`;
 
         if ((type === "collection" || type === "product") && section === "hero") {
@@ -168,26 +233,14 @@ Responde solo con el texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido' }, { status: 400 });
         }
 
-        const model = process.env.AI_MODEL || 'gemini-1.5-flash';
-        let rawContent = '';
-
-        try {
-            rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, model);
-        } catch (err: any) {
-            if (model !== 'gemini-1.5-flash') {
-                console.warn(`Fallback a gemini-1.5-flash tras error: ${err.message}`);
-                rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, 'gemini-1.5-flash');
-            } else {
-                throw err;
-            }
-        }
+        const preferredModel = process.env.AI_MODEL;
+        const rawContent = await callGeminiApi(apiKey, prompt, systemPrompt, preferredModel);
 
         let result: any = rawContent;
         if (section !== "longDescription") {
             try {
                 let jsonStr = rawContent.trim();
 
-                // Eliminar envoltorios Markdown ```json ... ``` si la respuesta los incluye
                 if (jsonStr.startsWith('```')) {
                     jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
                 }
