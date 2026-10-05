@@ -4,18 +4,21 @@ import { getSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.OPENCODE_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
+        const isGemini = !!process.env.GEMINI_API_KEY;
+        const isOpenCode = !isGemini && !!process.env.OPENCODE_API_KEY;
+        const isGroq = !isGemini && !isOpenCode && !!process.env.GROQ_API_KEY;
+
+        const apiKey = process.env.GEMINI_API_KEY || process.env.OPENCODE_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
         if (!apiKey) {
-            console.error('Ni OPENCODE_API_KEY, GROQ_API_KEY ni OPENAI_API_KEY configuradas');
+            console.error('Ni GEMINI_API_KEY, OPENCODE_API_KEY, GROQ_API_KEY ni OPENAI_API_KEY configuradas');
             return NextResponse.json({ error: 'Configuración de IA incompleta en el servidor' }, { status: 500 });
         }
 
-        const isOpenCode = !!process.env.OPENCODE_API_KEY;
-        const isGroq = !isOpenCode && !!process.env.GROQ_API_KEY;
-
         let baseURL = process.env.AI_BASE_URL;
         if (!baseURL) {
-            if (isOpenCode) {
+            if (isGemini) {
+                baseURL = 'https://generativelanguage.googleapis.com/v1beta/openai/';
+            } else if (isOpenCode) {
                 baseURL = 'https://opencode.ai/zen/v1';
             } else if (isGroq) {
                 baseURL = 'https://api.groq.com/openai/v1';
@@ -154,7 +157,9 @@ Responde solo con el texto plano.`;
         let model = process.env.AI_MODEL;
         if (!model) {
             if (isOpenCode) {
-                model = 'deepseek-v4-flash-free';
+                model = 'deepseek-v4.1-flash';
+            } else if (isGemini) {
+                model = 'gemini-2.0-flash';
             } else if (isGroq) {
                 model = 'llama-3.3-70b-versatile';
             } else {
@@ -223,8 +228,18 @@ ${MASTER_PROMPT_RULES}`
 
     } catch (error: any) {
         console.error('Error OpenAI Route:', error);
+
+        let errorMessage = 'Error al generar contenido con la IA.';
+        if (error.status === 402 || error?.message?.includes('Insufficient account funds')) {
+            errorMessage = 'La cuenta de OpenCode AI no tiene saldo/fondos suficientes (Error 402).';
+        } else if (error.status === 403 || error?.message?.includes('Country, region, or territory not supported')) {
+            errorMessage = 'El proveedor de IA ha rechazado la solicitud (Error 403 / Región no soportada).';
+        } else if (error?.message) {
+            errorMessage = `Error de IA: ${error.message}`;
+        }
+
         return NextResponse.json({
-            error: 'Error al generar contenido',
+            error: errorMessage,
             details: error.message
         }, { status: 500 });
     }
