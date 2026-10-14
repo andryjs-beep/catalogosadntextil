@@ -2,31 +2,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODEL = 'gemini-3.8-flash';
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-1.5-flash-latest'];
 
 async function callGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    const url = `${GEMINI_API_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+    let lastError = '';
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7 }
-        })
-    });
+    for (const model of GEMINI_MODELS) {
+        const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
-    const data = await response.json();
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7 }
+            })
+        });
 
-    if (!response.ok) {
-        throw new Error(data?.error?.message || `Error HTTP ${response.status} de Google Gemini`);
+        const data = await response.json();
+
+        if (response.ok) {
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) return text;
+        }
+
+        lastError = data?.error?.message || `Error HTTP ${response.status} en ${model}`;
+        const retryable = response.status === 429 || response.status === 503 ||
+            lastError.toLowerCase().includes('high demand') ||
+            lastError.toLowerCase().includes('overloaded');
+
+        if (!retryable) throw new Error(lastError);
+        console.warn(`Modelo ${model} saturado (${response.status}). Probando fallback...`);
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Google Gemini no devolvió texto.');
-
-    return text;
+    throw new Error(lastError || 'Todos los modelos de Gemini están saturados. Intenta de nuevo en unos segundos.');
 }
 
 export async function POST(req: NextRequest) {
