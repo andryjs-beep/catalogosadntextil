@@ -3,6 +3,9 @@ import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
+/** Modelos que Google ha deprecado y no deben usarse aunque ListModels los devuelva. */
+const DEPRECATED_PREFIXES = ['gemini-1.0', 'gemini-1.5', 'gemini-2.0', 'gemini-2.5'];
+
 /** Obtiene la lista real de modelos activos para esta API Key que soportan generateContent. */
 async function getActiveModels(apiKey: string): Promise<string[]> {
     try {
@@ -12,10 +15,14 @@ async function getActiveModels(apiKey: string): Promise<string[]> {
         const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
         const active = models
             .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
-            .map(m => m.name.replace(/^models\//, ''));
-        // Preferir modelos flash por ser más rápidos
+            .map(m => m.name.replace(/^models\//, ''))
+            .filter(m => !DEPRECATED_PREFIXES.some(p => m.startsWith(p)));
+        // Priorizar flash, luego cualquier otro modelo activo no-deprecado
         const flash = active.filter(m => m.includes('flash'));
-        return flash.length > 0 ? flash : active.length > 0 ? active : ['gemini-3.8-flash'];
+        const result = flash.length > 0 ? flash : active;
+        // Asegurar que gemini-3.8-flash esté al frente si existe en la lista
+        result.sort((a, b) => (a.includes('3.8') ? -1 : b.includes('3.8') ? 1 : 0));
+        return result.length > 0 ? result : ['gemini-3.8-flash'];
     } catch {
         return ['gemini-3.8-flash'];
     }
