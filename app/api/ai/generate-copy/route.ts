@@ -2,14 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-1.5-flash-latest'];
+
+/** Obtiene la lista real de modelos activos para esta API Key que soportan generateContent. */
+async function getActiveModels(apiKey: string): Promise<string[]> {
+    try {
+        const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`);
+        if (!res.ok) return ['gemini-3.8-flash'];
+        const data = await res.json();
+        const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
+        const active = models
+            .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
+            .map(m => m.name.replace(/^models\//, ''));
+        // Preferir modelos flash por ser más rápidos
+        const flash = active.filter(m => m.includes('flash'));
+        return flash.length > 0 ? flash : active.length > 0 ? active : ['gemini-3.8-flash'];
+    } catch {
+        return ['gemini-3.8-flash'];
+    }
+}
 
 async function callGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+    const models = await getActiveModels(apiKey);
     let lastError = '';
 
-    for (const model of GEMINI_MODELS) {
+    for (const model of models) {
         const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
-
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -19,23 +36,18 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string):
                 generationConfig: { temperature: 0.7 }
             })
         });
-
         const data = await response.json();
-
         if (response.ok) {
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) return text;
         }
-
         lastError = data?.error?.message || `Error HTTP ${response.status} en ${model}`;
         const retryable = response.status === 429 || response.status === 503 ||
             lastError.toLowerCase().includes('high demand') ||
             lastError.toLowerCase().includes('overloaded');
-
         if (!retryable) throw new Error(lastError);
-        console.warn(`Modelo ${model} saturado (${response.status}). Probando fallback...`);
+        console.warn(`Modelo ${model} saturado. Probando siguiente disponible...`);
     }
-
     throw new Error(lastError || 'Todos los modelos de Gemini están saturados. Intenta de nuevo en unos segundos.');
 }
 
