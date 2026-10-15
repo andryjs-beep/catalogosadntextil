@@ -6,7 +6,7 @@ const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models
 // Modelo oficial y único activo en Google AI Studio para tu API Key
 const MODEL = 'gemini-3.8-flash';
 
-async function callGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+async function callGemini(apiKey: string, prompt: string, systemPrompt: string, isJson: boolean = false): Promise<string> {
     const combinedPrompt = systemPrompt 
         ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` 
         : prompt;
@@ -22,16 +22,21 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string):
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s
 
+            const genConfig: any = {
+                temperature: 0.7,
+                maxOutputTokens: 2048
+            };
+            if (isJson) {
+                genConfig.responseMimeType = 'application/json';
+            }
+
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 signal: controller.signal,
                 body: JSON.stringify({
                     contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }],
-                    generationConfig: { 
-                        temperature: 0.7,
-                        maxOutputTokens: 2048
-                    }
+                    generationConfig: genConfig
                 })
             });
 
@@ -164,22 +169,49 @@ Usa fórmula AIDA. Responde solo con texto plano.`;
             return NextResponse.json({ error: 'Tipo de generación no válido.' }, { status: 400 });
         }
 
-        const rawContent = await callGemini(apiKey, prompt, systemPrompt);
+        const isJsonResponse = section !== 'longDescription';
+        const rawContent = await callGemini(apiKey, prompt, systemPrompt, isJsonResponse);
 
         let result: any = rawContent;
 
-        if (section !== 'longDescription') {
+        if (isJsonResponse) {
             try {
-                let jsonStr = rawContent.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-                const s = Math.min(
-                    jsonStr.indexOf('{') >= 0 ? jsonStr.indexOf('{') : Infinity,
-                    jsonStr.indexOf('[') >= 0 ? jsonStr.indexOf('[') : Infinity
-                );
-                const e = Math.max(jsonStr.lastIndexOf('}'), jsonStr.lastIndexOf(']'));
-                if (s !== Infinity && e > s) jsonStr = jsonStr.substring(s, e + 1);
+                let jsonStr = rawContent.trim();
+                // Remover bloques markdown tipo ```json o ```
+                jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+                const startBracket = jsonStr.indexOf('[');
+                const startBrace = jsonStr.indexOf('{');
+                
+                let s = -1;
+                if (startBracket >= 0 && startBrace >= 0) {
+                    s = Math.min(startBracket, startBrace);
+                } else if (startBracket >= 0) {
+                    s = startBracket;
+                } else if (startBrace >= 0) {
+                    s = startBrace;
+                }
+
+                const lastBracket = jsonStr.lastIndexOf(']');
+                const lastBrace = jsonStr.lastIndexOf('}');
+                const e = Math.max(lastBracket, lastBrace);
+
+                if (s !== -1 && e > s) {
+                    jsonStr = jsonStr.substring(s, e + 1);
+                }
+
+                // Limpiar caracteres de control ASCII que rompen JSON.parse
+                jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, (c) => {
+                    if (c === '\n') return '\\n';
+                    if (c === '\r') return '\\r';
+                    if (c === '\t') return '\\t';
+                    return '';
+                });
+
                 result = JSON.parse(jsonStr);
-            } catch {
-                return NextResponse.json({ success: false, error: 'La IA devolvió un formato no válido.' }, { status: 422 });
+            } catch (parseErr) {
+                console.error('[Gemini JSON Parse Error]:', parseErr, '\nRaw content was:', rawContent);
+                return NextResponse.json({ success: false, error: 'La IA devolvió un formato no válido. Presiona de nuevo el botón.' }, { status: 422 });
             }
         }
 
