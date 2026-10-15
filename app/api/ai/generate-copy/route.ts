@@ -177,38 +177,36 @@ Usa fórmula AIDA. Responde solo con texto plano.`;
         if (isJsonResponse) {
             try {
                 let jsonStr = rawContent.trim();
-                // Remover bloques markdown tipo ```json o ```
+
+                // 1. Quitar cercas Markdown tipo ```json ... ```
                 jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
 
+                // 2. Extraer el segmento exacto que empieza con [ o { y termina con ] o }
                 const startBracket = jsonStr.indexOf('[');
                 const startBrace = jsonStr.indexOf('{');
-                
                 let s = -1;
-                if (startBracket >= 0 && startBrace >= 0) {
-                    s = Math.min(startBracket, startBrace);
-                } else if (startBracket >= 0) {
-                    s = startBracket;
-                } else if (startBrace >= 0) {
-                    s = startBrace;
-                }
+                if (startBracket >= 0 && startBrace >= 0) s = Math.min(startBracket, startBrace);
+                else if (startBracket >= 0) s = startBracket;
+                else if (startBrace >= 0) s = startBrace;
 
-                const lastBracket = jsonStr.lastIndexOf(']');
-                const lastBrace = jsonStr.lastIndexOf('}');
-                const e = Math.max(lastBracket, lastBrace);
-
+                const e = Math.max(jsonStr.lastIndexOf(']'), jsonStr.lastIndexOf('}'));
                 if (s !== -1 && e > s) {
                     jsonStr = jsonStr.substring(s, e + 1);
                 }
 
-                // Limpiar caracteres de control ASCII que rompen JSON.parse
-                jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, (c) => {
-                    if (c === '\n') return '\\n';
-                    if (c === '\r') return '\\r';
-                    if (c === '\t') return '\\t';
-                    return '';
-                });
-
-                result = JSON.parse(jsonStr);
+                // 3. Intento de parseo estándar
+                try {
+                    result = JSON.parse(jsonStr);
+                } catch {
+                    // Si falla por caracteres de control dentro de strings, usar un parser tolerante
+                    try {
+                        result = Function('"use strict"; return (' + jsonStr + ')')();
+                    } catch {
+                        // Último recurso: normalizar saltos de línea y reintentar
+                        const sanitized = jsonStr.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                        result = JSON.parse(sanitized);
+                    }
+                }
             } catch (parseErr) {
                 console.error('[Gemini JSON Parse Error]:', parseErr, '\nRaw content was:', rawContent);
                 return NextResponse.json({ success: false, error: 'La IA devolvió un formato no válido. Presiona de nuevo el botón.' }, { status: 422 });
