@@ -4,13 +4,13 @@ import { getSession } from '@/lib/auth';
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODEL = 'gemini-3.8-flash';
 
-// Proveedor OpenRouter: Router inteligente gratuito que selecciona automáticamente el mejor modelo disponible
+// Proveedor OpenRouter: Modelos de alta inteligencia y razonamiento gratuitos
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_FREE_MODELS = [
-    'openrouter/free',
+    'meta-llama/llama-3.3-70b-instruct:free',
     'google/gemma-4-31b-it:free',
     'nvidia/nemotron-3-ultra:free',
-    'meta-llama/llama-3.3-70b-instruct:free'
+    'openrouter/free'
 ];
 
 async function callOpenRouter(apiKey: string, prompt: string, systemPrompt: string, isJson: boolean = false): Promise<string> {
@@ -157,18 +157,13 @@ export async function POST(req: NextRequest) {
         const pContext = productContext || productInfo?.description || '';
 
         const MASTER_PROMPT_RULES = `
-📝 REGLAS DE ORO:
-1. Tono: Energético, directo y que resalte la calidad (Cero "franelas desechables").
-2. Beneficios: Durabilidad, fidelidad de colores, el producto no se daña con el uso.
-3. Precio: Deja [INSERTAR PRECIO AQUÍ] como marcador.
-4. Tallas: Solo si el producto es ropa (franelas, hoodies). Omítelo si es un objeto.
-5. Cierre SIEMPRE con:
-🛡️ GARANTÍA Y ENVÍOS
-🤝 Pago contraentrega: En Maracaibo y San Francisco (DELIVERY 🛵).
-🚚 Envíos Nacionales: Pago de contado vía MRW o TEALCA.
+📝 INFORMACIÓN DEL NEGOCIO Y POLÍTICAS:
+- Enfoque: Productos de alta calidad y durabilidad (cero prendas desechables).
+- Pagos: Pago contraentrega con delivery en Maracaibo y San Francisco. Envíos nacionales por MRW o TEALCA.
+- Garantía: Respaldo contra defectos de confección y estampado.
 `;
 
-        const systemPrompt = `Eres un copywriter experto en ventas por WhatsApp e Instagram para productos de personalización. Crea textos persuasivos de alta conversión. Sigue estas reglas:\n${MASTER_PROMPT_RULES}`;
+        const systemPrompt = `Eres un copywriter experto en comercio electrónico y ventas por WhatsApp para tiendas de ropa y personalización textil. Escribe copys persuasivos, coherentes, directos y naturales.`;
 
         let prompt = '';
 
@@ -178,47 +173,57 @@ export async function POST(req: NextRequest) {
 PRODUCTO: ${pName}
 CARACTERÍSTICAS: ${pContext}
 NICHO: ${bNiche}
-${MASTER_PROMPT_RULES}
 
-1. Headline: Impactante con EMOJIS persuasivos.
-2. Subheadline: Persuasivo con EMOJIS y HTML (<b> negritas, <br/> saltos).
-3. CTA: Directo a la acción.
+REGLAS:
+1. Headline: Impactante, corto, con emojis persuasivos.
+2. Subheadline: Persuasivo, resalta calidad superior, con negritas <b> y emojis.
+3. CTA: Directo a la acción (ej: "Pedir por WhatsApp", "Comprar Ahora").
 
 Responde SOLO con JSON válido:
 {"headline":"...","subheadline":"...","ctaText":"..."}`;
 
         } else if (section === 'finalCTA') {
             prompt = `Genera un cierre de venta IMPACTANTE para: ${pName}.
-${MASTER_PROMPT_RULES}
 
-1. Headline: Gancho final con EMOJIS. 
-2. Description: Breve y potente, refuerza garantía y envío con EMOJIS.
-3. ctaText: "Adquiere ya tu ${pName}" o similar.
+REGLAS:
+1. Headline: Gancho final de escasez o beneficio irresistible con emojis.
+2. Description: Breve, potente, recordando delivery en Maracaibo/San Francisco y envíos nacionales por MRW/TEALCA.
+3. ctaText: "Pedir mi ${pName} ahora" o similar.
 
 Responde SOLO con JSON válido:
 {"headline":"...","description":"...","ctaText":"..."}`;
 
         } else if (section === 'benefits') {
             prompt = `Genera 4 beneficios clave para: ${pName}.
-${MASTER_PROMPT_RULES}
-Usa iconos Lucide: shield, truck, star, zap, award, check-circle, heart, sparkles.
+CARACTERÍSTICAS: ${pContext}
+NICHO: ${bNiche}
 
+Usa iconos Lucide: shield, truck, star, zap, award, check-circle, heart, sparkles.
 Responde SOLO con JSON válido:
 [{"icon":"shield","title":"...","description":"..."}]`;
 
         } else if (section === 'faq') {
-            prompt = `Genera 6 FAQs para: ${pName}.
-${MASTER_PROMPT_RULES}
-Incluye preguntas sobre garantía y envíos nacionales.
+            prompt = `Genera 5 Preguntas Frecuentes (FAQ) realistas, concisas y vendedoras para: ${pName}.
+NICHO: ${bNiche}
+INFORMACIÓN CLAVE DEL NEGOCIO:
+- Delivery con pago contraentrega en Maracaibo y San Francisco.
+- Envíos a toda Venezuela vía MRW y TEALCA.
+- Materiales de alta resistencia que no destiñen ni se desgastan rápido.
+
+INSTRUCCIONES ESTRICTAS:
+- Cada respuesta debe responder ÚNICAMENTE a la duda planteada en su pregunta de forma natural y directa.
+- NO repitas el bloque de garantía y envíos en cada respuesta. Solo menciona envíos en la pregunta de envíos.
+- NO agregues marcadores de precio como "[INSERTAR PRECIO AQUÍ]".
+- Preguntas sugeridas: materiales/durabilidad, cómo elegir la talla, métodos de envío/entrega, métodos de pago, garantía.
 
 Responde SOLO con JSON válido:
 [{"question":"...","answer":"..."}]`;
 
         } else if (type === 'product' && section === 'longDescription') {
-            prompt = `Descripción de ventas persuasiva 200-250 palabras para:
+            prompt = `Descripción de ventas persuasiva (150-200 palabras) para:
 PRODUCTO: ${pName} | NICHO: ${bNiche} | TONO: ${bTone}
 
-Usa fórmula AIDA. Responde solo con texto plano.`;
+Estructura AIDA. No repitas textos robóticos. Responde solo con texto plano.`;
         }
 
         if (!prompt) {
