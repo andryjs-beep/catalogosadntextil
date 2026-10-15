@@ -101,7 +101,7 @@ export default function SuperAdminTestimonialsPage() {
         setSaving(true);
         try {
             const res = await fetch(`/api/admin/tenants/${selectedTenantId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     testimonialsConfig: {
