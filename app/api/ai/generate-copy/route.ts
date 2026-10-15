@@ -3,60 +3,56 @@ import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/** Modelos que Google ha deprecado y no deben usarse aunque ListModels los devuelva. */
-const DEPRECATED_PREFIXES = ['gemini-1.0', 'gemini-1.5', 'gemini-2.0', 'gemini-2.5'];
-
-/** Obtiene la lista real de modelos activos para esta API Key que soportan generateContent. */
-async function getActiveModels(apiKey: string): Promise<string[]> {
-    try {
-        const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`);
-        if (!res.ok) return ['gemini-3.8-flash'];
-        const data = await res.json();
-        const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
-        const active = models
-            .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
-            .map(m => m.name.replace(/^models\//, ''))
-            .filter(m => !DEPRECATED_PREFIXES.some(p => m.startsWith(p)));
-        // Priorizar flash, luego cualquier otro modelo activo no-deprecado
-        const flash = active.filter(m => m.includes('flash'));
-        const result = flash.length > 0 ? flash : active;
-        // Asegurar que gemini-3.8-flash esté al frente si existe en la lista
-        result.sort((a, b) => (a.includes('3.8') ? -1 : b.includes('3.8') ? 1 : 0));
-        return result.length > 0 ? result : ['gemini-3.8-flash'];
-    } catch {
-        return ['gemini-3.8-flash'];
-    }
-}
+// Modelos oficiales y activos en tu cuenta de Google AI Studio
+const PRIMARY_MODEL = 'gemini-3.8-flash';
+const FALLBACK_MODEL = 'gemini-3.8-flash-lite';
 
 async function callGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
-    const models = await getActiveModels(apiKey);
+    const combinedPrompt = systemPrompt 
+        ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` 
+        : prompt;
+
+    const modelsToTry = [PRIMARY_MODEL, FALLBACK_MODEL];
     let lastError = '';
 
-    for (const model of models) {
-        const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
-        const combinedPrompt = systemPrompt ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` : prompt;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }],
-                generationConfig: { temperature: 0.7 }
-            })
-        });
-        const data = await response.json();
-        if (response.ok) {
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) return text;
+    for (const model of modelsToTry) {
+        try {
+            const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s max
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+                body: JSON.stringify({
+                    contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }],
+                    generationConfig: { temperature: 0.7 }
+                })
+            });
+
+            clearTimeout(timeoutId);
+            const data = await response.json();
+
+            if (response.ok) {
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) return text;
+            }
+
+            lastError = data?.error?.message || `Error HTTP ${response.status} en ${model}`;
+            console.warn(`[Gemini AI] Falló ${model}:`, lastError);
+            
+            // Si el error es de saturación o modelo no encontrado, probamos el siguiente
+            continue;
+        } catch (err: any) {
+            lastError = err?.name === 'AbortError' 
+                ? `Tiempo de espera agotado (timeout) en ${model}` 
+                : (err?.message || 'Error de red');
+            console.warn(`[Gemini AI] Excepción en ${model}:`, lastError);
         }
-        lastError = data?.error?.message || `Error HTTP ${response.status} en ${model}`;
-        const retryable = response.status === 429 || response.status === 503 ||
-            lastError.toLowerCase().includes('high demand') ||
-            lastError.toLowerCase().includes('overloaded');
-        if (!retryable) throw new Error(lastError);
-        console.warn(`Modelo ${model} saturado. Probando siguiente disponible...`);
     }
-    throw new Error(lastError || 'Todos los modelos de Gemini están saturados. Intenta de nuevo en unos segundos.');
+
+    throw new Error(lastError || 'No se pudo generar respuesta con Gemini. Intenta de nuevo.');
 }
 
 export async function POST(req: NextRequest) {
