@@ -219,6 +219,40 @@ INSTRUCCIONES ESTRICTAS:
 Responde SOLO con JSON válido:
 [{"question":"...","answer":"..."}]`;
 
+        } else if (section === 'testimonials') {
+            prompt = `Genera 6 testimonios / reseñas de clientes verificados de alta conversión para: ${pName || 'Catálogo Textil'}.
+NICHO: ${bNiche || 'Ropa y Estampados'}
+PAÍS: Venezuela (EXCLUSIVAMENTE ciudades de Venezuela).
+
+CIUDADES PERMITIDAS (rotar entre ellas):
+Maracaibo, Caracas, Valencia, Barquisimeto, San Cristóbal, Lechería, Mérida, Ciudad Guayana, San Francisco, Maracay, Maturín.
+
+INSTRUCCIONES ESTRICTAS:
+1. Reseñas cortas, humanas, creíbles y persuasivas (1 a 3 frases).
+2. Deben hablar de temas reales: calidad de la tela, colores vivos, llegada rápida por MRW/TEALCA, delivery en Maracaibo, o pago contraentrega.
+3. Nombres reales venezolanos con inicial de apellido (Ej: "Carlos M.", "Andreína P.", "José R.", "María Fernanda L.").
+4. rating: número entre 4 y 5.
+5. verified: siempre true.
+6. title: "Clientes felices en toda Venezuela"
+7. score: "4.7" o "4.8"
+8. totalReviewsText: "+189 reseñas verificadas" o "+240 clientes satisfechos"
+
+Responde SOLO con JSON válido:
+{
+  "title": "Clientes felices en toda Venezuela",
+  "score": "4.8",
+  "totalReviewsText": "+189 reseñas verificadas",
+  "items": [
+    {
+      "name": "Mariana G.",
+      "city": "Maracaibo",
+      "text": "Excelente calidad de tela y el estampado impecable. Pagué al recibir con delivery.",
+      "rating": 5,
+      "verified": true
+    }
+  ]
+}`;
+
         } else if (type === 'product' && section === 'longDescription') {
             prompt = `Descripción de ventas persuasiva (150-200 palabras) para:
 PRODUCTO: ${pName} | NICHO: ${bNiche} | TONO: ${bTone}

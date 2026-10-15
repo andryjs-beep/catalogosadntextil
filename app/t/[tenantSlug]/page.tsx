@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import { Tenant, TenantCollection } from '@/lib/models';
 import { CollectionCard } from '@/components/CollectionCard';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { CustomerReviewsSection } from '@/components/CustomerReviewsSection';
 import type { Metadata } from 'next';
 import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
@@ -22,6 +23,14 @@ interface TenantData {
     branding?: {
         primaryColor?: string;
         logo?: string;
+    };
+    testimonialsConfig?: {
+        enabled?: boolean;
+        displayScope?: 'all' | 'custom';
+        title?: string;
+        score?: string;
+        totalReviewsText?: string;
+        items?: any[];
     };
 }
 
@@ -161,6 +170,20 @@ export default async function TenantHomePage({
                 <div className="text-center py-32 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
                     <div className="text-4xl mb-4">📦</div>
                     <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No hay colecciones disponibles en este momento</p>
+                </div>
+            )}
+
+            {/* Reseñas de Clientes (Si está configurado para 'todas las páginas') */}
+            {tenant.testimonialsConfig?.enabled !== false && 
+             tenant.testimonialsConfig?.displayScope === 'all' && 
+             (tenant.testimonialsConfig?.items?.length ?? 0) > 0 && (
+                <div className="mt-16 md:mt-24 -mx-4">
+                    <CustomerReviewsSection
+                        title={tenant.testimonialsConfig?.title}
+                        score={tenant.testimonialsConfig?.score}
+                        totalReviewsText={tenant.testimonialsConfig?.totalReviewsText}
+                        items={tenant.testimonialsConfig?.items}
+                    />
                 </div>
             )}
 

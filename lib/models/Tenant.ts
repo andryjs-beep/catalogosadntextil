@@ -69,6 +69,23 @@ export interface IResellerConfig {
     footerText: string;              // Texto del footer: "© Catálogo Online"
 }
 
+export interface ITestimonialItem {
+    name: string;
+    city: string;
+    text: string;
+    rating: number; // 1-5
+    verified: boolean;
+}
+
+export interface ITestimonialsConfig {
+    enabled: boolean;
+    displayScope: 'all' | 'custom'; // 'all' = en todas las páginas, 'custom' = solo landings elegidas
+    score: string; // ej: "4.7"
+    totalReviewsText: string; // ej: "+189 reseñas verificadas"
+    title: string; // ej: "Clientes felices en toda Venezuela"
+    items: ITestimonialItem[];
+}
+
 export interface ITenant extends Document {
     _id: mongoose.Types.ObjectId;
     slug: string;
@@ -77,6 +94,7 @@ export interface ITenant extends Document {
     globalTexts: IGlobalTexts;
     businessInfo: IBusinessInfo;
     resellerConfig: IResellerConfig;
+    testimonialsConfig?: ITestimonialsConfig;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -158,6 +176,22 @@ const TenantSchema = new Schema<ITenant>(
             hideBusinessName: { type: Boolean, default: true },
             hideSocialLinks: { type: Boolean, default: true },
             footerText: { type: String, default: '© Catálogo Online' },
+        },
+        testimonialsConfig: {
+            enabled: { type: Boolean, default: true },
+            displayScope: { type: String, enum: ['all', 'custom'], default: 'all' },
+            score: { type: String, default: '4.7' },
+            totalReviewsText: { type: String, default: '+189 reseñas verificadas' },
+            title: { type: String, default: 'Clientes felices en toda Venezuela' },
+            items: [
+                {
+                    name: { type: String, default: '' },
+                    city: { type: String, default: '' },
+                    text: { type: String, default: '' },
+                    rating: { type: Number, default: 5 },
+                    verified: { type: Boolean, default: true }
+                }
+            ]
         },
         isActive: {
             type: Boolean,

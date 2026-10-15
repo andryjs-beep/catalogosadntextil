@@ -11,6 +11,7 @@ import { SizeSelector } from './SizeSelector';
 import { StickyFooterCTA } from './StickyFooterCTA';
 import { TermsAndConditions } from './TermsAndConditions';
 import { TestimonialSection } from './TestimonialSection';
+import { CustomerReviewsSection } from './CustomerReviewsSection';
 import { BadgeOverlay } from './BadgeOverlay';
 import { TickerBanner } from './TickerBanner';
 import type { ITenant } from '@/lib/models/Tenant';
@@ -184,6 +185,16 @@ export function LandingPageLayout({
                 <div className="bg-slate-50/30">
                     <FAQSection faqs={landingPageSections.faq} />
                 </div>
+            )}
+
+            {/* Reseñas de Clientes de Venezuela (Social Proof) */}
+            {tenant?.testimonialsConfig?.enabled !== false && (tenant?.testimonialsConfig?.items?.length ?? 0) > 0 && (
+                <CustomerReviewsSection
+                    title={tenant.testimonialsConfig?.title}
+                    score={tenant.testimonialsConfig?.score}
+                    totalReviewsText={tenant.testimonialsConfig?.totalReviewsText}
+                    items={tenant.testimonialsConfig?.items}
+                />
             )}
 
             {/* Terms and Conditions */}
