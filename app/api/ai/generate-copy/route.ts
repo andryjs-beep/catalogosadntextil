@@ -229,16 +229,8 @@ Usa fórmula AIDA. Responde solo con texto plano.`;
         let rawContent = '';
 
         if (openRouterKey) {
-            try {
-                rawContent = await callOpenRouter(openRouterKey, prompt, systemPrompt, isJsonResponse);
-            } catch (openRouterErr) {
-                console.warn('[OpenRouter Falló] Intentando fallback con Gemini si existe key:', openRouterErr);
-                if (geminiKey) {
-                    rawContent = await callGemini(geminiKey, prompt, systemPrompt, isJsonResponse);
-                } else {
-                    throw openRouterErr;
-                }
-            }
+            // Si está configurado OpenRouter, usarlo directamente sin caer a la cuota bloqueada de Google
+            rawContent = await callOpenRouter(openRouterKey, prompt, systemPrompt, isJsonResponse);
         } else if (geminiKey) {
             rawContent = await callGemini(geminiKey, prompt, systemPrompt, isJsonResponse);
         }
