@@ -34,12 +34,13 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string):
 
     for (const model of models) {
         const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+        const combinedPrompt = systemPrompt ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` : prompt;
+        
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }],
                 generationConfig: { temperature: 0.7 }
             })
         });
