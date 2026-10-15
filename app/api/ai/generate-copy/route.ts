@@ -2,25 +2,86 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_MODEL = 'gemini-3.8-flash';
 
-// Modelo oficial y único activo en Google AI Studio para tu API Key
-const MODEL = 'gemini-3.8-flash';
+// Proveedor OpenRouter: Modelos gratuitos de alto rendimiento sin límite de 20 peticiones
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENROUTER_FREE_MODELS = [
+    'google/gemini-2.0-flash-001',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'mistralai/mistral-7b-instruct:free',
+    'google/gemini-flash-1.5-8b'
+];
+
+async function callOpenRouter(apiKey: string, prompt: string, systemPrompt: string, isJson: boolean = false): Promise<string> {
+    let lastError = '';
+
+    for (const model of OPENROUTER_FREE_MODELS) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+            const messages: any[] = [];
+            if (systemPrompt) {
+                messages.push({ role: 'system', content: systemPrompt });
+            }
+            messages.push({ role: 'user', content: prompt });
+
+            const bodyPayload: any = {
+                model,
+                messages,
+                temperature: 0.7
+            };
+
+            if (isJson) {
+                bodyPayload.response_format = { type: 'json_object' };
+            }
+
+            const response = await fetch(OPENROUTER_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://catalogosadntextil.com',
+                    'X-Title': 'Catalogo Multi-Tenant AI'
+                },
+                signal: controller.signal,
+                body: JSON.stringify(bodyPayload)
+            });
+
+            clearTimeout(timeoutId);
+            const data = await response.json();
+
+            if (response.ok && data?.choices?.[0]?.message?.content) {
+                return data.choices[0].message.content;
+            }
+
+            lastError = data?.error?.message || `Error HTTP ${response.status} en OpenRouter (${model})`;
+            console.warn(`[OpenRouter] Falló ${model}:`, lastError);
+            continue;
+        } catch (err: any) {
+            lastError = err?.message || 'Error de red en OpenRouter';
+            console.warn(`[OpenRouter] Excepción en ${model}:`, lastError);
+        }
+    }
+
+    throw new Error(lastError || 'No se pudo generar respuesta con OpenRouter.');
+}
 
 async function callGemini(apiKey: string, prompt: string, systemPrompt: string, isJson: boolean = false): Promise<string> {
     const combinedPrompt = systemPrompt 
         ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` 
         : prompt;
 
-    const url = `${GEMINI_API_BASE}/${MODEL}:generateContent?key=${apiKey}`;
+    const url = `${GEMINI_API_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
-    // Intentar hasta 3 veces si hay saturación temporal (high demand)
     const MAX_RETRIES = 3;
     let lastError = '';
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
             const genConfig: any = {
                 temperature: 0.7,
@@ -50,19 +111,16 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string, 
 
             lastError = data?.error?.message || `Error HTTP ${response.status} en Google Gemini`;
 
-            // Si es saturación (429, 503 o high demand), esperamos un segundo y reintentamos
             const isHighDemand = response.status === 429 || 
                                  response.status === 503 || 
                                  lastError.toLowerCase().includes('high demand') ||
                                  lastError.toLowerCase().includes('overloaded');
 
             if (isHighDemand && attempt < MAX_RETRIES) {
-                console.warn(`[Gemini] Saturado. Reintento ${attempt}/${MAX_RETRIES} en 1.5s...`);
                 await new Promise((r) => setTimeout(r, 1500 * attempt));
                 continue;
             }
 
-            // Error fatal (no reintentable)
             throw new Error(lastError);
 
         } catch (err: any) {
@@ -75,15 +133,17 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string, 
         }
     }
 
-    throw new Error(lastError || 'Google Gemini está saturado en este momento. Por favor presiona el botón nuevamente.');
+    throw new Error(lastError || 'Google Gemini saturado.');
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
-        if (!apiKey) {
+        const openRouterKey = process.env.OPENROUTER_API_KEY;
+        const geminiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+
+        if (!openRouterKey && !geminiKey) {
             return NextResponse.json({
-                error: 'Falta la variable GEMINI_API_KEY en Vercel.'
+                error: 'Falta configurar OPENROUTER_API_KEY o GEMINI_API_KEY en las variables de entorno de Vercel.'
             }, { status: 500 });
         }
 
@@ -170,7 +230,22 @@ Usa fórmula AIDA. Responde solo con texto plano.`;
         }
 
         const isJsonResponse = section !== 'longDescription';
-        const rawContent = await callGemini(apiKey, prompt, systemPrompt, isJsonResponse);
+        let rawContent = '';
+
+        if (openRouterKey) {
+            try {
+                rawContent = await callOpenRouter(openRouterKey, prompt, systemPrompt, isJsonResponse);
+            } catch (openRouterErr) {
+                console.warn('[OpenRouter Falló] Intentando fallback con Gemini si existe key:', openRouterErr);
+                if (geminiKey) {
+                    rawContent = await callGemini(geminiKey, prompt, systemPrompt, isJsonResponse);
+                } else {
+                    throw openRouterErr;
+                }
+            }
+        } else if (geminiKey) {
+            rawContent = await callGemini(geminiKey, prompt, systemPrompt, isJsonResponse);
+        }
 
         let result: any = rawContent;
 
