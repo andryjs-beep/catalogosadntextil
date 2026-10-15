@@ -4,13 +4,13 @@ import { getSession } from '@/lib/auth';
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODEL = 'gemini-3.8-flash';
 
-// Proveedor OpenRouter: Modelos gratuitos de alto rendimiento sin límite de 20 peticiones
+// Proveedor OpenRouter: Router inteligente gratuito que selecciona automáticamente el mejor modelo disponible
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_FREE_MODELS = [
-    'google/gemini-2.0-flash-001',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'mistralai/mistral-7b-instruct:free',
-    'google/gemini-flash-1.5-8b'
+    'openrouter/free',
+    'google/gemma-4-31b-it:free',
+    'nvidia/nemotron-3-ultra:free',
+    'meta-llama/llama-3.3-70b-instruct:free'
 ];
 
 async function callOpenRouter(apiKey: string, prompt: string, systemPrompt: string, isJson: boolean = false): Promise<string> {
@@ -32,10 +32,6 @@ async function callOpenRouter(apiKey: string, prompt: string, systemPrompt: stri
                 messages,
                 temperature: 0.7
             };
-
-            if (isJson) {
-                bodyPayload.response_format = { type: 'json_object' };
-            }
 
             const response = await fetch(OPENROUTER_API_URL, {
                 method: 'POST',
