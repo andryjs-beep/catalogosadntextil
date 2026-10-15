@@ -3,23 +3,24 @@ import { getSession } from '@/lib/auth';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-// Modelos oficiales y activos en tu cuenta de Google AI Studio
-const PRIMARY_MODEL = 'gemini-3.8-flash';
-const FALLBACK_MODEL = 'gemini-3.8-flash-lite';
+// Modelo oficial y único activo en Google AI Studio para tu API Key
+const MODEL = 'gemini-3.8-flash';
 
 async function callGemini(apiKey: string, prompt: string, systemPrompt: string): Promise<string> {
     const combinedPrompt = systemPrompt 
         ? `INSTRUCCIONES DEL SISTEMA:\n${systemPrompt}\n\nSOLICITUD:\n${prompt}` 
         : prompt;
 
-    const modelsToTry = [PRIMARY_MODEL, FALLBACK_MODEL];
+    const url = `${GEMINI_API_BASE}/${MODEL}:generateContent?key=${apiKey}`;
+
+    // Intentar hasta 3 veces si hay saturación temporal (high demand)
+    const MAX_RETRIES = 3;
     let lastError = '';
 
-    for (const model of modelsToTry) {
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s max
+            const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -27,7 +28,10 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string):
                 signal: controller.signal,
                 body: JSON.stringify({
                     contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }],
-                    generationConfig: { temperature: 0.7 }
+                    generationConfig: { 
+                        temperature: 0.7,
+                        maxOutputTokens: 2048
+                    }
                 })
             });
 
@@ -39,20 +43,34 @@ async function callGemini(apiKey: string, prompt: string, systemPrompt: string):
                 if (text) return text;
             }
 
-            lastError = data?.error?.message || `Error HTTP ${response.status} en ${model}`;
-            console.warn(`[Gemini AI] Falló ${model}:`, lastError);
-            
-            // Si el error es de saturación o modelo no encontrado, probamos el siguiente
-            continue;
+            lastError = data?.error?.message || `Error HTTP ${response.status} en Google Gemini`;
+
+            // Si es saturación (429, 503 o high demand), esperamos un segundo y reintentamos
+            const isHighDemand = response.status === 429 || 
+                                 response.status === 503 || 
+                                 lastError.toLowerCase().includes('high demand') ||
+                                 lastError.toLowerCase().includes('overloaded');
+
+            if (isHighDemand && attempt < MAX_RETRIES) {
+                console.warn(`[Gemini] Saturado. Reintento ${attempt}/${MAX_RETRIES} en 1.5s...`);
+                await new Promise((r) => setTimeout(r, 1500 * attempt));
+                continue;
+            }
+
+            // Error fatal (no reintentable)
+            throw new Error(lastError);
+
         } catch (err: any) {
             lastError = err?.name === 'AbortError' 
-                ? `Tiempo de espera agotado (timeout) en ${model}` 
-                : (err?.message || 'Error de red');
-            console.warn(`[Gemini AI] Excepción en ${model}:`, lastError);
+                ? 'Tiempo de espera agotado al conectar con Google Gemini.' 
+                : (err?.message || 'Error de conexión con Google Gemini.');
+
+            if (attempt === MAX_RETRIES) break;
+            await new Promise((r) => setTimeout(r, 1000));
         }
     }
 
-    throw new Error(lastError || 'No se pudo generar respuesta con Gemini. Intenta de nuevo.');
+    throw new Error(lastError || 'Google Gemini está saturado en este momento. Por favor presiona el botón nuevamente.');
 }
 
 export async function POST(req: NextRequest) {
