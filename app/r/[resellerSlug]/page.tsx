@@ -1,6 +1,6 @@
 /**
  * Página principal del Catálogo de Revendedor
- * Muestra las colecciones disponibles
+ * Versión Pro 2026 — WhatsApp CTA + Colores dinámicos + Trust Badges
  */
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -20,6 +20,15 @@ interface CollectionData {
     image: string;
 }
 
+// WhatsApp SVG Icon
+function WhatsAppIcon({ size = 24 }: { size?: number }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+    );
+}
+
 export async function generateMetadata({
     params,
 }: {
@@ -30,28 +39,19 @@ export async function generateMetadata({
 
     const context = await getResellerContext(resellerSlug);
     if (!context) {
-        return { title: 'Cat?logo no encontrado' };
+        return { title: 'Catálogo no encontrado' };
     }
     const { tenant } = context;
 
     const title = `${tenant.resellerConfig.headerTitle} | Catálogo Oficial`;
-    const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium en cada prenda. ¡Haz tu pedido ahora!`;
+    const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium. ¡Haz tu pedido ahora!`;
     const logoUrl = await getAbsoluteImageUrl(tenant.branding.logo);
 
     return {
         title,
         description,
-        openGraph: {
-            title,
-            description,
-            images: logoUrl ? [logoUrl] : [],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title,
-            description,
-            images: logoUrl ? [logoUrl] : [],
-        },
+        openGraph: { title, description, images: logoUrl ? [logoUrl] : [] },
+        twitter: { card: 'summary_large_image', title, description, images: logoUrl ? [logoUrl] : [] },
     };
 }
 
@@ -63,27 +63,44 @@ export default async function ResellerHomePage({
     const { resellerSlug } = await params;
     await dbConnect();
 
-    // Buscar tenant por el slug del revendedor
     const context = await getResellerContext(resellerSlug);
     if (!context) {
         notFound();
     }
     const { tenant, whatsappNumber } = context;
+    const rc = tenant.resellerConfig;
 
-    // Obtener colecciones asignadas usando el mismo patrón que el catálogo principal
+    // Colores y textos configurables
+    const primaryColor = rc.primaryColor || '#4f46e5';
+    const buttonText = rc.ctaText || rc.buttonText || 'Hacer mi pedido ahora';
+    const trustBadge1 = rc.trustBadge1 || '✅ Respuesta en minutos';
+    const trustBadge2 = rc.trustBadge2 || '🔒 Pago seguro';
+    const trustBadge3 = rc.trustBadge3 || '🚚 Envío rápido';
+    const step1Title = rc.step1Title || 'Captura el diseño';
+    const step1Desc = rc.step1Desc || 'Navega por el catálogo y toma captura del diseño que más te guste.';
+    const step2Title = rc.step2Title || 'Dinos cuánto';
+    const step2Desc = rc.step2Desc || 'Envíanos la cantidad y talla (si aplica). Atendemos desde 1 unidad.';
+    const step3Title = rc.step3Title || 'Espera el envío';
+    const step3Desc = rc.step3Desc || 'Confirmamos tu pedido al instante y coordinamos la entrega rápida y segura.';
+
+    // WhatsApp link
+    const waNumber = whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, '') : '';
+    const customMsg = rc.whatsappMessage || '';
+    const waMessage = encodeURIComponent(customMsg || 'Hola! Vi el catálogo y quiero hacer un pedido.');
+    const waLink = `https://wa.me/${waNumber}?text=${waMessage}`;
+
+    // Colecciones
     const tenantCollections = await TenantCollection.find({
         tenantId: tenant._id,
-        isPublished: true,  // Solo colecciones publicadas
+        isPublished: true,
     })
         .populate('collectionId', 'slug name description coverImage order isActive')
         .lean();
 
-    // Ordenar por el mismo criterio que el catálogo principal (orden global de la colección)
     const sortedTenantCollections = (tenantCollections as any[]).sort((a, b) =>
         (a.collectionId?.order || 0) - (b.collectionId?.order || 0)
     );
 
-    // Filtrar solo las colecciones que existen (pobladas correctamente)
     const collections = sortedTenantCollections
         .filter((tc: any) => tc.collectionId)
         .map((tc: any) => ({
@@ -100,151 +117,155 @@ export default async function ResellerHomePage({
                 <div className="w-20 h-20 mx-auto bg-slate-100 rounded-3xl flex items-center justify-center mb-6">
                     <Grid3X3 className="h-10 w-10 text-slate-300" />
                 </div>
-                <h2 className="text-3xl font-black text-slate-900 mb-2">
-                    Sin colecciones
-                </h2>
-                <p className="text-slate-500 font-medium">
-                    Explora otros catálogos mientras trabajamos en este.
-                </p>
+                <h2 className="text-3xl font-black text-slate-900 mb-2">Sin colecciones</h2>
+                <p className="text-slate-500 font-medium">Explora otros catálogos mientras trabajamos en este.</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-12">
-            {/* Grid de colecciones - Rediseño Vibrant */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {collections.map((collection, idx) => {
-                    const grads = ['from-indigo-500/80', 'from-rose-500/80', 'from-emerald-500/80', 'from-amber-500/80'];
-                    const gradClass = grads[idx % grads.length];
+        <>
+            <style>{`
+                .btn-wa-home {
+                    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+                    box-shadow: 0 12px 40px -4px rgba(37, 211, 102, 0.5);
+                    transition: all 0.3s ease;
+                }
+                .btn-wa-home:hover {
+                    background: linear-gradient(135deg, #20bd5a 0%, #0e7a6e 100%);
+                    box-shadow: 0 20px 50px -4px rgba(37, 211, 102, 0.6);
+                    transform: translateY(-3px);
+                }
+                .btn-wa-home:active { transform: scale(0.97); }
+                @keyframes wa-pulse {
+                    0%, 100% { box-shadow: 0 12px 40px -4px rgba(37,211,102,0.5), 0 0 0 0 rgba(37,211,102,0.4); }
+                    50% { box-shadow: 0 12px 40px -4px rgba(37,211,102,0.5), 0 0 0 12px rgba(37,211,102,0); }
+                }
+                .wa-pulse { animation: wa-pulse 2.5s infinite; }
+                .collection-card:hover .card-name { transform: translateX(6px); }
+            `}</style>
 
-                    return (
-                        <Link
-                            key={collection._id.toString()}
-                            href={`/r/${resellerSlug}/${collection.slug}`}
-                            className="group relative bg-white rounded-[2.5rem] overflow-hidden shadow-premium hover:shadow-2xl transition-all duration-500 animate-lift"
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Grid de colecciones */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                    {collections.map((collection, idx) => {
+                        const overlayColors = [
+                            'from-indigo-600/90', 'from-rose-600/90', 'from-emerald-600/90',
+                            'from-amber-600/90', 'from-purple-600/90', 'from-cyan-600/90'
+                        ];
+                        const overlayClass = overlayColors[idx % overlayColors.length];
+
+                        return (
+                            <Link
+                                key={collection._id}
+                                href={`/r/${resellerSlug}/${collection.slug}`}
+                                className="collection-card group relative bg-white rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                            >
+                                <div className="relative aspect-square overflow-hidden">
+                                    {collection.image ? (
+                                        <Image
+                                            src={collection.image}
+                                            alt={collection.name}
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                            <Grid3X3 className="h-16 w-16 text-slate-300" />
+                                        </div>
+                                    )}
+                                    <div className={`absolute inset-0 bg-gradient-to-t ${overlayClass} via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500`} />
+                                    <div className="absolute top-6 left-6">
+                                        <span className="px-4 py-1.5 rounded-full bg-black/30 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white">
+                                            Colección
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="absolute bottom-0 left-0 right-0 p-7 pt-16 bg-gradient-to-t from-black/95 via-black/50 to-transparent text-white">
+                                    <h3 className="card-name text-2xl md:text-3xl font-black mb-2 tracking-tighter transition-all duration-300">
+                                        {collection.name}
+                                    </h3>
+                                    {collection.description && (
+                                        <p className="text-sm text-white/75 line-clamp-2 mb-5 font-medium leading-relaxed max-w-[280px]">
+                                            {collection.description}
+                                        </p>
+                                    )}
+                                    <div className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white text-slate-900 font-black text-xs uppercase tracking-widest shadow-lg">
+                                        <span>Explorar</span>
+                                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {/* ═══ SECCIÓN: CÓMO HACER TU PEDIDO ═══ */}
+                <section className="mt-24 mb-12">
+                    <div className="text-center mb-14">
+                        <span
+                            className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-4"
+                            style={{ background: `${primaryColor}18`, color: primaryColor }}
                         >
-                            {/* Imagen Cuadrada (1080x1080) */}
-                            <div className="relative aspect-square overflow-hidden">
-                                {collection.image ? (
-                                    <Image
-                                        src={collection.image}
-                                        alt={collection.name}
-                                        fill
-                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                        <Grid3X3 className="h-16 w-16 text-slate-300" />
-                                    </div>
-                                )}
+                            Proceso de Compra
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight">
+                            Tu producto,{' '}
+                            <span style={{ color: primaryColor }}>en 3 pasos.</span>
+                        </h2>
+                    </div>
 
-                                {/* Overlay Vibrante Dinámico */}
-                                <div className={`absolute inset-0 bg-gradient-to-t ${gradClass} via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500`} />
-
-                                {/* Badge Flotante de Categoría */}
-                                <div className="absolute top-6 left-6">
-                                    <span className="px-4 py-1.5 rounded-full glass-dark text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
-                                        Colección
-                                    </span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                            { emoji: '📸', num: '01', title: step1Title, desc: step1Desc, color: '#25D366' },
+                            { emoji: '💬', num: '02', title: step2Title, desc: step2Desc, color: '#128C7E' },
+                            { emoji: '🎉', num: '03', title: step3Title, desc: step3Desc, color: primaryColor },
+                        ].map((step) => (
+                            <div
+                                key={step.num}
+                                className="relative p-10 rounded-[3rem] text-white overflow-hidden"
+                                style={{
+                                    background: `linear-gradient(135deg, ${step.color}, color-mix(in srgb, ${step.color} 70%, black))`,
+                                    boxShadow: `0 20px 40px -10px ${step.color}55`,
+                                }}
+                            >
+                                <div className="absolute top-[-20px] right-[-15px] text-white/10 font-black text-[110px] leading-none pointer-events-none select-none">
+                                    {step.num}
                                 </div>
-                            </div>
-
-                            {/* Info Flotante sobre la imagen (Bottom) */}
-                            <div className="absolute bottom-0 left-0 right-0 p-8 pt-20 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white">
-                                <h3 className="text-2xl md:text-3xl font-black mb-3 tracking-tighter transition-all group-hover:translate-x-2">
-                                    {collection.name}
-                                </h3>
-
-                                {collection.description && (
-                                    <p className="text-sm text-white/80 line-clamp-2 mb-6 font-medium leading-relaxed max-w-[280px]">
-                                        {collection.description}
-                                    </p>
-                                )}
-
-                                {/* CTA Button integrado Premium */}
-                                <div className="flex items-center gap-3">
-                                    <div className="h-12 flex items-center gap-3 px-6 rounded-2xl bg-white text-slate-900 font-black text-xs uppercase tracking-widest shadow-xl group-hover:bg-slate-100 transition-all active:scale-95">
-                                        <span>Explorar Ahora</span>
-                                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                    </div>
+                                <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8 border border-white/30 text-4xl">
+                                    {step.emoji}
                                 </div>
+                                <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">{step.title}</h3>
+                                <p className="text-white/80 font-medium leading-relaxed">{step.desc}</p>
                             </div>
-                        </Link>
-                    );
-                })}
-            </div>
-
-            {/* ── SECCIÓN: ¿CÓMO HACER TU PEDIDO? - Rediseño Vibrant ── */}
-            <section className="mt-24 mb-12">
-                <div className="text-center mb-16">
-                    <span className="px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-[0.4em] mb-4 inline-block">
-                        Proceso de Compra
-                    </span>
-                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter-extra leading-tight">
-                        Tu producto, <span className="text-indigo-600">en 3 pasos.</span>
-                    </h2>
-                </div>
-
-                {/* Grid de Pasos Vibrantes */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Paso 1 */}
-                    <div className="relative group p-10 rounded-[3rem] vibrant-grad-1 shadow-glow-primary text-white overflow-hidden animate-lift">
-                        <div className="absolute top-[-20px] right-[-20px] text-white/10 font-black text-[120px] leading-none pointer-events-none">01</div>
-                        <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8 shadow-inner border border-white/30">
-                            <span className="text-4xl">📸</span>
-                        </div>
-                        <h3 className="text-2xl font-black mb-4 uppercase tracking-tight">Captura el diseño</h3>
-                        <p className="text-white/80 font-medium leading-relaxed">
-                            Navega por el catálogo y toma captura de pantalla o anota el nombre de lo que más te guste.
-                        </p>
+                        ))}
                     </div>
 
-                    {/* Paso 2 */}
-                    <div className="relative group p-10 rounded-[3rem] vibrant-grad-2 shadow-xl text-white overflow-hidden animate-lift" style={{ boxShadow: '0 20px 40px -10px rgba(244, 63, 94, 0.3)' }}>
-                        <div className="absolute top-[-20px] right-[-20px] text-white/10 font-black text-[120px] leading-none pointer-events-none">02</div>
-                        <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8 shadow-inner border border-white/30">
-                            <span className="text-4xl">📦</span>
-                        </div>
-                        <h3 className="text-2xl font-black mb-4 uppercase tracking-tight">Dinos cuánto</h3>
-                        <p className="text-white/80 font-medium leading-relaxed">
-                            Envíanos la cantidad y la talla (si aplica). Recuerda que atendemos desde 1 unidad sin problemas.
-                        </p>
-                    </div>
-
-                    {/* Paso 3 */}
-                    <div className="relative group p-10 rounded-[3rem] vibrant-grad-3 shadow-xl text-white overflow-hidden animate-lift" style={{ boxShadow: '0 20px 40px -10px rgba(34, 197, 94, 0.3)' }}>
-                        <div className="absolute top-[-20px] right-[-20px] text-white/10 font-black text-[120px] leading-none pointer-events-none">03</div>
-                        <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8 shadow-inner border border-white/30">
-                            <span className="text-4xl">🎉</span>
-                        </div>
-                        <h3 className="text-2xl font-black mb-4 uppercase tracking-tight">Espera el envío</h3>
-                        <p className="text-white/80 font-medium leading-relaxed">
-                            Confirmamos tu pedido al instante y coordinamos la entrega de forma rápida y segura.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Final CTA Vibrant */}
-                <div className="mt-16 flex justify-center">
-                    <a
-                        href={`https://wa.me/${whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : ""}?text=Hola!%20Vi%20el%20cat%C3%A1logo%20y%20quiero%20hacer%20un%20pedido.`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex flex-col items-center gap-4 py-8 px-12 rounded-[3.5rem] bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl transition-all duration-300 transform hover:-translate-y-2 active:scale-95"
-                    >
-                        <div className="flex items-center gap-4">
-                            <span className="text-3xl">🚀</span>
+                    {/* CTA Final */}
+                    <div className="mt-16 flex flex-col items-center gap-4">
+                        <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-wa-home wa-pulse group inline-flex items-center gap-4 py-6 px-12 rounded-[2.5rem] text-white"
+                        >
+                            <WhatsAppIcon size={28} />
                             <div className="flex flex-col items-start">
                                 <span className="text-xs font-black uppercase tracking-[0.3em] opacity-70">¿Listo para ordenar?</span>
-                                <span className="text-2xl font-black">Hacer mi pedido ahora</span>
+                                <span className="text-2xl font-black">{buttonText}</span>
                             </div>
-                            <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
+                            <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform ml-2" />
+                        </a>
+                        <div className="flex items-center gap-5 flex-wrap justify-center">
+                            {[trustBadge1, trustBadge2, trustBadge3].filter(Boolean).map((badge, i) => (
+                                <span key={i} className="text-sm font-bold text-slate-500">{badge}</span>
+                            ))}
                         </div>
-                    </a>
-                </div>
-            </section>
-        </div>
+                    </div>
+                </section>
+            </div>
+        </>
     );
 }

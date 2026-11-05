@@ -77,6 +77,22 @@ export interface IResellerConfig {
     hideBusinessName: boolean;       // No mostrar nombre del negocio
     hideSocialLinks: boolean;        // No mostrar redes sociales
     footerText: string;              // Texto del footer: "© Catálogo Online"
+    // Personalización visual Pro
+    primaryColor?: string;
+    buttonText?: string;
+    buttonSubtext?: string;
+    ctaText?: string;
+    badgeText?: string;
+    whatsappMessage?: string;
+    trustBadge1?: string;
+    trustBadge2?: string;
+    trustBadge3?: string;
+    step1Title?: string;
+    step1Desc?: string;
+    step2Title?: string;
+    step2Desc?: string;
+    step3Title?: string;
+    step3Desc?: string;
 }
 
 export interface ITestimonialItem {
