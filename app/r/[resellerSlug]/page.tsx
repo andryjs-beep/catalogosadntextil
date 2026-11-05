@@ -45,13 +45,15 @@ export async function generateMetadata({
 
     const title = `${tenant.resellerConfig.headerTitle} | Catálogo Oficial`;
     const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium. ¡Haz tu pedido ahora!`;
-    const logoUrl = await getAbsoluteImageUrl(tenant.branding.logo);
+    // Usar imagen personalizada de compartir si existe; si no, usar logo solo si no está oculto
+    const rawImage = tenant.resellerConfig.shareImage || (!tenant.resellerConfig.hideLogo ? tenant.branding.logo : '');
+    const ogImage = rawImage ? await getAbsoluteImageUrl(rawImage) : null;
 
     return {
         title,
         description,
-        openGraph: { title, description, images: logoUrl ? [logoUrl] : [] },
-        twitter: { card: 'summary_large_image', title, description, images: logoUrl ? [logoUrl] : [] },
+        openGraph: { title, description, images: ogImage ? [ogImage] : [] },
+        twitter: { card: 'summary_large_image', title, description, images: ogImage ? [ogImage] : [] },
     };
 }
 

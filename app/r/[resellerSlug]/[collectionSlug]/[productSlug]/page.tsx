@@ -34,8 +34,9 @@ export async function generateMetadata({
     const description = (product as any).description || `Descubre ${productName}. Calidad garantizada. Haz tu pedido ahora desde el catálogo oficial.`;
 
     const imagePath = (product as any).coverImage || ((product as any).images && (product as any).images[0]);
+    const rawFallback = tenant.resellerConfig.shareImage || (!tenant.resellerConfig.hideLogo ? tenant.branding.logo : '');
     const imageUrl = await getAbsoluteImageUrl(imagePath);
-    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding.logo);
+    const fallbackImage = rawFallback ? await getAbsoluteImageUrl(rawFallback) : null;
 
     return {
         title,
@@ -43,7 +44,7 @@ export async function generateMetadata({
         openGraph: {
             title,
             description,
-            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
+            images: imageUrl ? [imageUrl] : (fallbackImage ? [fallbackImage] : []),
         },
     };
 }

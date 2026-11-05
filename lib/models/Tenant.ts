@@ -78,6 +78,7 @@ export interface IResellerConfig {
     hideSocialLinks: boolean;        // No mostrar redes sociales
     footerText: string;              // Texto del footer: "© Catálogo Online"
     // Personalización visual Pro
+    shareImage?: string;
     primaryColor?: string;
     buttonText?: string;
     buttonSubtext?: string;
@@ -212,6 +213,7 @@ const TenantSchema = new Schema<ITenant>(
             hideBusinessName: { type: Boolean, default: true },
             hideSocialLinks: { type: Boolean, default: true },
             footerText: { type: String, default: '© Catálogo Online' },
+            shareImage: { type: String, default: '' },
         },
         testimonialsConfig: {
             enabled: { type: Boolean, default: true },

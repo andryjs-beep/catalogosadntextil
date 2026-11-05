@@ -42,8 +42,9 @@ export async function generateMetadata({
     const description = (collection as any)?.description || `Mira los mejores productos de la colección ${collectionName} en nuestro catálogo oficial.`;
 
     // Obtener URLs absolutas
+    const rawFallback = tenant.resellerConfig.shareImage || (!tenant.resellerConfig.hideLogo ? tenant.branding.logo : '');
     const imageUrl = await getAbsoluteImageUrl((collection as any)?.coverImage);
-    const fallbackLogo = await getAbsoluteImageUrl(tenant.branding.logo);
+    const fallbackImage = rawFallback ? await getAbsoluteImageUrl(rawFallback) : null;
 
     return {
         title,
@@ -51,7 +52,7 @@ export async function generateMetadata({
         openGraph: {
             title,
             description,
-            images: imageUrl ? [imageUrl] : (fallbackLogo ? [fallbackLogo] : []),
+            images: imageUrl ? [imageUrl] : (fallbackImage ? [fallbackImage] : []),
         },
     };
 }

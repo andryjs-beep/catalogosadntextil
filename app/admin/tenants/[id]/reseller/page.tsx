@@ -20,6 +20,9 @@ import {
     UserCheck,
     MessageCircle,
     Palette,
+    Upload,
+    ImageIcon,
+    Loader2,
     Type,
     Shield,
     ChevronDown,
@@ -45,6 +48,7 @@ interface ResellerConfig {
     hideSocialLinks: boolean;
     footerText: string;
     resellers?: ResellerItem[];
+    shareImage?: string;
     // Nuevos campos de personalización
     primaryColor?: string;
     buttonText?: string;
@@ -86,6 +90,7 @@ export default function ResellerConfigPage({
     const [tenantSlug, setTenantSlug] = useState('');
     const [showDesignPanel, setShowDesignPanel] = useState(false);
     const [showStepsPanel, setShowStepsPanel] = useState(false);
+    const [isUploadingShareImage, setIsUploadingShareImage] = useState(false);
     const [config, setConfig] = useState<ResellerConfig>({
         enabled: false,
         slug: '',
@@ -97,6 +102,7 @@ export default function ResellerConfigPage({
         hideSocialLinks: true,
         footerText: '© Catálogo Online',
         resellers: [],
+        shareImage: '',
         primaryColor: '#25D366',
         buttonText: 'Pedir por WhatsApp',
         buttonSubtext: '¡Hazlo realidad!',
@@ -138,6 +144,35 @@ export default function ResellerConfigPage({
             console.error('Error fetching config:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    
+    const handleUploadShareImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsUploadingShareImage(true);
+        try {
+            const formData = new FormData();
+            formData.append('files', file);
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const url = data.urls?.[0] || data.url;
+                if (url) {
+                    setField('shareImage', url);
+                }
+            } else {
+                alert('Error al subir imagen');
+            }
+        } catch (err) {
+            console.error('Error uploading share image:', err);
+            alert('Error al subir imagen');
+        } finally {
+            setIsUploadingShareImage(false);
         }
     };
 
@@ -333,6 +368,58 @@ export default function ResellerConfigPage({
                                 className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             />
                         </div>
+                        <div className="md:col-span-2 pt-4 border-t border-slate-200">
+                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-2">
+                                <ImageIcon className="h-4 w-4 text-emerald-600" />
+                                Imagen de Portada para WhatsApp (Vista previa del enlace)
+                            </label>
+                            <p className="text-xs text-slate-500 mb-3">
+                                Esta es la imagen que se verá cuando tú o tus revendedores compartan el enlace por WhatsApp. Si dejas esto vacío o subes una imagen neutra (ej: un flyer que diga "Tienda Online"), no aparecerá el logo de ADN.
+                            </p>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                {config.shareImage ? (
+                                    <div className="relative group w-36 h-24 rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm bg-slate-100 flex-shrink-0">
+                                        <img src={config.shareImage} alt="Vista previa WhatsApp" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setField('shareImage', '')}
+                                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity"
+                                        >
+                                            Quitar
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="w-36 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 text-[11px] text-center p-2 flex-shrink-0">
+                                        <ImageIcon className="h-6 w-6 mb-1 text-slate-300" />
+                                        <span>Sin imagen</span>
+                                    </div>
+                                )}
+                                <div className="flex flex-col gap-2">
+                                    <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-colors">
+                                        {isUploadingShareImage ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <span>Subiendo imagen...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="h-4 w-4" />
+                                                <span>{config.shareImage ? 'Cambiar Imagen' : 'Subir Imagen para WhatsApp'}</span>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleUploadShareImage}
+                                            disabled={isUploadingShareImage}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    <span className="text-[11px] text-slate-400">Recomendado: 1200 x 630 px (formato horizontal para WhatsApp)</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
