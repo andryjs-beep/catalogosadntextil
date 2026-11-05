@@ -24,16 +24,21 @@ export async function GET(
         }
 
         return NextResponse.json({
-            resellerConfig: (tenant as any).resellerConfig || {
-                enabled: false,
-                slug: '',
-                headerTitle: 'Catálogo Online',
-                headerSubtitle: 'Encuentra los mejores productos',
-                hideLogo: true,
-                hideBusinessName: true,
-                hideSocialLinks: true,
-                footerText: '© Catálogo Online',
-            },
+            resellerConfig: (() => {
+                const r = (tenant as any).resellerConfig || {};
+                return {
+                    enabled: r.enabled ?? false,
+                    slug: r.slug || '',
+                    whatsappNumber: r.whatsappNumber || '',
+                    headerTitle: r.headerTitle || 'Catálogo Online',
+                    headerSubtitle: r.headerSubtitle || 'Encuentra los mejores productos',
+                    hideLogo: r.hideLogo ?? true,
+                    hideBusinessName: r.hideBusinessName ?? true,
+                    hideSocialLinks: r.hideSocialLinks ?? true,
+                    footerText: r.footerText || '© Catálogo Online',
+                    resellers: r.resellers || [],
+                };
+            })(),
             tenantSlug: (tenant as any).slug,
         });
     } catch (error) {
@@ -81,6 +86,8 @@ export async function PUT(
                     'resellerConfig.hideBusinessName': body.hideBusinessName ?? true,
                     'resellerConfig.hideSocialLinks': body.hideSocialLinks ?? true,
                     'resellerConfig.footerText': body.footerText || '© Catálogo Online',
+                    'resellerConfig.whatsappNumber': body.whatsappNumber || '',
+                    'resellerConfig.resellers': Array.isArray(body.resellers) ? body.resellers : [],
                 },
             },
             { new: true }

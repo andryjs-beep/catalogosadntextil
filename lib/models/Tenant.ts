@@ -58,9 +58,19 @@ export interface IBusinessInfo {
     tone: 'profesional' | 'casual' | 'juvenil' | 'persuasivo';
 }
 
+export interface IResellerItem {
+    name: string;
+    slug: string;
+    whatsappNumber: string;
+    isActive: boolean;
+    createdAt?: Date;
+}
+
 export interface IResellerConfig {
     enabled: boolean;
     slug: string;                    // URL personalizada: /r/[slug]
+    whatsappNumber?: string;
+    resellers?: IResellerItem[];
     headerTitle: string;             // Ej: "Catálogo Online"
     headerSubtitle: string;          // Ej: "Encuentra los mejores productos"
     hideLogo: boolean;               // No mostrar logo
@@ -170,6 +180,16 @@ const TenantSchema = new Schema<ITenant>(
         resellerConfig: {
             enabled: { type: Boolean, default: false },
             slug: { type: String, default: '' },
+            whatsappNumber: { type: String, default: '' },
+            resellers: [
+                {
+                    name: { type: String, default: '' },
+                    slug: { type: String, default: '' },
+                    whatsappNumber: { type: String, default: '' },
+                    isActive: { type: Boolean, default: true },
+                    createdAt: { type: Date, default: Date.now },
+                }
+            ],
             headerTitle: { type: String, default: 'Catálogo Online' },
             headerSubtitle: { type: String, default: 'Encuentra los mejores productos' },
             hideLogo: { type: Boolean, default: true },
@@ -207,6 +227,7 @@ const TenantSchema = new Schema<ITenant>(
 TenantSchema.index({ slug: 1 }, { unique: true });
 TenantSchema.index({ isActive: 1 });
 TenantSchema.index({ 'resellerConfig.slug': 1 }, { sparse: true });
+TenantSchema.index({ 'resellerConfig.resellers.slug': 1 }, { sparse: true });
 
 export default mongoose.models.Tenant ||
     mongoose.model<ITenant>('Tenant', TenantSchema);

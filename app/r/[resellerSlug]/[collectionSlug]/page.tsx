@@ -7,7 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
-import { Tenant, TenantCollection, Collection, Product } from '@/lib/models';
+import { TenantCollection, Collection, Product } from '@/lib/models';
+import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Package, ChevronLeft, ArrowRight } from 'lucide-react';
 import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
@@ -29,15 +30,11 @@ export async function generateMetadata({
     const { resellerSlug, collectionSlug } = await params;
     await dbConnect();
 
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
-        return { title: 'Colección no encontrada' };
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
+        return { title: 'Cat?logo no encontrado' };
     }
+    const { tenant } = context;
 
     const collection = await Collection.findOne({ slug: collectionSlug }).lean();
     const collectionName = (collection as any)?.name || 'Colección';
@@ -68,15 +65,11 @@ export default async function ResellerCollectionPage({
     await dbConnect();
 
     // Buscar tenant por el slug del revendedor
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
         notFound();
     }
+    const { tenant, whatsappNumber } = context;
 
     // Buscar colección
     const collection = await Collection.findOne({ slug: collectionSlug }).lean() as { _id: any; name: string; description?: string; productIds: any[] } | null;
@@ -208,7 +201,7 @@ export default async function ResellerCollectionPage({
                 <div className="mt-16 text-center">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-6">¿Viste algo que te gustó?</p>
                     <a
-                        href={`https://wa.me/?text=Hola!%20Estoy%20viendo%20la%20colecci%C3%B3n%20${encodeURIComponent((collection as any).name)}%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n.`}
+                        href={`https://wa.me/${whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : ""}?text=Hola!%20Estoy%20viendo%20la%20colecci%C3%B3n%20${encodeURIComponent((collection as any).name)}%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n.`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-widest group"

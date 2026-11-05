@@ -4,7 +4,8 @@
  */
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/db';
-import { Tenant, TenantCollection, Collection } from '@/lib/models';
+import { TenantCollection, Collection } from '@/lib/models';
+import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Footer } from '@/components/Footer';
 import './reseller.css';
@@ -24,15 +25,11 @@ export async function generateMetadata({
     const { resellerSlug } = await params;
     await dbConnect();
 
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
-        return { title: 'Catálogo no encontrado' };
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
+        return { title: 'Cat?logo no encontrado' };
     }
+    const { tenant } = context;
 
     const title = tenant.resellerConfig.headerTitle || 'Catálogo Online';
 
@@ -53,15 +50,11 @@ export default async function ResellerLayout({
     await dbConnect();
 
     // Buscar tenant por el slug del revendedor
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
         notFound();
     }
+    const { tenant, whatsappNumber } = context;
 
     const { branding, resellerConfig } = tenant;
 

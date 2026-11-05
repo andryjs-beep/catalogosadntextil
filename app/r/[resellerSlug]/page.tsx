@@ -6,7 +6,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import dbConnect from '@/lib/db';
-import { Tenant, TenantCollection, Collection } from '@/lib/models';
+import { TenantCollection, Collection } from '@/lib/models';
+import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Grid3X3, ArrowRight } from 'lucide-react';
 import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
@@ -27,15 +28,11 @@ export async function generateMetadata({
     const { resellerSlug } = await params;
     await dbConnect();
 
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
-        return { title: 'Catálogo no encontrado' };
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
+        return { title: 'Cat?logo no encontrado' };
     }
+    const { tenant } = context;
 
     const title = `${tenant.resellerConfig.headerTitle} | Catálogo Oficial`;
     const description = `Explora las últimas colecciones de ${tenant.resellerConfig.headerTitle}. Diseños exclusivos y calidad premium en cada prenda. ¡Haz tu pedido ahora!`;
@@ -67,15 +64,11 @@ export default async function ResellerHomePage({
     await dbConnect();
 
     // Buscar tenant por el slug del revendedor
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
         notFound();
     }
+    const { tenant, whatsappNumber } = context;
 
     // Obtener colecciones asignadas usando el mismo patrón que el catálogo principal
     const tenantCollections = await TenantCollection.find({
@@ -236,7 +229,7 @@ export default async function ResellerHomePage({
                 {/* Final CTA Vibrant */}
                 <div className="mt-16 flex justify-center">
                     <a
-                        href="https://wa.me/?text=Hola!%20Vi%20el%20cat%C3%A1logo%20y%20quiero%20hacer%20un%20pedido."
+                        href={`https://wa.me/${whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : ""}?text=Hola!%20Vi%20el%20cat%C3%A1logo%20y%20quiero%20hacer%20un%20pedido.`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group flex flex-col items-center gap-4 py-8 px-12 rounded-[3.5rem] bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl transition-all duration-300 transform hover:-translate-y-2 active:scale-95"

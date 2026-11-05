@@ -5,7 +5,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import dbConnect from '@/lib/db';
-import { Tenant, TenantCollection, Collection, Product } from '@/lib/models';
+import { TenantCollection, Collection, Product } from '@/lib/models';
+import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { ImageGallery } from '@/components/ImageGallery';
@@ -19,15 +20,11 @@ export async function generateMetadata({
     const { resellerSlug, productSlug } = await params;
     await dbConnect();
 
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
-        return { title: 'Producto no encontrado' };
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
+        return { title: 'Cat?logo no encontrado' };
     }
+    const { tenant } = context;
 
     const product = await Product.findOne({ slug: productSlug }).lean();
     if (!product) return { title: 'Producto no encontrado' };
@@ -60,15 +57,11 @@ export default async function ResellerProductPage({
     await dbConnect();
 
     // Buscar tenant por el slug del revendedor
-    const tenant = await Tenant.findOne({
-        'resellerConfig.slug': resellerSlug,
-        'resellerConfig.enabled': true,
-        isActive: true,
-    }).lean<ITenant>();
-
-    if (!tenant) {
+    const context = await getResellerContext(resellerSlug);
+    if (!context) {
         notFound();
     }
+    const { tenant, whatsappNumber } = context;
 
     // Buscar colección
     const collection = await Collection.findOne({ slug: collectionSlug }).lean() as { _id: any; name: string } | null;
@@ -150,7 +143,7 @@ export default async function ResellerProductPage({
                     {/* Botón CTA Principal - Máximo Impacto */}
                     <div className="mb-10">
                         <a
-                            href={`https://wa.me/?text=Hola!%20Vi%20este%20producto%20en%20el%20cat%C3%A1logo%20y%20quiero%20hacer%20un%20pedido:%20${encodeURIComponent(productData.name)}%20${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                            href={`https://wa.me/${whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, '') : ''}?text=Hola!%20Vi%20este%20producto%20en%20el%20cat%C3%A1logo%20y%20quiero%20hacer%20un%20pedido:%20${encodeURIComponent(productData.name)}%20${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="group flex items-center justify-between w-full p-6 rounded-[2rem] bg-slate-900 hover:bg-indigo-600 text-white shadow-2xl transition-all duration-500 transform hover:-translate-y-2 active:scale-95 overflow-hidden relative"
