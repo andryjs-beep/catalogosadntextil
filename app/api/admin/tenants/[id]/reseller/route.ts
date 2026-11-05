@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { Tenant } from '@/lib/models';
-import { requireClientAdmin } from '@/lib/auth';
+import { requireSuperAdmin } from '@/lib/auth';
 
 // GET - Obtener configuración de revendedor
 export async function GET(
@@ -13,7 +13,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireClientAdmin();
+        await requireSuperAdmin();
         await dbConnect();
 
         const { id } = await params;
@@ -53,7 +53,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireClientAdmin();
+        await requireSuperAdmin();
         await dbConnect();
 
         const { id } = await params;
