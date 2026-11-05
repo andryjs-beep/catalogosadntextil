@@ -63,12 +63,12 @@ export default async function ResellerLayout({
         tenantId: tenant._id,
         isPublished: true,
     })
-        .populate('collectionId', 'slug name image isActive')
-        .sort({ order: 1 })
+        .populate('collectionId', 'slug name image coverImage order isActive')
         .lean();
 
     const collections = tenantCollections
         .filter((tc: any) => tc.collectionId)
+        .sort((a: any, b: any) => (a.collectionId?.order || 0) - (b.collectionId?.order || 0))
         .map((tc: any) => ({
             _id: tc.collectionId._id.toString(),
             slug: tc.collectionId.slug,
