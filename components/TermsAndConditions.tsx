@@ -1,5 +1,6 @@
-import DOMPurify from 'isomorphic-dompurify';
 'use client';
+
+import DOMPurify from 'isomorphic-dompurify';
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, FileText } from 'lucide-react';
