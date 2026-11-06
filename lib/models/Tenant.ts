@@ -121,12 +121,13 @@ export interface ITestimonialsConfig {
 }
 
 export interface ITenant extends Document {
-    _id: mongoose.Types.ObjectId;
-    slug: string;
+    name: string;
+    slug: string;                    // Subdominio único: cliente.tudominio.com
+    customDomain?: string;           // Dominio propio: www.cliente.com
     branding: IBranding;
     socialLinks: ISocialLinks;
     globalTexts: IGlobalTexts;
-    businessInfo: IBusinessInfo;
+    businessInfo?: IBusinessInfo;
     resellerConfig: IResellerConfig;
     testimonialsConfig?: ITestimonialsConfig;
     isActive: boolean;
@@ -136,16 +137,23 @@ export interface ITenant extends Document {
 
 const TenantSchema = new Schema<ITenant>(
     {
+        name: {
+            type: String,
+            required: [true, 'El nombre es requerido'],
+            trim: true,
+        },
         slug: {
             type: String,
-            required: [true, 'El slug del tenant es requerido'],
+            required: [true, 'El slug es requerido'],
             unique: true,
             lowercase: true,
             trim: true,
-            match: [
-                /^[a-z0-9-]+$/,
-                'El slug solo puede contener letras minúsculas, números y guiones',
-            ],
+        },
+        customDomain: {
+            type: String,
+            lowercase: true,
+            trim: true,
+            sparse: true,
         },
         branding: {
             logo: { type: String, default: '' },
@@ -236,6 +244,13 @@ const TenantSchema = new Schema<ITenant>(
             step2Desc: { type: String, default: 'Envíanos la cantidad y talla (si aplica). Atendemos desde 1 unidad.' },
             step3Title: { type: String, default: 'Espera el envío' },
             step3Desc: { type: String, default: 'Confirmamos tu pedido al instante y coordinamos la entrega rápida y segura.' },
+            // Ticker / Cinta informativa revendedor
+            tickerEnabled: { type: Boolean, default: false },
+            tickerText: { type: String, default: '' },
+            tickerBgColor: { type: String, default: '#0f172a' },
+            tickerTextColor: { type: String, default: '#ffffff' },
+            tickerSpeed: { type: String, enum: ['slow', 'normal', 'fast'], default: 'normal' },
+            tickerDirection: { type: String, enum: ['left', 'right'], default: 'left' },
         },
         testimonialsConfig: {
             enabled: { type: Boolean, default: true },
