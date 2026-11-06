@@ -32,6 +32,9 @@ export const resellerDetailsSchema = z.object({
     printMethod: z.string().max(200).default(''),
     delivery: z.string().max(200).default(''),
     extraNote: z.string().max(300).default(''),
+    sizeGuideDama: z.string().default(''),
+    sizeGuideCaballero: z.string().default(''),
+    sizeGuideNinos: z.string().default(''),
 }).optional();
 
 export const collectionSchema = z.object({

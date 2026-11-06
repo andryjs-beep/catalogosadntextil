@@ -47,6 +47,9 @@ interface Collection {
         printMethod?: string;
         delivery?: string;
         extraNote?: string;
+        sizeGuideDama?: string;
+        sizeGuideCaballero?: string;
+        sizeGuideNinos?: string;
     };
     createdAt: string;
 }
@@ -65,6 +68,10 @@ export default function CollectionsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
     const [coverImage, setCoverImage] = useState('');
+    const [sizeGuideDama, setSizeGuideDama] = useState('');
+    const [sizeGuideCaballero, setSizeGuideCaballero] = useState('');
+    const [sizeGuideNinos, setSizeGuideNinos] = useState('');
+    const [uploadingGuide, setUploadingGuide] = useState<string | null>(null);
     // selectedProducts preserva el ORDEN: el array es la secuencia exacta de aparición
     const [selectedProducts, setSelectedProducts] = useState<{ _id: string; name: string }[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -120,6 +127,41 @@ export default function CollectionsPage() {
         fetchProducts();
     }, [fetchCollections, fetchProducts]);
 
+    const handleGuideUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'dama' | 'caballero' | 'ninos') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingGuide(type);
+        const formData = new FormData();
+        formData.append('files', file);
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+                const url = data.urls[0];
+                if (type === 'dama') {
+                    setSizeGuideDama(url);
+                    form.setValue('resellerDetails.sizeGuideDama', url);
+                } else if (type === 'caballero') {
+                    setSizeGuideCaballero(url);
+                    form.setValue('resellerDetails.sizeGuideCaballero', url);
+                } else if (type === 'ninos') {
+                    setSizeGuideNinos(url);
+                    form.setValue('resellerDetails.sizeGuideNinos', url);
+                }
+                toast.success('Tabla de medidas subida');
+            }
+        } catch {
+            toast.error('Error al subir imagen');
+        } finally {
+            setUploadingGuide(null);
+        }
+    };
+
     const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -166,9 +208,15 @@ export default function CollectionsPage() {
                     printMethod: collection.resellerDetails?.printMethod || '',
                     delivery: collection.resellerDetails?.delivery || '',
                     extraNote: collection.resellerDetails?.extraNote || '',
+                    sizeGuideDama: collection.resellerDetails?.sizeGuideDama || '',
+                    sizeGuideCaballero: collection.resellerDetails?.sizeGuideCaballero || '',
+                    sizeGuideNinos: collection.resellerDetails?.sizeGuideNinos || '',
                 },
             });
             setCoverImage(collection.coverImage);
+            setSizeGuideDama(collection.resellerDetails?.sizeGuideDama || '');
+            setSizeGuideCaballero(collection.resellerDetails?.sizeGuideCaballero || '');
+            setSizeGuideNinos(collection.resellerDetails?.sizeGuideNinos || '');
             // Preservar el orden de productIds tal como está guardado
             setSelectedProducts(collection.productIds.map((p) => ({ _id: p._id, name: p.name })));
         } else {
@@ -187,8 +235,14 @@ export default function CollectionsPage() {
                     printMethod: '',
                     delivery: '',
                     extraNote: '',
+                    sizeGuideDama: '',
+                    sizeGuideCaballero: '',
+                    sizeGuideNinos: '',
                 },
             });
+            setSizeGuideDama('');
+            setSizeGuideCaballero('');
+            setSizeGuideNinos('');
             setCoverImage('');
             setSelectedProducts([]);
         }
@@ -200,6 +254,9 @@ export default function CollectionsPage() {
         setEditingCollection(null);
         form.reset();
         setCoverImage('');
+        setSizeGuideDama('');
+        setSizeGuideCaballero('');
+        setSizeGuideNinos('');
         setSelectedProducts([]);
     };
 
@@ -566,6 +623,89 @@ export default function CollectionsPage() {
                                         placeholder="Ej: Estampado Ultra HD no se cuartea"
                                         className="h-8 text-xs bg-white mt-1"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Subida de Tablas de Medidas (Dama, Caballero, Niños) */}
+                            <div className="mt-3 pt-2.5 border-t border-indigo-100/70">
+                                <span className="text-[11px] font-bold text-slate-700 block mb-2">
+                                    📏 Imágenes con Tabla de Medidas (Aparecen al tocar &ldquo;Ver Guía de Medidas&rdquo;):
+                                </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    {/* Dama */}
+                                    <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200">
+                                        {sizeGuideDama ? (
+                                            <div className="relative group">
+                                                <Image src={sizeGuideDama} alt="Dama" width={32} height={32} unoptimized className="h-8 w-8 object-cover rounded-md border" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSizeGuideDama(''); form.setValue('resellerDetails.sizeGuideDama', ''); }}
+                                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 text-[8px]"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-base">👚</span>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[10px] font-bold text-slate-700 block truncate">Medidas Dama</span>
+                                            <label className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
+                                                {uploadingGuide === 'dama' ? 'Subiendo...' : (sizeGuideDama ? 'Cambiar' : '+ Subir')}
+                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleGuideUpload(e, 'dama')} disabled={uploadingGuide === 'dama'} />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Caballero */}
+                                    <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200">
+                                        {sizeGuideCaballero ? (
+                                            <div className="relative group">
+                                                <Image src={sizeGuideCaballero} alt="Caballero" width={32} height={32} unoptimized className="h-8 w-8 object-cover rounded-md border" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSizeGuideCaballero(''); form.setValue('resellerDetails.sizeGuideCaballero', ''); }}
+                                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 text-[8px]"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-base">👕</span>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[10px] font-bold text-slate-700 block truncate">Medidas Caballero</span>
+                                            <label className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
+                                                {uploadingGuide === 'caballero' ? 'Subiendo...' : (sizeGuideCaballero ? 'Cambiar' : '+ Subir')}
+                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleGuideUpload(e, 'caballero')} disabled={uploadingGuide === 'caballero'} />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Niños */}
+                                    <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200">
+                                        {sizeGuideNinos ? (
+                                            <div className="relative group">
+                                                <Image src={sizeGuideNinos} alt="Niños" width={32} height={32} unoptimized className="h-8 w-8 object-cover rounded-md border" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSizeGuideNinos(''); form.setValue('resellerDetails.sizeGuideNinos', ''); }}
+                                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 text-[8px]"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-base">👶</span>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[10px] font-bold text-slate-700 block truncate">Medidas Niños</span>
+                                            <label className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
+                                                {uploadingGuide === 'ninos' ? 'Subiendo...' : (sizeGuideNinos ? 'Cambiar' : '+ Subir')}
+                                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleGuideUpload(e, 'ninos')} disabled={uploadingGuide === 'ninos'} />
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

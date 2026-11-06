@@ -10,6 +10,7 @@ import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { ChevronLeft } from 'lucide-react';
 import { ImageGallery } from '@/components/ImageGallery';
+import { SizeGuideModal } from '@/components/SizeGuideModal';
 import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 export async function generateMetadata({
@@ -323,6 +324,16 @@ export default async function ResellerProductPage({
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Botón Modal para Ver Guía de Medidas con Imagen */}
+                                {((collection as any).resellerDetails.sizeGuideDama || (collection as any).resellerDetails.sizeGuideCaballero || (collection as any).resellerDetails.sizeGuideNinos) && (
+                                    <SizeGuideModal
+                                        damaImage={(collection as any).resellerDetails.sizeGuideDama}
+                                        caballeroImage={(collection as any).resellerDetails.sizeGuideCaballero}
+                                        ninosImage={(collection as any).resellerDetails.sizeGuideNinos}
+                                        primaryColor={primaryColor}
+                                    />
+                                )}
                             </div>
                         )}
 

@@ -12,6 +12,9 @@ export interface IResellerDetails {
     printMethod?: string;
     delivery?: string;
     extraNote?: string;
+    sizeGuideDama?: string;
+    sizeGuideCaballero?: string;
+    sizeGuideNinos?: string;
 }
 
 export interface ICollection extends Document {
@@ -67,6 +70,9 @@ const CollectionSchema = new Schema<ICollection>(
             printMethod: { type: String, default: '' },
             delivery: { type: String, default: '' },
             extraNote: { type: String, default: '' },
+            sizeGuideDama: { type: String, default: '' },
+            sizeGuideCaballero: { type: String, default: '' },
+            sizeGuideNinos: { type: String, default: '' },
         },
     },
     {
