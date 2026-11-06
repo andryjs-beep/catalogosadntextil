@@ -277,7 +277,7 @@ export default async function ResellerProductPage({
 
                                                 {/* Ficha de Calidad & Tallas de la Colección */}
                         {(collection as any).resellerDetails && ((collection as any).resellerDetails.adultSizes || (collection as any).resellerDetails.material) && (
-                            <div className="mb-8 bg-slate-50/90 rounded-3xl p-6 border border-slate-200/60 shadow-xs">
+                            <div className="mb-4 bg-slate-50/90 rounded-3xl p-5 border border-slate-200/60 shadow-xs">
                                 <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-slate-800 flex items-center gap-2">
                                     <span>✦</span> Especificaciones y Tallas
                                 </h3>
@@ -385,7 +385,7 @@ export default async function ResellerProductPage({
                 </div>
 
                 {/* Separador */}
-                <div className="my-20 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                <div className="my-6 md:my-10 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
                 {/* ═══ SECCIÓN: CÓMO RECIBIR ═══ */}
                 <div className="text-center">
@@ -395,7 +395,7 @@ export default async function ResellerProductPage({
                     >
                         Proceso de Compra
                     </span>
-                    <h3 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter mb-12">
+                    <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter mb-6">
                         ¿Cómo recibir este producto?
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
