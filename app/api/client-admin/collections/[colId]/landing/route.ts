@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { TenantCollection } from '@/lib/models';
-import { getSession } from '@/lib/auth';
+import { requireClientAdmin } from '@/lib/auth';
 import { tenantCollectionSchema } from '@/lib/validations';
 
 interface RouteParams {
@@ -10,7 +10,7 @@ interface RouteParams {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
-        const session = await getSession();
+        const session = await requireClientAdmin();
         if (!session.isAuthenticated || !session.tenantId) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
