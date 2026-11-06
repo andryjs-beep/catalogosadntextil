@@ -94,6 +94,13 @@ export interface IResellerConfig {
     step2Desc?: string;
     step3Title?: string;
     step3Desc?: string;
+    // Ticker / Cinta informativa animada
+    tickerEnabled?: boolean;
+    tickerText?: string;
+    tickerBgColor?: string;
+    tickerTextColor?: string;
+    tickerSpeed?: 'slow' | 'normal' | 'fast';
+    tickerDirection?: 'left' | 'right';
 }
 
 export interface ITestimonialItem {

@@ -8,6 +8,7 @@ import { TenantCollection, Collection } from '@/lib/models';
 import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
 import { Footer } from '@/components/Footer';
+import { ResellerTicker } from '@/components/ResellerTicker';
 import './reseller.css';
 
 interface CollectionData {

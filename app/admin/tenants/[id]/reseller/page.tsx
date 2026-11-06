@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import {
+    useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -27,6 +28,7 @@ import {
     Shield,
     ChevronDown,
     ChevronUp,
+    Sparkles,
 } from 'lucide-react';
 
 interface ResellerItem {
@@ -65,6 +67,12 @@ interface ResellerConfig {
     step2Desc?: string;
     step3Title?: string;
     step3Desc?: string;
+    tickerEnabled?: boolean;
+    tickerText?: string;
+    tickerBgColor?: string;
+    tickerTextColor?: string;
+    tickerSpeed?: 'slow' | 'normal' | 'fast';
+    tickerDirection?: 'left' | 'right';
 }
 
 // WhatsApp SVG Icon
@@ -90,6 +98,7 @@ export default function ResellerConfigPage({
     const [tenantSlug, setTenantSlug] = useState('');
     const [showDesignPanel, setShowDesignPanel] = useState(false);
     const [showStepsPanel, setShowStepsPanel] = useState(false);
+    const [showTickerPanel, setShowTickerPanel] = useState(false);
     const [isUploadingShareImage, setIsUploadingShareImage] = useState(false);
     const [config, setConfig] = useState<ResellerConfig>({
         enabled: false,
@@ -118,6 +127,12 @@ export default function ResellerConfigPage({
         step2Desc: 'Envíanos la cantidad y talla (si aplica). Atendemos desde 1 unidad.',
         step3Title: 'Espera el envío',
         step3Desc: 'Confirmamos tu pedido al instante y coordinamos la entrega rápida y segura.',
+        tickerEnabled: false,
+        tickerText: '',
+        tickerBgColor: '#0f172a',
+        tickerTextColor: '#ffffff',
+        tickerSpeed: 'normal',
+        tickerDirection: 'left',
     });
 
     // Estado para nuevo revendedor
@@ -641,6 +656,160 @@ export default function ResellerConfigPage({
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* ═══ CARD NUEVA: Banda Informativa Animada (Ticker / Marquee) ═══ */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={() => setShowTickerPanel(!showTickerPanel)}
+                        className="w-full p-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                                <Sparkles className="h-5 w-5" />
+                            </div>
+                            <div className="text-left">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-slate-900 text-base">Banda Informativa Animada (Ticker)</h3>
+                                    {config.tickerEnabled ? (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Activa</span>
+                                    ) : (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">Inactiva</span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-slate-500">Cinta de texto continuo debajo de las categorías en el catálogo</p>
+                            </div>
+                        </div>
+                        {showTickerPanel ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                    </button>
+
+                    {showTickerPanel && (
+                        <div className="border-t border-slate-100 p-6 space-y-5 bg-slate-50/40">
+                            {/* Toggle Activar/Desactivar */}
+                            <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200">
+                                <div>
+                                    <span className="font-bold text-sm text-slate-800 block">Mostrar Banda Animada</span>
+                                    <span className="text-xs text-slate-500">Activa o desactiva la cinta de texto en el catálogo del revendedor</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setField('tickerEnabled', !config.tickerEnabled)}
+                                    className={`p-1.5 rounded-xl transition-colors ${config.tickerEnabled ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-100'}`}
+                                >
+                                    {config.tickerEnabled ? <ToggleRight className="h-7 w-7" /> : <ToggleLeft className="h-7 w-7" />}
+                                </button>
+                            </div>
+
+                            {/* Texto del Ticker */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Texto Informativo que se desplazará
+                                </label>
+                                <input
+                                    type="text"
+                                    value={config.tickerText || ''}
+                                    onChange={(e) => setField('tickerText', e.target.value)}
+                                    placeholder="Ej: 🔥 ENVÍOS A TODA VENEZUELA • CALIDAD 100% ALGODÓN • ATENCIÓN INMEDIATA POR WHATSAPP"
+                                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                />
+                            </div>
+
+                            {/* Opciones de Velocidad, Dirección y Colores */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {/* Velocidad */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        Velocidad
+                                    </label>
+                                    <select
+                                        value={config.tickerSpeed || 'normal'}
+                                        onChange={(e) => setField('tickerSpeed', e.target.value)}
+                                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none font-medium"
+                                    >
+                                        <option value="slow">Lenta (Suave)</option>
+                                        <option value="normal">Normal (Recomendada)</option>
+                                        <option value="fast">Rápida</option>
+                                    </select>
+                                </div>
+
+                                {/* Dirección */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        Dirección
+                                    </label>
+                                    <select
+                                        value={config.tickerDirection || 'left'}
+                                        onChange={(e) => setField('tickerDirection', e.target.value)}
+                                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none font-medium"
+                                    >
+                                        <option value="left">← Derecha a Izquierda</option>
+                                        <option value="right">→ Izquierda a Derecha</option>
+                                    </select>
+                                </div>
+
+                                {/* Color de Fondo */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        Color de Fondo
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={config.tickerBgColor || '#0f172a'}
+                                            onChange={(e) => setField('tickerBgColor', e.target.value)}
+                                            className="w-9 h-9 rounded-lg border border-slate-200 cursor-pointer p-0.5"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={config.tickerBgColor || '#0f172a'}
+                                            onChange={(e) => setField('tickerBgColor', e.target.value)}
+                                            className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg uppercase font-mono"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Color del Texto */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        Color del Texto
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={config.tickerTextColor || '#ffffff'}
+                                            onChange={(e) => setField('tickerTextColor', e.target.value)}
+                                            className="w-9 h-9 rounded-lg border border-slate-200 cursor-pointer p-0.5"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={config.tickerTextColor || '#ffffff'}
+                                            onChange={(e) => setField('tickerTextColor', e.target.value)}
+                                            className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg uppercase font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Vista Previa de la Banda */}
+                            {config.tickerText && (
+                                <div className="mt-2">
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                        Vista Previa en vivo:
+                                    </label>
+                                    <div
+                                        className="w-full py-2 px-4 rounded-xl overflow-hidden font-black text-xs uppercase tracking-wider text-center shadow-xs"
+                                        style={{
+                                            backgroundColor: config.tickerBgColor || '#0f172a',
+                                            color: config.tickerTextColor || '#ffffff'
+                                        }}
+                                    >
+                                        {config.tickerText}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
