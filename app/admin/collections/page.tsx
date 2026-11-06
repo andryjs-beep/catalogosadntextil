@@ -517,7 +517,7 @@ export default function CollectionsPage() {
             </Card>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[95vw] sm:w-[95vw] w-[95vw] max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col overflow-hidden p-0 rounded-2xl">
+                <DialogContent className="sm:max-w-[96vw] sm:w-[96vw] w-[96vw] max-w-[96vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden p-0 rounded-2xl">
                     <DialogHeader className="px-6 py-4 border-b shrink-0 bg-slate-50 flex-row items-center justify-between">
                         <div>
                             <DialogTitle className="text-xl font-bold text-slate-800">
@@ -529,7 +529,8 @@ export default function CollectionsPage() {
                         </div>
                     </DialogHeader>
 
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        <div className="shrink-0 max-h-[42vh] overflow-y-auto border-b">
                         {/* Sección Exclusiva: Textos Persuasivos para Catálogo de Revendedores */}
                         <div className="px-6 py-3 bg-gradient-to-r from-indigo-50/70 via-purple-50/40 to-white border-b shrink-0">
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
@@ -754,9 +755,10 @@ export default function CollectionsPage() {
                                 </div>
                             </div>
                         </div>
+                        </div>
 
                         {/* Seccion 2: Paneles Side-by-Side para Productos */}
-                        <div className="flex flex-1 min-h-0 overflow-hidden bg-slate-100/60 p-4 gap-4">
+                        <div className="flex flex-1 min-h-[350px] overflow-hidden bg-slate-100/60 p-4 gap-4">
                             {/* Panel Izquierdo: Productos en la Colección */}
                             <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden">
                                 <div className="px-4 py-3 border-b bg-blue-50/50 flex items-center justify-between shrink-0">
