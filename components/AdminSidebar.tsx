@@ -15,6 +15,7 @@ import {
     Menu,
     X,
     Star,
+    Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -42,6 +43,7 @@ export function AdminSidebar({ isSuperAdmin = true, tenantSlug }: AdminSidebarPr
         { href: '/admin/tenants', label: 'Clientes', icon: <Store className="h-5 w-5" /> },
         { href: '/admin/testimonials', label: 'Reseñas Clientes', icon: <Star className="h-5 w-5 text-amber-400" /> },
         { href: '/admin/analytics', label: 'Analytics', icon: <BarChart3 className="h-5 w-5" /> },
+        { href: '/admin/backup', label: 'Copia de Seguridad', icon: <Database className="h-5 w-5 text-emerald-400" /> },
     ];
 
     // Rutas para client-admin
