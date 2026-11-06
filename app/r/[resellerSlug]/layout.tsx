@@ -28,7 +28,7 @@ export async function generateMetadata({
 
     const context = await getResellerContext(resellerSlug);
     if (!context) {
-        return { title: 'Cat?logo no encontrado' };
+        return { title: 'Catálogo no encontrado' };
     }
     const { tenant } = context;
 
@@ -145,6 +145,16 @@ export default async function ResellerLayout({
                             )}
                         </div>
                     </header>
+
+                    {/* Banda Animada (Ticker) - Visible cuando está activa en admin */}
+                    <ResellerTicker
+                        enabled={resellerConfig.tickerEnabled ?? false}
+                        text={resellerConfig.tickerText ?? ''}
+                        bgColor={resellerConfig.tickerBgColor ?? '#0f172a'}
+                        textColor={resellerConfig.tickerTextColor ?? '#ffffff'}
+                        speed={(resellerConfig.tickerSpeed as 'slow' | 'normal' | 'fast') ?? 'normal'}
+                        direction={(resellerConfig.tickerDirection as 'left' | 'right') ?? 'left'}
+                    />
 
                     {/* Contenido principal */}
                     <main className="flex-1">{children}</main>
