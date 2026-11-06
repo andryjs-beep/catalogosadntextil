@@ -8,9 +8,21 @@ import dbConnect from '@/lib/db';
 import { User } from '@/lib/models';
 import { comparePassword, signToken, setAuthCookie } from '@/lib/auth';
 import { loginSchema } from '@/lib/validations';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
     try {
+        const clientIp = getClientIP(request.headers);
+        const rateCheck = checkRateLimit(`login:${clientIp}`, {
+            limit: 5,
+            windowMs: 10 * 60 * 1000,
+        });
+        if (!rateCheck.success) {
+            return NextResponse.json(
+                { error: 'Demasiados intentos fallidos. Por seguridad, espera 10 minutos.' },
+                { status: 429 }
+            );
+        }
         await dbConnect();
 
         const body = await request.json();

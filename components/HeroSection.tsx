@@ -1,3 +1,4 @@
+import DOMPurify from 'isomorphic-dompurify';
 import { WhatsAppButton } from './WhatsAppButton';
 import { ProductSlider } from './ProductSlider';
 import { Badge } from '@/components/ui/badge';
@@ -132,7 +133,7 @@ export function HeroSection({
 
                         <div
                             className="text-base md:text-lg text-slate-500 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 hero-subheadline-container font-medium"
-                            dangerouslySetInnerHTML={{ __html: data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.' }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.subheadline || 'Calidad premium diseñada para superar tus expectativas en cada detalle.') }}
                         />
 
                         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">

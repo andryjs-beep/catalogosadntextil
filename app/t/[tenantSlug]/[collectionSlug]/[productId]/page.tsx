@@ -1,3 +1,4 @@
+import DOMPurify from 'isomorphic-dompurify';
 /**
  * Detalle de Producto - Diseño tipo Landing Page
  */
@@ -342,7 +343,7 @@ export default async function ProductDetailPage({
                             {customization?.useLandingLayout && customization.landingContent?.subheadline && (
                                 <div
                                     className="text-lg md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto"
-                                    dangerouslySetInnerHTML={{ __html: customization.landingContent.subheadline }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(customization.landingContent.subheadline) }}
                                 />
                             )}
 
@@ -397,7 +398,7 @@ export default async function ProductDetailPage({
                         <div className="prose prose-slate max-w-none">
                             <div
                                 className="text-slate-700 leading-relaxed text-lg md:text-xl text-center"
-                                dangerouslySetInnerHTML={{ __html: finalDescription }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(finalDescription) }}
                             />
                         </div>
 

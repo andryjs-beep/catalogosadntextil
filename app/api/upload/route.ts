@@ -6,8 +6,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { uploadMultipleImages } from '@/lib/cloudinary';
 import { getSession } from '@/lib/auth';
 
+import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
+
 export async function POST(request: NextRequest) {
     try {
+        const clientIp = getClientIP(request.headers);
+        const rateCheck = checkRateLimit(`upload:${clientIp}`, {
+            limit: 30,
+            windowMs: 60 * 1000,
+        });
+        if (!rateCheck.success) {
+            return NextResponse.json(
+                { error: 'Límite de subidas alcanzado. Espera un minuto.' },
+                { status: 429 }
+            );
+        }
         // Verificar autenticación (cualquier usuario autenticado puede subir)
         const session = await getSession();
         if (!session.isAuthenticated) {

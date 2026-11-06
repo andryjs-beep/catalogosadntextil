@@ -1,3 +1,4 @@
+import DOMPurify from 'isomorphic-dompurify';
 'use client';
 
 import { useState } from 'react';
@@ -49,7 +50,7 @@ export function TermsAndConditions({
                 <div className="border-t border-slate-200 p-4 bg-slate-50">
                     <div
                         className="prose prose-sm max-w-none text-slate-600 max-h-64 overflow-y-auto"
-                        dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br/>') }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.replace(/\n/g, '<br/>')) }}
                     />
                 </div>
             )}
