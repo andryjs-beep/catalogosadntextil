@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload, ArrowUp, ArrowDown, X, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, FolderOpen, Upload, ArrowUp, ArrowDown, X, GripVertical, Sparkles, Shirt, Coffee, Users } from 'lucide-react';
 import Image from 'next/image';
 
 interface Collection {
@@ -39,6 +39,15 @@ interface Collection {
     coverImage: string;
     productIds: { _id: string; name: string; images?: string[] }[];
     order: number;
+    resellerDetails?: {
+        enabled?: boolean;
+        adultSizes?: string;
+        kidsSizes?: string;
+        material?: string;
+        printMethod?: string;
+        delivery?: string;
+        extraNote?: string;
+    };
     createdAt: string;
 }
 
@@ -68,6 +77,15 @@ export default function CollectionsPage() {
             coverImage: '',
             productIds: [],
             order: 0,
+            resellerDetails: {
+                enabled: true,
+                adultSizes: '',
+                kidsSizes: '',
+                material: '',
+                printMethod: '',
+                delivery: '',
+                extraNote: '',
+            },
         },
     });
 
@@ -140,13 +158,37 @@ export default function CollectionsPage() {
                 coverImage: collection.coverImage,
                 productIds: collection.productIds.map((p) => p._id),
                 order: collection.order,
+                resellerDetails: {
+                    enabled: collection.resellerDetails?.enabled ?? true,
+                    adultSizes: collection.resellerDetails?.adultSizes || '',
+                    kidsSizes: collection.resellerDetails?.kidsSizes || '',
+                    material: collection.resellerDetails?.material || '',
+                    printMethod: collection.resellerDetails?.printMethod || '',
+                    delivery: collection.resellerDetails?.delivery || '',
+                    extraNote: collection.resellerDetails?.extraNote || '',
+                },
             });
             setCoverImage(collection.coverImage);
             // Preservar el orden de productIds tal como está guardado
             setSelectedProducts(collection.productIds.map((p) => ({ _id: p._id, name: p.name })));
         } else {
             setEditingCollection(null);
-            form.reset({ slug: '', name: '', coverImage: '', productIds: [], order: collections.length });
+            form.reset({
+                slug: '',
+                name: '',
+                coverImage: '',
+                productIds: [],
+                order: collections.length,
+                resellerDetails: {
+                    enabled: true,
+                    adultSizes: '',
+                    kidsSizes: '',
+                    material: '',
+                    printMethod: '',
+                    delivery: '',
+                    extraNote: '',
+                },
+            });
             setCoverImage('');
             setSelectedProducts([]);
         }
@@ -180,6 +222,43 @@ export default function CollectionsPage() {
         if (targetIndex < 0 || targetIndex >= newList.length) return;
         [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
         setSelectedProducts(newList);
+    };
+
+
+    const applyPreset = (type: 'dama' | 'caballero' | 'ambos' | 'mugs') => {
+        if (type === 'dama') {
+            form.setValue('resellerDetails.adultSizes', 'Dama: S, M, L, XL (Corte semi-entallado femenino)');
+            form.setValue('resellerDetails.kidsSizes', 'Niñas y Niños: Tallas 2, 4, 6, 8, 10, 12, 14, 16');
+            form.setValue('resellerDetails.material', 'Algodón 100% peinado premium, fresco, suave al tacto y no encoge');
+            form.setValue('resellerDetails.printMethod', 'Estampado textil Ultra HD de alta resistencia, no se cae ni se cuartea');
+            form.setValue('resellerDetails.delivery', 'Envíos a toda Venezuela por MRW, Zoom o Tealca');
+            form.setValue('resellerDetails.extraNote', 'Fabricación y confección nacional con acabados de primera');
+            toast.success('Plantilla Dama + Niños aplicada');
+        } else if (type === 'caballero') {
+            form.setValue('resellerDetails.adultSizes', 'Caballero: S, M, L, XL, XXL (Corte clásico regular)');
+            form.setValue('resellerDetails.kidsSizes', 'Niños y Niñas: Tallas 2, 4, 6, 8, 10, 12, 14, 16');
+            form.setValue('resellerDetails.material', 'Algodón 100% pesado 20/1, tela gruesa, cuello reforzado de larga duración');
+            form.setValue('resellerDetails.printMethod', 'Estampado textil Ultra HD de alta resistencia, no se cae ni se cuartea');
+            form.setValue('resellerDetails.delivery', 'Envíos a toda Venezuela por MRW, Zoom o Tealca');
+            form.setValue('resellerDetails.extraNote', 'Fabricación y confección nacional con costuras reforzadas');
+            toast.success('Plantilla Caballero + Niños aplicada');
+        } else if (type === 'ambos') {
+            form.setValue('resellerDetails.adultSizes', 'Adultos: Dama (S a XL) | Caballero (S a XXL)');
+            form.setValue('resellerDetails.kidsSizes', 'Niños: Tallas 2, 4, 6, 8, 10, 12, 14, 16');
+            form.setValue('resellerDetails.material', 'Algodón 100% peinado premium, fresco y suave al tacto');
+            form.setValue('resellerDetails.printMethod', 'Estampado digital HD de máxima durabilidad y colores vivos');
+            form.setValue('resellerDetails.delivery', 'Envíos a toda Venezuela por MRW, Zoom o Tealca');
+            form.setValue('resellerDetails.extraNote', 'Disponibles para toda la familia (Adultos y Niños)');
+            toast.success('Plantilla Unisex / Familiar aplicada');
+        } else if (type === 'mugs') {
+            form.setValue('resellerDetails.adultSizes', 'Capacidad estándar: 11 oz (325 ml)');
+            form.setValue('resellerDetails.kidsSizes', '');
+            form.setValue('resellerDetails.material', 'Cerámica importada AAA blanca brillante, apta para microondas y lavavajillas');
+            form.setValue('resellerDetails.printMethod', 'Sublimación fotográfica full color de alta definición que no se borra');
+            form.setValue('resellerDetails.delivery', 'Embalaje protegido anti-impacto. Envíos a toda Venezuela');
+            form.setValue('resellerDetails.extraNote', 'Excelente opción para obsequios y uso diario');
+            toast.success('Plantilla Tazas / Mugs aplicada');
+        }
     };
 
     const onSubmit = async (data: CollectionInput) => {
@@ -394,6 +473,102 @@ export default function CollectionsPage() {
                     </DialogHeader>
 
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+                        {/* Sección Exclusiva: Textos Persuasivos para Catálogo de Revendedores */}
+                        <div className="px-6 py-3 bg-gradient-to-r from-indigo-50/70 via-purple-50/40 to-white border-b shrink-0">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4 text-indigo-600" />
+                                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                        Ficha de Calidad & Tallas (Modo Revendedor)
+                                    </span>
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                                        Solo visible para revendedores
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[11px] font-semibold text-slate-500 mr-1">Rellenar rápido:</span>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-[11px] px-2.5 bg-white hover:bg-pink-50 hover:text-pink-700 border-pink-200"
+                                        onClick={() => applyPreset('dama')}
+                                    >
+                                        👚 Dama + Niños
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-[11px] px-2.5 bg-white hover:bg-blue-50 hover:text-blue-700 border-blue-200"
+                                        onClick={() => applyPreset('caballero')}
+                                    >
+                                        👕 Caballero + Niños
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-[11px] px-2.5 bg-white hover:bg-purple-50 hover:text-purple-700 border-purple-200"
+                                        onClick={() => applyPreset('ambos')}
+                                    >
+                                        👨‍👩‍👧 Familiar (Ambos)
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-[11px] px-2.5 bg-white hover:bg-amber-50 hover:text-amber-700 border-amber-200"
+                                        onClick={() => applyPreset('mugs')}
+                                    >
+                                        ☕ Tazas / Mugs
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                                        <span>👔 Tallas Adulto</span>
+                                    </Label>
+                                    <Input
+                                        {...form.register('resellerDetails.adultSizes')}
+                                        placeholder="Ej: S, M, L, XL"
+                                        className="h-8 text-xs bg-white mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                                        <span>👶 Tallas Niños</span>
+                                    </Label>
+                                    <Input
+                                        {...form.register('resellerDetails.kidsSizes')}
+                                        placeholder="Ej: 2, 4, 6, 8, 10, 12, 14, 16"
+                                        className="h-8 text-xs bg-white mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                                        <span>🧵 Calidad / Tela</span>
+                                    </Label>
+                                    <Input
+                                        {...form.register('resellerDetails.material')}
+                                        placeholder="Ej: Algodón 100% peinado premium"
+                                        className="h-8 text-xs bg-white mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                                        <span>🎨 Técnica / Estampado</span>
+                                    </Label>
+                                    <Input
+                                        {...form.register('resellerDetails.printMethod')}
+                                        placeholder="Ej: Estampado Ultra HD no se cuartea"
+                                        className="h-8 text-xs bg-white mt-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         {/* Seccion 1: Datos basicos de la Colección */}
                         <div className="px-6 py-3 bg-white border-b shrink-0 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                             <div className="space-y-1">

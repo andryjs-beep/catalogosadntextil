@@ -275,6 +275,57 @@ export default async function ResellerProductPage({
                             </div>
                         </div>
 
+                                                {/* Ficha de Calidad & Tallas de la Colección */}
+                        {(collection as any).resellerDetails && ((collection as any).resellerDetails.adultSizes || (collection as any).resellerDetails.material) && (
+                            <div className="mb-8 bg-slate-50/90 rounded-3xl p-6 border border-slate-200/60 shadow-xs">
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-slate-800 flex items-center gap-2">
+                                    <span>✦</span> Especificaciones y Tallas
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {(collection as any).resellerDetails.adultSizes && (
+                                        <div className="bg-white rounded-2xl p-3.5 border border-slate-100">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                                👔 Tallas Adulto
+                                            </span>
+                                            <span className="text-xs font-bold text-slate-800">
+                                                {(collection as any).resellerDetails.adultSizes}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {(collection as any).resellerDetails.kidsSizes && (
+                                        <div className="bg-white rounded-2xl p-3.5 border border-slate-100">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 block mb-1">
+                                                👶 Tallas Niños
+                                            </span>
+                                            <span className="text-xs font-bold text-slate-800">
+                                                {(collection as any).resellerDetails.kidsSizes}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {(collection as any).resellerDetails.material && (
+                                        <div className="bg-white rounded-2xl p-3.5 border border-slate-100">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                                🧵 Tela / Calidad
+                                            </span>
+                                            <span className="text-xs font-bold text-slate-800">
+                                                {(collection as any).resellerDetails.material}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {(collection as any).resellerDetails.printMethod && (
+                                        <div className="bg-white rounded-2xl p-3.5 border border-slate-100">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                                                🎨 Estampado
+                                            </span>
+                                            <span className="text-xs font-bold text-slate-800">
+                                                {(collection as any).resellerDetails.printMethod}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Descripción */}
                         {productData.description && (
                             <div className="mb-8">

@@ -24,6 +24,16 @@ export const productSchema = z.object({
 export type ProductInput = z.infer<typeof productSchema>;
 
 // ============ COLECCIONES ============
+export const resellerDetailsSchema = z.object({
+    enabled: z.boolean().default(true),
+    adultSizes: z.string().max(200).default(''),
+    kidsSizes: z.string().max(200).default(''),
+    material: z.string().max(300).default(''),
+    printMethod: z.string().max(200).default(''),
+    delivery: z.string().max(200).default(''),
+    extraNote: z.string().max(300).default(''),
+}).optional();
+
 export const collectionSchema = z.object({
     slug: z
         .string()
@@ -40,6 +50,7 @@ export const collectionSchema = z.object({
     coverImage: z.string().default(''),
     productIds: z.array(z.string()).default([]),
     order: z.number().int().min(0).default(0),
+    resellerDetails: resellerDetailsSchema,
 });
 
 export type CollectionInput = z.infer<typeof collectionSchema>;

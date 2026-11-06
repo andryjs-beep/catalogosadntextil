@@ -10,7 +10,7 @@ import dbConnect from '@/lib/db';
 import { TenantCollection, Collection, Product } from '@/lib/models';
 import { getResellerContext } from '@/lib/reseller';
 import type { ITenant } from '@/lib/models/Tenant';
-import { Package, ChevronLeft, ArrowRight } from 'lucide-react';
+import { Package, ChevronLeft, ArrowRight, Sparkles, Shirt, ShieldCheck, Ruler, CheckCircle2 } from 'lucide-react';
 import { getAbsoluteImageUrl } from '@/lib/utils/metadata';
 
 interface ProductData {

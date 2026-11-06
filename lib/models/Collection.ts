@@ -4,6 +4,16 @@
  */
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IResellerDetails {
+    enabled?: boolean;
+    adultSizes?: string;
+    kidsSizes?: string;
+    material?: string;
+    printMethod?: string;
+    delivery?: string;
+    extraNote?: string;
+}
+
 export interface ICollection extends Document {
     _id: mongoose.Types.ObjectId;
     slug: string;
@@ -11,6 +21,7 @@ export interface ICollection extends Document {
     coverImage: string;
     productIds: mongoose.Types.ObjectId[];
     order: number;
+    resellerDetails?: IResellerDetails;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -47,6 +58,15 @@ const CollectionSchema = new Schema<ICollection>(
         order: {
             type: Number,
             default: 0,
+        },
+        resellerDetails: {
+            enabled: { type: Boolean, default: true },
+            adultSizes: { type: String, default: '' },
+            kidsSizes: { type: String, default: '' },
+            material: { type: String, default: '' },
+            printMethod: { type: String, default: '' },
+            delivery: { type: String, default: '' },
+            extraNote: { type: String, default: '' },
         },
     },
     {
